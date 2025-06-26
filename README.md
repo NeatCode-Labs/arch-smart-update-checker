@@ -44,7 +44,7 @@
 <div align="center">
 
 ### 🔍 Scanning System and Checking Updates
-![System Scanning](screenshots/ss1.png)
+![System Scanning](screenshots/ss1.png?v=2)
 
 ### 📰 News Analysis and Package Matching
 ![News Analysis](screenshots/ss2.png)
