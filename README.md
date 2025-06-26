@@ -42,6 +42,7 @@
 - 🎨 **User-Friendly Interface**: Colored terminal output with clear warnings and recommendations
 - ⚡ **Caching**: Caches news feeds for 1 hour to reduce network requests
 - 🔄 **Interactive Prompts**: Allows you to review warnings and decide whether to proceed
+- 📄 **Pagination Support**: Automatically paginates long news lists for easy reading in terminal-only environments
 
 ## 📸 Screenshots
 
@@ -127,7 +128,11 @@ asuc --clear-cache
 2. **🔄 Update Check**: Runs `pacman -Sy` and `pacman -Qu` to check for available updates
 3. **📡 News Fetching**: Downloads and parses RSS feeds from configured sources
 4. **🔍 Pattern Matching**: Searches news content for package names that match your installed packages
-5. **💬 User Interaction**: Presents findings and allows you to proceed, cancel, or refresh
+5. **📄 Pagination**: Automatically paginates news when content exceeds terminal height
+   - Press `SPACE` to continue to next page
+   - Press `q` to skip remaining news
+   - Similar to `less` or `more` commands
+6. **💬 User Interaction**: Presents findings and allows you to proceed, cancel, or refresh
 
 ## 🎯 Package Detection
 
