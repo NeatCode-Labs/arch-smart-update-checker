@@ -2,7 +2,7 @@
 """
 Arch Smart Update Checker by NeatCode Labs
 A smart replacement for 'sudo pacman -Syu' that checks Arch Linux news feeds
-for potential issues before updating the system.
+and informs you about news related to your installed packages.
 
 Author: NeatCode Labs
 Website: https://neatcodelabs.com
@@ -352,7 +352,7 @@ class ArchUpdateChecker:
         all_news.sort(key=lambda x: (x['date'] or datetime.min, x['priority']), reverse=True)
         
         # Analyze relevance
-        print(f"\n{Colors.INFO}Analyzing potential issues...{Colors.RESET}")
+        print(f"\n{Colors.INFO}Analyzing news relevance...{Colors.RESET}")
         relevant_warnings = []
         other_news = []
         
@@ -446,7 +446,7 @@ class ArchUpdateChecker:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Smart update checker for Arch Linux - checks news before updating"
+        description="Smart update checker for Arch Linux - informs you about news related to your packages"
     )
     parser.add_argument(
         '-a', '--all-news',

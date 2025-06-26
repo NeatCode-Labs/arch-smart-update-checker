@@ -9,7 +9,7 @@
 [![Arch Linux](https://img.shields.io/badge/Arch%20Linux-Compatible-1793D1?style=flat-square&logo=arch-linux)](https://archlinux.org/)
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
 
-**A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds for potential issues before updating your system.**
+**A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.**
 
 **Created by [NeatCode Labs](https://neatcodelabs.com)**
 
@@ -34,7 +34,7 @@
 
 ## ✨ Features
 
-- 📰 **News Feed Monitoring**: Checks multiple Arch Linux news RSS feeds for potential issues
+- 📰 **News Feed Monitoring**: Checks multiple Arch Linux news RSS feeds for news about packages
 - 📦 **Package Analysis**: Compares your installed packages against warnings in news feeds
 - 🎯 **Smart Distribution Detection**: Automatically detects your Arch-based distro and monitors relevant feeds
 - 🎨 **User-Friendly Interface**: Colored terminal output with clear warnings and recommendations
