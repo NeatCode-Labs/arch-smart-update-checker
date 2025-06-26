@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<img src="screenshots/icon.png" alt="Arch Smart Update Checker" width="128" height="128">
+
+<h1>🛡️ Arch Smart Update Checker</h1>
+
 [![GitHub](https://img.shields.io/badge/GitHub-NeatCode--Labs-blue?style=flat-square&logo=github)](https://github.com/NeatCode-Labs/arch-smart-update-checker)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Arch Linux](https://img.shields.io/badge/Arch%20Linux-Compatible-1793D1?style=flat-square&logo=arch-linux)](https://archlinux.org/)
