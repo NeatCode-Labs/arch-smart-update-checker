@@ -4,6 +4,8 @@ Arch Smart Update Checker by NeatCode Labs
 A smart replacement for 'sudo pacman -Syu' that checks Arch Linux news feeds
 and informs you about news related to your installed packages.
 
+Inspired by informant (https://github.com/bradford-smith94/informant)
+
 Author: NeatCode Labs
 Website: https://neatcodelabs.com
 GitHub: https://github.com/NeatCode-Labs/arch-smart-update-checker

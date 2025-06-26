@@ -13,6 +13,8 @@
 
 **Created by [NeatCode Labs](https://neatcodelabs.com)**
 
+**Inspired by [informant](https://github.com/bradford-smith94/informant)**
+
 </div>
 
 ---
