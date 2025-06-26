@@ -24,6 +24,7 @@ import textwrap
 from urllib.parse import urlparse
 import json
 import hashlib
+import shutil
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -37,6 +38,119 @@ class Colors:
     INFO = Fore.BLUE
     RESET = Style.RESET_ALL
     BOLD = Style.BRIGHT
+
+class Pager:
+    """Simple pager for displaying content that doesn't fit on screen"""
+    def __init__(self):
+        self.lines = []
+        self.current_line = 0
+        
+    def add_line(self, line: str):
+        """Add a line to the pager buffer"""
+        # Handle ANSI color codes properly when wrapping
+        wrapper = textwrap.TextWrapper(width=self.get_terminal_width() - 2)
+        # Split on newlines first
+        for part in line.split('\n'):
+            if part:
+                # Wrap long lines
+                wrapped = wrapper.wrap(part)
+                if wrapped:
+                    self.lines.extend(wrapped)
+                else:
+                    self.lines.append('')
+            else:
+                self.lines.append('')
+    
+    def add_lines(self, lines: List[str]):
+        """Add multiple lines to the pager buffer"""
+        for line in lines:
+            self.add_line(line)
+    
+    def get_terminal_size(self) -> Tuple[int, int]:
+        """Get terminal size (width, height)"""
+        try:
+            size = shutil.get_terminal_size((80, 24))
+            return size.columns, size.lines
+        except:
+            return 80, 24
+    
+    def get_terminal_width(self) -> int:
+        """Get terminal width"""
+        return self.get_terminal_size()[0]
+    
+    def get_terminal_height(self) -> int:
+        """Get terminal height"""
+        return self.get_terminal_size()[1]
+    
+    def display(self):
+        """Display the content with pagination"""
+        if not self.lines:
+            return
+        
+        terminal_height = self.get_terminal_height()
+        # Reserve lines for prompt
+        display_height = terminal_height - 3
+        
+        total_lines = len(self.lines)
+        
+        while self.current_line < total_lines:
+            # Clear screen
+            os.system('clear' if os.name != 'nt' else 'cls')
+            
+            # Display lines for current page
+            end_line = min(self.current_line + display_height, total_lines)
+            for i in range(self.current_line, end_line):
+                print(self.lines[i])
+            
+            # Check if we've reached the end
+            if end_line >= total_lines:
+                print(f"\n{Colors.INFO}(END) Press any key to continue...{Colors.RESET}")
+                try:
+                    # Get single keypress
+                    import termios, tty
+                    fd = sys.stdin.fileno()
+                    old_settings = termios.tcgetattr(fd)
+                    try:
+                        tty.setraw(sys.stdin.fileno())
+                        sys.stdin.read(1)
+                    finally:
+                        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                except:
+                    # Fallback for non-Unix systems
+                    input()
+                break
+            else:
+                # Show progress and prompt
+                progress = f"Lines {self.current_line + 1}-{end_line} of {total_lines}"
+                prompt = f"{Colors.INFO}{progress} -- Press SPACE for next page, 'q' to skip...{Colors.RESET}"
+                print(f"\n{prompt}")
+                
+                try:
+                    # Get single keypress
+                    import termios, tty
+                    fd = sys.stdin.fileno()
+                    old_settings = termios.tcgetattr(fd)
+                    try:
+                        tty.setraw(sys.stdin.fileno())
+                        key = sys.stdin.read(1)
+                    finally:
+                        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                    
+                    if key.lower() == 'q':
+                        break
+                    else:
+                        self.current_line = end_line
+                except:
+                    # Fallback for non-Unix systems
+                    response = input()
+                    if response.lower() == 'q':
+                        break
+                    else:
+                        self.current_line = end_line
+        
+        # Clear the buffer after display
+        self.lines = []
+        self.current_line = 0
 
 class ArchUpdateChecker:
     def __init__(self):
@@ -190,15 +304,22 @@ class ArchUpdateChecker:
                 news_items.append({
                     'title': entry.title,
                     'link': entry.link,
-                    'date': published.isoformat() if published else None,
+                    'date': published,  # Store as datetime object, not string
                     'content': content,
                     'source': feed_info['name'],
                     'priority': feed_info['priority']
                 })
             
-            # Cache the results
+            # Cache the results - convert datetime to string for JSON
+            cache_items = []
+            for item in news_items:
+                cache_item = item.copy()
+                if cache_item['date']:
+                    cache_item['date'] = cache_item['date'].isoformat()
+                cache_items.append(cache_item)
+            
             with open(cache_file, 'w') as f:
-                json.dump(news_items, f)
+                json.dump(cache_items, f)
             
             return news_items
             
@@ -262,30 +383,41 @@ class ArchUpdateChecker:
         
         return is_relevant, affected_packages
     
-    def display_news_item(self, news_item: Dict, affected_packages: List[str]):
-        """Display a formatted news item"""
-        print(f"\n{Colors.INFO}📰 News:{Colors.RESET}")
-        print(f"{Colors.BOLD}{news_item['title']}{Colors.RESET}")
-        print(f"{Colors.INFO}Source: {news_item['source']} | Date: {news_item['date'].strftime('%Y-%m-%d') if news_item['date'] else 'Unknown'}")
+    def format_news_item(self, news_item: Dict, affected_packages: List[str]) -> List[str]:
+        """Format a news item and return as list of lines"""
+        lines = []
+        
+        lines.append(f"\n{Colors.INFO}📰 News:{Colors.RESET}")
+        lines.append(f"{Colors.BOLD}{news_item['title']}{Colors.RESET}")
+        lines.append(f"{Colors.INFO}Source: {news_item['source']} | Date: {news_item['date'].strftime('%Y-%m-%d') if news_item['date'] else 'Unknown'}")
         
         # Wrap content
         wrapper = textwrap.TextWrapper(width=80, initial_indent="  ", subsequent_indent="  ")
         wrapped_content = wrapper.wrap(news_item['content'][:500] + "..." if len(news_item['content']) > 500 else news_item['content'])
-        print()
+        lines.append("")
         for line in wrapped_content[:5]:  # Show first 5 lines
-            print(line)
+            lines.append(line)
         
         if len(wrapped_content) > 5:
-            print(f"  {Colors.INFO}[...truncated. See full article: {news_item['link']}]")
+            lines.append(f"  {Colors.INFO}[...truncated. See full article: {news_item['link']}]")
         
         # Show affected packages
         if affected_packages:
-            print(f"\n  {Colors.WARNING}Your affected packages:{Colors.RESET}")
+            lines.append(f"\n  {Colors.WARNING}Your affected packages:{Colors.RESET}")
             for pkg in affected_packages[:10]:  # Show max 10 packages
                 version = self.installed_packages.get(pkg, "unknown")
-                print(f"    • {pkg} ({version})")
+                lines.append(f"    • {pkg} ({version})")
             if len(affected_packages) > 10:
-                print(f"    • ... and {len(affected_packages) - 10} more")
+                lines.append(f"    • ... and {len(affected_packages) - 10} more")
+        
+        lines.append("")  # Add spacing between items
+        return lines
+    
+    def display_news_item(self, news_item: Dict, affected_packages: List[str]):
+        """Display a formatted news item"""
+        lines = self.format_news_item(news_item, affected_packages)
+        for line in lines:
+            print(line)
     
     def check_pending_updates(self) -> List[str]:
         """Check which packages have updates available"""
@@ -373,16 +505,54 @@ class ArchUpdateChecker:
         
         # Display results
         if relevant_warnings:
-            print(f"\n{Colors.INFO}{'='*80}")
-            print(f"{Colors.INFO}📰 Important news available regarding your installed packages")
-            print(f"{Colors.INFO}   Please read before updating to avoid potential problems")
-            print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
-            
+            # Check if we need pagination
+            total_lines = 0
             for warning in relevant_warnings:
-                self.display_news_item(
-                    warning['news'],
-                    warning['packages']
-                )
+                lines = self.format_news_item(warning['news'], warning['packages'])
+                total_lines += len(lines)
+            
+            # Get terminal height
+            terminal_height = shutil.get_terminal_size((80, 24)).lines
+            
+            # Use pager if content won't fit on screen (leave some room for headers)
+            if total_lines > terminal_height - 10:
+                print(f"\n{Colors.INFO}{'='*80}")
+                print(f"{Colors.INFO}📰 Important news available regarding your installed packages")
+                print(f"{Colors.INFO}   Please read before updating to avoid potential problems")
+                print(f"{Colors.INFO}   (News will be displayed in pages - press SPACE to continue)")
+                print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
+                
+                # Prepare content for pager
+                pager = Pager()
+                pager.add_line(f"{Colors.INFO}{'='*80}")
+                pager.add_line(f"{Colors.INFO}📰 Important news available regarding your installed packages")
+                pager.add_line(f"{Colors.INFO}   Please read before updating to avoid potential problems")
+                pager.add_line(f"{Colors.INFO}{'='*80}{Colors.RESET}")
+                
+                for warning in relevant_warnings:
+                    lines = self.format_news_item(warning['news'], warning['packages'])
+                    pager.add_lines(lines)
+                
+                # Display with pagination
+                pager.display()
+                
+                # Clear screen after pager
+                os.system('clear' if os.name != 'nt' else 'cls')
+                
+                # Show brief summary after paging
+                print(f"\n{Colors.INFO}Displayed {len(relevant_warnings)} news items affecting your packages{Colors.RESET}")
+            else:
+                # Display normally if it fits on screen
+                print(f"\n{Colors.INFO}{'='*80}")
+                print(f"{Colors.INFO}📰 Important news available regarding your installed packages")
+                print(f"{Colors.INFO}   Please read before updating to avoid potential problems")
+                print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
+                
+                for warning in relevant_warnings:
+                    self.display_news_item(
+                        warning['news'],
+                        warning['packages']
+                    )
         else:
             print(f"\n{Colors.SUCCESS}✓ No news found affecting your installed packages{Colors.RESET}")
         
@@ -470,7 +640,6 @@ def main():
     checker = ArchUpdateChecker()
     
     if args.clear_cache:
-        import shutil
         shutil.rmtree(checker.cache_dir, ignore_errors=True)
         os.makedirs(checker.cache_dir, exist_ok=True)
         print(f"{Colors.SUCCESS}Cache cleared{Colors.RESET}")
