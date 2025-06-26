@@ -1,8 +1,6 @@
-# 🛡️ Arch Smart Update Checker
-
 <div align="center">
 
-<img src="screenshots/icon.png" alt="Arch Smart Update Checker" width="128" height="128">
+<img src="screenshots/icon.png" alt="Arch Smart Update Checker Icon" width="270" height="72">
 
 <h1>🛡️ Arch Smart Update Checker</h1>
 
