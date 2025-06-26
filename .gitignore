@@ -1,0 +1,25 @@
+# Virtual environment
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Generated wrapper scripts
+arch-smart-update-checker-pipx.py
+arch-smart-update-checker-venv.sh
+
+# Cache directory
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 
