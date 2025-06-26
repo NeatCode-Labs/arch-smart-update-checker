@@ -106,7 +106,6 @@ asuc
 
 | Option | Description |
 |--------|-------------|
-| `-y, --yes` | Skip confirmation and proceed with update if safe |
 | `-a, --all-news` | Show all recent news, not just relevant ones |
 | `--clear-cache` | Clear the news cache before checking |
 | `-h, --help` | Show help message |
@@ -116,9 +115,6 @@ asuc
 ```bash
 # Standard check with interactive prompts
 asuc
-
-# Auto-confirm if no high-risk issues found
-asuc -y
 
 # Show all news including non-relevant items
 asuc -a

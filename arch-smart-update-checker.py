@@ -314,7 +314,7 @@ class ArchUpdateChecker:
             print(f"{Colors.WARNING}Could not check for pending updates")
             return []
     
-    def run(self, skip_confirm: bool = False, show_all_news: bool = False):
+    def run(self, show_all_news: bool = False):
         """Main execution flow"""
         print(f"{Colors.HEADER}{'='*80}")
         print(f"{Colors.HEADER}Arch Smart Update Checker")
@@ -412,47 +412,41 @@ class ArchUpdateChecker:
             print(f"\n{Colors.SUCCESS}✓ No special considerations needed for this update{Colors.RESET}")
         
         # Ask for confirmation
-        if not skip_confirm:
-            print(f"\n{Colors.BOLD}Do you want to proceed with the system update?{Colors.RESET}")
-            print(f"This will run: {Colors.INFO}sudo pacman -Syu{Colors.RESET}")
+        print(f"\n{Colors.BOLD}Do you want to proceed with the system update?{Colors.RESET}")
+        print(f"This will run: {Colors.INFO}sudo pacman -Syu{Colors.RESET}")
+        
+        while True:
+            response = input(f"\n{Colors.BOLD}Proceed? [y/N/r(efresh)/d(etails)]: {Colors.RESET}").lower().strip()
             
-            while True:
-                response = input(f"\n{Colors.BOLD}Proceed? [y/N/r(efresh)/d(etails)]: {Colors.RESET}").lower().strip()
+            if response == 'y':
+                print(f"\n{Colors.INFO}Running system update...{Colors.RESET}")
+                try:
+                    subprocess.run(["sudo", "pacman", "-Syu"], check=True)
+                    print(f"\n{Colors.SUCCESS}✓ Update completed successfully!{Colors.RESET}")
+                except subprocess.CalledProcessError:
+                    print(f"\n{Colors.ERROR}✗ Update failed or was cancelled{Colors.RESET}")
+                    sys.exit(1)
+                break
                 
-                if response == 'y':
-                    print(f"\n{Colors.INFO}Running system update...{Colors.RESET}")
-                    try:
-                        subprocess.run(["sudo", "pacman", "-Syu"], check=True)
-                        print(f"\n{Colors.SUCCESS}✓ Update completed successfully!{Colors.RESET}")
-                    except subprocess.CalledProcessError:
-                        print(f"\n{Colors.ERROR}✗ Update failed or was cancelled{Colors.RESET}")
-                        sys.exit(1)
-                    break
-                    
-                elif response == 'r':
-                    print(f"\n{Colors.INFO}Refreshing analysis...{Colors.RESET}\n")
-                    self.run(skip_confirm=False, show_all_news=show_all_news)
-                    break
-                    
-                elif response == 'd':
-                    # Show detailed package list
-                    print(f"\n{Colors.INFO}Packages to be updated:{Colors.RESET}")
-                    for pkg in pending_updates:
-                        print(f"  • {pkg}")
-                    continue
-                    
-                else:  # Default is No
-                    print(f"\n{Colors.INFO}Update cancelled by user{Colors.RESET}")
-                    break
+            elif response == 'r':
+                print(f"\n{Colors.INFO}Refreshing analysis...{Colors.RESET}\n")
+                self.run(show_all_news=show_all_news)
+                break
+                
+            elif response == 'd':
+                # Show detailed package list
+                print(f"\n{Colors.INFO}Packages to be updated:{Colors.RESET}")
+                for pkg in pending_updates:
+                    print(f"  • {pkg}")
+                continue
+                
+            else:  # Default is No
+                print(f"\n{Colors.INFO}Update cancelled by user{Colors.RESET}")
+                break
 
 def main():
     parser = argparse.ArgumentParser(
         description="Smart update checker for Arch Linux - checks news before updating"
-    )
-    parser.add_argument(
-        '-y', '--yes',
-        action='store_true',
-        help='Skip confirmation and proceed with update if safe'
     )
     parser.add_argument(
         '-a', '--all-news',
@@ -480,7 +474,7 @@ def main():
         print(f"{Colors.SUCCESS}Cache cleared{Colors.RESET}")
     
     try:
-        checker.run(skip_confirm=args.yes, show_all_news=args.all_news)
+        checker.run(show_all_news=args.all_news)
     except KeyboardInterrupt:
         print(f"\n\n{Colors.INFO}Update check cancelled by user{Colors.RESET}")
         sys.exit(0)
