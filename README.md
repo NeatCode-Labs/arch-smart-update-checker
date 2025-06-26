@@ -183,6 +183,6 @@ This project is open source and available under the MIT License.
 Visit us for more useful tools and projects!
 
 [![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
-[![GitHub](https://img.shields.io/badge/GitHub-NeatCode--Labs-black?style=for-the-badge&logo=github)](https://github.com/NeatCode-Labs)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)
 
 </div> 
