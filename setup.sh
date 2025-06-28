@@ -16,6 +16,18 @@ if ! command -v pacman &> /dev/null; then
     exit 1
 fi
 
+# Recommend pacman-contrib (provides safer 'checkupdates')
+if ! command -v checkupdates &> /dev/null; then
+    echo -e "${YELLOW}Optional package 'pacman-contrib' is not installed. It provides the safer 'checkupdates' utility used by this tool.${NC}"
+    read -p "Install pacman-contrib now? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        install_packages "pacman-contrib"
+    else
+        echo -e "${YELLOW}Continuing without pacman-contrib. The tool will fall back to a less safe method.${NC}"
+    fi
+fi
+
 # Function to check if a package is available in pacman repos
 check_pacman_package() {
     pacman -Si "$1" &>/dev/null
@@ -228,8 +240,8 @@ echo "Setup complete!"
 echo ""
 echo "Usage:"
 echo "  asuc          - Run the smart update checker"
-echo "  asuc -y       - Auto-confirm if safe"
 echo "  asuc -a       - Show all news, not just relevant"
+echo "  asuc --non-interactive - Run without prompts (exit status indicates warnings)"
 echo "  asuc --help   - Show all options"
 echo ""
 echo "Please run 'source ~/.bashrc' or restart your terminal to use the alias." 

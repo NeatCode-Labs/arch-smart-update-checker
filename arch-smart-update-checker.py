@@ -11,20 +11,28 @@ Website: https://neatcodelabs.com
 GitHub: https://github.com/NeatCode-Labs/arch-smart-update-checker
 """
 
+# Standard library imports
 import os
 import sys
 import re
 import subprocess
-import feedparser
-import argparse
-from datetime import datetime, timedelta
-from typing import List, Dict, Tuple, Optional
-from colorama import init, Fore, Style, Back
-import textwrap
-from urllib.parse import urlparse
 import json
 import hashlib
 import shutil
+import textwrap
+from datetime import datetime, timedelta
+from typing import List, Dict, Tuple, Optional
+
+# Third-party imports
+import feedparser
+from colorama import init, Fore, Style
+
+# Concurrency
+import concurrent.futures
+
+# CLI helpers
+import argparse
+from urllib.parse import urlparse
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -154,35 +162,23 @@ class Pager:
 
 class ArchUpdateChecker:
     def __init__(self):
-        # Always check these feeds
-        self.news_feeds = [
-            {
-                "name": "Arch Linux News",
-                "url": "https://archlinux.org/feeds/news/",
-                "priority": 1
-            },
-            {
-                "name": "Arch32 News",
-                "url": "https://bbs.archlinux32.org/extern.php?action=feed&fid=12&type=atom",
-                "priority": 2
-            }
+        self.news_feeds: List[Dict] = []  # will be filled from user/default config
+
+        # Default feed definitions (used if config is missing)
+        self.default_feeds = [
+            { "name": "Arch Linux News", "url": "https://archlinux.org/feeds/news/", "priority": 1 },
+            { "name": "Arch Linux Security Advisories", "url": "https://security.archlinux.org/advisory/feed.atom", "priority": 1 },
+            { "name": "Arch32 News", "url": "https://bbs.archlinux32.org/extern.php?action=feed&fid=12&type=atom", "priority": 2 },
+            # High-volume package feed – marked as type "package" so we can filter strictly
+            { "name": "Arch Stable Package Updates", "url": "https://archlinux.org/feeds/packages/all/stable-repos/", "priority": 4, "type": "package" }
         ]
-        
-        # Detect distribution and add relevant feeds
+
+        # Distro-specific feeds (auto-appended if not already in config)
         distro = self.detect_distribution()
-        
         if distro == "endeavouros":
-            self.news_feeds.append({
-                "name": "EndeavourOS News",
-                "url": "https://endeavouros.com/feed/",
-                "priority": 3
-            })
+            self.default_feeds.append({ "name": "EndeavourOS News", "url": "https://endeavouros.com/feed/", "priority": 3 })
         elif distro == "manjaro":
-            self.news_feeds.append({
-                "name": "Manjaro Stable Updates",
-                "url": "https://forum.manjaro.org/c/announcements/stable-updates/12.rss",
-                "priority": 3
-            })
+            self.default_feeds.append({ "name": "Manjaro Stable Updates", "url": "https://forum.manjaro.org/c/announcements/stable-updates/12.rss", "priority": 3 })
         
         # Common package name patterns to look for in news
         self.critical_patterns = [
@@ -202,6 +198,26 @@ class ArchUpdateChecker:
         
         self.cache_dir = os.path.expanduser("~/.cache/arch-smart-update-checker")
         os.makedirs(self.cache_dir, exist_ok=True)
+
+        # Cache TTL in hours (default 1)
+        self.cache_ttl_hours: int = 1
+
+        # Load user configuration (feeds, patterns, etc.)
+        self.load_user_config()
+
+        # Ensure we have at least the default feeds
+        if not self.news_feeds:
+            self.news_feeds = self.default_feeds.copy()
+
+        # Generic names that often cause false positives
+        self.generic_names = {
+            "linux", "systemd", "python", "gcc", "glibc", "pam", "dbus"
+        }
+
+        # Placeholder attributes set later
+        self.installed_packages: Dict[str, str] = {}
+        self.non_interactive: bool = False
+        self.log_file: Optional[str] = None
     
     def detect_distribution(self) -> str:
         """Detect which Arch-based distribution is being used"""
@@ -262,7 +278,7 @@ class ArchUpdateChecker:
             
             if os.path.exists(cache_file):
                 cache_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
-                if datetime.now() - cache_time < timedelta(hours=1):
+                if datetime.now() - cache_time < timedelta(hours=self.cache_ttl_hours):
                     with open(cache_file, 'r') as f:
                         cached_items = json.load(f)
                         # Convert date strings back to datetime objects
@@ -307,7 +323,8 @@ class ArchUpdateChecker:
                     'date': published,  # Store as datetime object, not string
                     'content': content,
                     'source': feed_info['name'],
-                    'priority': feed_info['priority']
+                    'priority': feed_info['priority'],
+                    'source_type': feed_info.get('type', 'news')
                 })
             
             # Cache the results - convert datetime to string for JSON
@@ -355,8 +372,22 @@ class ArchUpdateChecker:
         """Analyze if a news item is relevant to the system"""
         full_text = f"{news_item['title']} {news_item['content']}"
         
-        # Extract mentioned packages
-        mentioned_packages = self.extract_package_names(full_text)
+        # Special handling for feeds that are pure package update listings
+        if news_item.get('source_type') == 'package':
+            # Package name is first token in title
+            pkg_name = news_item['title'].split()[0].lower()
+            mentioned_packages = [pkg_name]
+        else:
+            mentioned_packages = self.extract_package_names(full_text)
+        
+        # Filter overly generic names unless they appear in the title (reduces false positives)
+        filtered_packages = []
+        title_lower = news_item["title"].lower()
+        for pkg in mentioned_packages:
+            if pkg in self.generic_names and pkg not in title_lower:
+                continue
+            filtered_packages.append(pkg)
+        mentioned_packages = filtered_packages
         
         # Find which mentioned packages are installed
         affected_packages = []
@@ -422,16 +453,12 @@ class ArchUpdateChecker:
     def check_pending_updates(self) -> List[str]:
         """Check which packages have updates available"""
         try:
-            # First sync package databases
-            print(f"{Colors.INFO}Syncing package databases...{Colors.RESET}")
-            subprocess.run(["sudo", "pacman", "-Sy"], check=True, capture_output=True)
-            
-            # Check for updates
-            result = subprocess.run(
-                ["pacman", "-Qu"],
-                capture_output=True,
-                text=True
-            )
+            # Prefer checkupdates if available (from pacman-contrib) – safe because it works on a copy of the database
+            if shutil.which("checkupdates"):
+                result = subprocess.run(["checkupdates"], capture_output=True, text=True)
+            else:
+                print(f"{Colors.WARNING}checkupdates not found. Falling back to 'pacman -Qu' (database may be stale).{Colors.RESET}")
+                result = subprocess.run(["pacman", "-Qu"], capture_output=True, text=True)
             
             updates = []
             if result.stdout:
@@ -448,8 +475,11 @@ class ArchUpdateChecker:
             print(f"{Colors.WARNING}Could not check for pending updates")
             return []
     
-    def run(self, show_all_news: bool = False):
+    def run(self, show_all_news: bool = False, non_interactive: bool = False, log_file: Optional[str] = None):
         """Main execution flow"""
+        self.non_interactive = non_interactive
+        self.log_file = log_file
+
         print(f"{Colors.HEADER}{'='*80}")
         print(f"{Colors.HEADER}Arch Smart Update Checker")
         print(f"{Colors.HEADER}{'='*80}{Colors.RESET}\n")
@@ -473,14 +503,21 @@ class ArchUpdateChecker:
             if not show_all_news:
                 return
         
-        # Fetch news from all sources
+        # Fetch news from all sources concurrently for speed
         print(f"\n{Colors.INFO}Fetching news from RSS feeds...{Colors.RESET}")
         all_news = []
-        for feed in self.news_feeds:
-            print(f"  • Checking {feed['name']}...", end='', flush=True)
-            news_items = self.fetch_news_feed(feed)
-            all_news.extend(news_items)
-            print(f" {Colors.SUCCESS}✓{Colors.RESET} ({len(news_items)} items)")
+        max_workers = max(1, min(8, len(self.news_feeds)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_feed = {executor.submit(self.fetch_news_feed, feed): feed for feed in self.news_feeds}
+            for future in concurrent.futures.as_completed(future_to_feed):
+                feed = future_to_feed[future]
+                try:
+                    news_items = future.result()
+                except Exception as e:
+                    print(f"  • {feed['name']} {Colors.ERROR}✗ ({e}){Colors.RESET}")
+                    continue
+                all_news.extend(news_items)
+                print(f"  • {feed['name']} {Colors.SUCCESS}✓{Colors.RESET} ({len(news_items)} items)")
         
         # Sort by date and priority
         all_news.sort(key=lambda x: (x['date'] or datetime.min, x['priority']), reverse=True)
@@ -577,19 +614,25 @@ class ArchUpdateChecker:
         if not pending_updates:
             return
         
-        # Simple recommendation
-        if relevant_warnings:
-            print(f"\n{Colors.WARNING}📰 Recommendation: Review the news above before updating{Colors.RESET}")
-        else:
-            print(f"\n{Colors.SUCCESS}✓ No special considerations needed for this update{Colors.RESET}")
-        
-        # Ask for confirmation
+        # Handle logging (if requested)
+        if log_file:
+            try:
+                with open(log_file, "a") as lf:
+                    lf.write(f"[ {datetime.now().isoformat()} ] Updates: {len(pending_updates)}, Relevant news: {len(relevant_warnings)}\n")
+            except Exception as e:
+                print(f"{Colors.WARNING}Could not write log file: {e}{Colors.RESET}")
+
+        # Non-interactive mode: exit status indicates whether action is needed
+        if non_interactive:
+            sys.exit(1 if relevant_warnings else 0)
+
+        # Interactive prompt
         print(f"\n{Colors.BOLD}Do you want to proceed with the system update?{Colors.RESET}")
         print(f"This will run: {Colors.INFO}sudo pacman -Syu{Colors.RESET}")
-        
+
         while True:
             response = input(f"\n{Colors.BOLD}Proceed? [y/N/r(efresh)/d(etails)]: {Colors.RESET}").lower().strip()
-            
+
             if response == 'y':
                 print(f"\n{Colors.INFO}Running system update...{Colors.RESET}")
                 try:
@@ -599,22 +642,91 @@ class ArchUpdateChecker:
                     print(f"\n{Colors.ERROR}✗ Update failed or was cancelled{Colors.RESET}")
                     sys.exit(1)
                 break
-                
+
             elif response == 'r':
                 print(f"\n{Colors.INFO}Refreshing analysis...{Colors.RESET}\n")
                 self.run(show_all_news=show_all_news)
                 break
-                
+
             elif response == 'd':
                 # Show detailed package list
                 print(f"\n{Colors.INFO}Packages to be updated:{Colors.RESET}")
                 for pkg in pending_updates:
                     print(f"  • {pkg}")
                 continue
-                
+
             else:  # Default is No
                 print(f"\n{Colors.INFO}Update cancelled by user{Colors.RESET}")
                 break
+
+    # ------------------------------------------------------------------
+    # Configuration handling
+    # ------------------------------------------------------------------
+
+    def load_user_config(self):
+        """Merge user configuration from ~/.config/arch-smart-update-checker/config.json"""
+        config_path = os.path.expanduser("~/.config/arch-smart-update-checker/config.json")
+
+        if not os.path.exists(config_path):
+            return  # Nothing to merge
+
+        try:
+            with open(config_path, "r") as f:
+                cfg = json.load(f)
+
+            # Feeds list can fully override defaults if provided
+            if isinstance(cfg.get("feeds"), list) and cfg["feeds"]:
+                self.news_feeds = cfg["feeds"]
+            else:
+                # Start with defaults, then merge additional_feeds for legacy compatibility
+                self.news_feeds = self.default_feeds.copy()
+
+            # Legacy key: additional_feeds → still supported and appended
+            extra_feeds = cfg.get("additional_feeds", [])
+            if isinstance(extra_feeds, list):
+                self.news_feeds.extend(extra_feeds)
+
+            # Cache TTL override
+            if isinstance(cfg.get("cache_ttl_hours"), (int, float)) and cfg["cache_ttl_hours"] > 0:
+                self.cache_ttl_hours = int(cfg["cache_ttl_hours"])
+
+            # Extra patterns
+            extra_patterns = cfg.get("extra_patterns", [])
+            if isinstance(extra_patterns, list):
+                self.critical_patterns.extend(extra_patterns)
+
+        except Exception as e:
+            print(f"{Colors.WARNING}Could not load user config: {e}{Colors.RESET}")
+
+        # If config file missing feeds, use defaults
+        if not self.news_feeds:
+            self.news_feeds = self.default_feeds.copy()
+
+    def init_default_config(self):
+        """Create a starter configuration file for the user"""
+        config_dir = os.path.expanduser("~/.config/arch-smart-update-checker")
+        os.makedirs(config_dir, exist_ok=True)
+        config_path = os.path.join(config_dir, "config.json")
+
+        if os.path.exists(config_path):
+            print(f"{Colors.INFO}Config file already exists at {config_path}{Colors.RESET}")
+            return
+
+        default_cfg = {
+            "feeds": self.default_feeds,
+            "additional_feeds": [
+                # {"name": "Your Feed Name", "url": "https://example.com/feed", "priority": 5}
+            ],
+            "cache_ttl_hours": 1,
+            "extra_patterns": [
+                # "\\b(your-package)\\b"
+            ]
+        }
+
+        with open(config_path, "w") as f:
+            json.dump(default_cfg, f, indent=2)
+
+        print(f"{Colors.SUCCESS}Default configuration created at {config_path}{Colors.RESET}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -624,6 +736,21 @@ def main():
         '-a', '--all-news',
         action='store_true',
         help='Show all recent news, not just relevant ones'
+    )
+    parser.add_argument(
+        '--non-interactive',
+        action='store_true',
+        help='Exit with status 1 if relevant news found; 0 otherwise (no prompts)'
+    )
+    parser.add_argument(
+        '--log',
+        metavar='FILE',
+        help='Append a one-line result summary to FILE'
+    )
+    parser.add_argument(
+        '--init-config',
+        action='store_true',
+        help='Create a default user configuration file and exit'
     )
     parser.add_argument(
         '--clear-cache',
@@ -639,13 +766,21 @@ def main():
     
     checker = ArchUpdateChecker()
     
+    if args.init_config:
+        checker.init_default_config()
+        sys.exit(0)
+
     if args.clear_cache:
         shutil.rmtree(checker.cache_dir, ignore_errors=True)
         os.makedirs(checker.cache_dir, exist_ok=True)
         print(f"{Colors.SUCCESS}Cache cleared{Colors.RESET}")
     
     try:
-        checker.run(show_all_news=args.all_news)
+        checker.run(
+            show_all_news=args.all_news,
+            non_interactive=args.non_interactive,
+            log_file=args.log
+        )
     except KeyboardInterrupt:
         print(f"\n\n{Colors.INFO}Update check cancelled by user{Colors.RESET}")
         sys.exit(0)

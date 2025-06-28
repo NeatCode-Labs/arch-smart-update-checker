@@ -42,7 +42,10 @@
 - 🎨 **User-Friendly Interface**: Colored terminal output with clear warnings and recommendations
 - ⚡ **Caching**: Caches news feeds for 1 hour to reduce network requests
 - 🔄 **Interactive Prompts**: Allows you to review warnings and decide whether to proceed
+- 🚦 **Non-interactive Mode**: Run in scripts/cron; exits with status 1 if news requires attention
+- 📝 **Config File Support**: Extend/override feeds & patterns via `~/.config/arch-smart-update-checker/config.json`
 - 📄 **Pagination Support**: Automatically paginates long news lists for easy reading in terminal-only environments
+- ⚙️ **Safer Update Detection**: Uses `checkupdates` from `pacman-contrib` when available (avoids partial-upgrade risk)
 
 ## 📸 Screenshots
 
@@ -94,6 +97,26 @@ This will:
 source ~/.bashrc
 ```
 
+### 4. (Optional) Create Your Personal Configuration
+
+Run the tool once with `--init-config` to generate a starter file at
+`~/.config/arch-smart-update-checker/config.json`.
+
+```bash
+asuc --init-config
+```
+
+If you skip this, `asuc` works with built-in defaults (Arch news, security
+advisories, stable-repo package feed, plus distro-specific feeds).  Creating
+the file simply gives you a place to:
+
+* Disable or add RSS feeds (e.g. AUR "new packages" feed).
+* Adjust `cache_ttl_hours`.
+* Add extra regex patterns for niche packages.
+
+Re-running `--init-config` later will not overwrite an existing file, so it is
+safe to do at any time.
+
 ## 📖 Usage
 
 ### Basic Usage
@@ -107,7 +130,10 @@ asuc
 | Option | Description |
 |--------|-------------|
 | `-a, --all-news` | Show all recent news, not just relevant ones |
+| `--non-interactive` | Run without prompts; exit status 1 if relevant news found |
+| `--log FILE` | Append a one-line summary to FILE (useful in cron) |
 | `--clear-cache` | Clear the news cache before checking |
+| `--init-config` | Create a default user config file and exit |
 | `-h, --help` | Show help message |
 
 ### Examples
@@ -145,6 +171,36 @@ The tool looks for package names in news feeds using multiple patterns:
 ## 💾 Cache Management
 
 News feeds are cached in `~/.cache/arch-smart-update-checker/` for 1 hour to reduce network requests. Use `--clear-cache` to force fresh downloads.
+
+## 📝 Configuration File
+
+Advanced users can add extra RSS feeds or package-matching patterns without editing the script:
+
+```bash
+asuc --init-config   # Creates ~/.config/arch-smart-update-checker/config.json
+```
+
+Open the generated file and add entries, e.g.
+
+```json
+{
+  "cache_ttl_hours": 2,
+  "feeds": [
+    {"name": "Arch Linux News", "url": "https://archlinux.org/feeds/news/", "priority": 1},
+    {"name": "Arch Linux Security Advisories", "url": "https://security.archlinux.org/advisory/feed.atom", "priority": 1},
+    {"name": "Arch Stable Package Updates", "url": "https://archlinux.org/feeds/packages/all/stable-repos/", "priority": 4, "type": "package"}
+  ],
+  "extra_patterns": ["\\b(my-special-package)\\b"]
+}
+```
+
+## ⚠️ Safer Update Checks
+
+The tool prefers `checkupdates` (provided by the `pacman-contrib` package) to check for pending updates safely. If it's not installed, the script falls back to a less robust method and will warn you. Installing `pacman-contrib` is recommended:
+
+```bash
+sudo pacman -S pacman-contrib
+```
 
 ## 📋 Requirements
 
