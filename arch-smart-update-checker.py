@@ -730,7 +730,10 @@ class ArchUpdateChecker:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Smart update checker for Arch Linux - informs you about news related to your packages"
+        description=(
+            "Smart update checker for Arch Linux - "
+            "informs you about news related to your packages"
+        )
     )
     parser.add_argument(
         '-a', '--all-news',
@@ -740,7 +743,10 @@ def main():
     parser.add_argument(
         '--non-interactive',
         action='store_true',
-        help='Exit with status 1 if relevant news found; 0 otherwise (no prompts)'
+        help=(
+            'Exit with status 1 if relevant news found; '
+            '0 otherwise (no prompts)'
+        )
     )
     parser.add_argument(
         '--log',
@@ -761,7 +767,9 @@ def main():
     args = parser.parse_args()
 
     if os.geteuid() == 0:
-        print(f"{Colors.WARNING}Warning: Running as root is not recommended{Colors.RESET}")
+        print(
+            f"{Colors.WARNING}Warning: Running as root is not recommended{Colors.RESET}"
+        )
 
     checker = ArchUpdateChecker()
 
