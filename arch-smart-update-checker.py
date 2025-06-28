@@ -52,7 +52,7 @@ class Pager:
     def __init__(self):
         self.lines = []
         self.current_line = 0
-        
+
     def add_line(self, line: str):
         """Add a line to the pager buffer"""
         # Handle ANSI color codes properly when wrapping
@@ -68,12 +68,12 @@ class Pager:
                     self.lines.append('')
             else:
                 self.lines.append('')
-    
+
     def add_lines(self, lines: List[str]):
         """Add multiple lines to the pager buffer"""
         for line in lines:
             self.add_line(line)
-    
+
     def get_terminal_size(self) -> Tuple[int, int]:
         """Get terminal size (width, height)"""
         try:
@@ -81,35 +81,35 @@ class Pager:
             return size.columns, size.lines
         except:
             return 80, 24
-    
+
     def get_terminal_width(self) -> int:
         """Get terminal width"""
         return self.get_terminal_size()[0]
-    
+
     def get_terminal_height(self) -> int:
         """Get terminal height"""
         return self.get_terminal_size()[1]
-    
+
     def display(self):
         """Display the content with pagination"""
         if not self.lines:
             return
-        
+
         terminal_height = self.get_terminal_height()
         # Reserve lines for prompt
         display_height = terminal_height - 3
-        
+
         total_lines = len(self.lines)
-        
+
         while self.current_line < total_lines:
             # Clear screen
             os.system('clear' if os.name != 'nt' else 'cls')
-            
+
             # Display lines for current page
             end_line = min(self.current_line + display_height, total_lines)
             for i in range(self.current_line, end_line):
                 print(self.lines[i])
-            
+
             # Check if we've reached the end
             if end_line >= total_lines:
                 print(f"\n{Colors.INFO}(END) Press any key to continue...{Colors.RESET}")
@@ -132,7 +132,7 @@ class Pager:
                 progress = f"Lines {self.current_line + 1}-{end_line} of {total_lines}"
                 prompt = f"{Colors.INFO}{progress} -- Press SPACE for next page, 'q' to skip...{Colors.RESET}"
                 print(f"\n{prompt}")
-                
+
                 try:
                     # Get single keypress
                     import termios, tty
@@ -143,7 +143,7 @@ class Pager:
                         key = sys.stdin.read(1)
                     finally:
                         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-                    
+
                     if key.lower() == 'q':
                         break
                     else:
@@ -155,7 +155,7 @@ class Pager:
                         break
                     else:
                         self.current_line = end_line
-        
+
         # Clear the buffer after display
         self.lines = []
         self.current_line = 0
@@ -179,7 +179,7 @@ class ArchUpdateChecker:
             self.default_feeds.append({ "name": "EndeavourOS News", "url": "https://endeavouros.com/feed/", "priority": 3 })
         elif distro == "manjaro":
             self.default_feeds.append({ "name": "Manjaro Stable Updates", "url": "https://forum.manjaro.org/c/announcements/stable-updates/12.rss", "priority": 3 })
-        
+
         # Common package name patterns to look for in news
         self.critical_patterns = [
             r'\b(linux|linux-\w+)\b',  # Kernel packages
@@ -195,7 +195,7 @@ class ArchUpdateChecker:
             r'\b(pam)\b',  # PAM
             r'\b(dbus)\b',  # D-Bus
         ]
-        
+
         self.cache_dir = os.path.expanduser("~/.cache/arch-smart-update-checker")
         os.makedirs(self.cache_dir, exist_ok=True)
 
@@ -218,7 +218,7 @@ class ArchUpdateChecker:
         self.installed_packages: Dict[str, str] = {}
         self.non_interactive: bool = False
         self.log_file: Optional[str] = None
-    
+
     def detect_distribution(self) -> str:
         """Detect which Arch-based distribution is being used"""
         try:
@@ -232,19 +232,19 @@ class ArchUpdateChecker:
                         return "manjaro"
                     elif "arch" in content:
                         return "arch"
-            
+
             # Check for distro-specific files
             if os.path.exists("/usr/share/endeavouros"):
                 return "endeavouros"
             elif os.path.exists("/etc/manjaro-release"):
                 return "manjaro"
-            
+
             # Default to Arch
             return "arch"
-            
+
         except Exception:
             return "arch"
-        
+
     def get_installed_packages(self) -> Dict[str, str]:
         """Get list of installed packages with versions"""
         try:
@@ -254,28 +254,28 @@ class ArchUpdateChecker:
                 text=True,
                 check=True
             )
-            
+
             packages = {}
             for line in result.stdout.strip().split('\n'):
                 if line:
                     parts = line.split()
                     if len(parts) >= 2:
                         packages[parts[0]] = parts[1]
-            
+
             return packages
         except subprocess.CalledProcessError as e:
             print(f"{Colors.ERROR}Error getting installed packages: {e}")
             return {}
-    
+
     def fetch_news_feed(self, feed_info: Dict) -> List[Dict]:
         """Fetch and parse a single RSS feed"""
         try:
             # Check cache first (1 hour cache)
             cache_file = os.path.join(
-                self.cache_dir, 
+                self.cache_dir,
                 hashlib.md5(feed_info['url'].encode()).hexdigest() + ".json"
             )
-            
+
             if os.path.exists(cache_file):
                 cache_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
                 if datetime.now() - cache_time < timedelta(hours=self.cache_ttl_hours):
@@ -289,14 +289,14 @@ class ArchUpdateChecker:
                                 except:
                                     item['date'] = None
                         return cached_items
-            
+
             # Fetch fresh data
             feed = feedparser.parse(feed_info['url'])
-            
+
             if feed.bozo:
                 print(f"{Colors.WARNING}Warning: Failed to parse {feed_info['name']} feed properly")
                 return []
-            
+
             news_items = []
             for entry in feed.entries[:10]:  # Last 10 entries
                 # Parse date
@@ -305,18 +305,18 @@ class ArchUpdateChecker:
                     published = datetime(*entry.published_parsed[:6])
                 elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
                     published = datetime(*entry.updated_parsed[:6])
-                
+
                 # Extract content
                 content = ""
                 if hasattr(entry, 'summary'):
                     content = entry.summary
                 elif hasattr(entry, 'description'):
                     content = entry.description
-                
+
                 # Clean HTML tags
                 content = re.sub('<.*?>', '', content)
                 content = content.strip()
-                
+
                 news_items.append({
                     'title': entry.title,
                     'link': entry.link,
@@ -326,7 +326,7 @@ class ArchUpdateChecker:
                     'priority': feed_info['priority'],
                     'source_type': feed_info.get('type', 'news')
                 })
-            
+
             # Cache the results - convert datetime to string for JSON
             cache_items = []
             for item in news_items:
@@ -334,44 +334,44 @@ class ArchUpdateChecker:
                 if cache_item['date']:
                     cache_item['date'] = cache_item['date'].isoformat()
                 cache_items.append(cache_item)
-            
+
             with open(cache_file, 'w') as f:
                 json.dump(cache_items, f)
-            
+
             return news_items
-            
+
         except Exception as e:
             print(f"{Colors.WARNING}Error fetching {feed_info['name']}: {e}")
             return []
-    
+
     def extract_package_names(self, text: str) -> List[str]:
         """Extract potential package names from news text"""
         packages = set()
-        
+
         # Look for explicit package mentions
         # Pattern 1: package-name-1.2.3
         pattern1 = re.findall(r'\b([a-z0-9][a-z0-9\-_]+[a-z0-9])\s*[-]?\s*\d+[\.\d\-\w]*\b', text, re.IGNORECASE)
         packages.update(p.lower() for p in pattern1)
-        
+
         # Pattern 2: quoted package names
         pattern2 = re.findall(r'["\']([a-z0-9][a-z0-9\-_]+[a-z0-9])["\']', text, re.IGNORECASE)
         packages.update(p.lower() for p in pattern2)
-        
+
         # Pattern 3: backtick code blocks
         pattern3 = re.findall(r'`([a-z0-9][a-z0-9\-_]+[a-z0-9])`', text, re.IGNORECASE)
         packages.update(p.lower() for p in pattern3)
-        
+
         # Check against critical patterns
         for pattern in self.critical_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             packages.update(m.lower() for m in matches)
-        
+
         return list(packages)
-    
+
     def analyze_news_relevance(self, news_item: Dict, installed_packages: Dict[str, str]) -> Tuple[bool, List[str]]:
         """Analyze if a news item is relevant to the system"""
         full_text = f"{news_item['title']} {news_item['content']}"
-        
+
         # Special handling for feeds that are pure package update listings
         if news_item.get('source_type') == 'package':
             # Package name is first token in title
@@ -379,7 +379,7 @@ class ArchUpdateChecker:
             mentioned_packages = [pkg_name]
         else:
             mentioned_packages = self.extract_package_names(full_text)
-        
+
         # Filter overly generic names unless they appear in the title (reduces false positives)
         filtered_packages = []
         title_lower = news_item["title"].lower()
@@ -388,7 +388,7 @@ class ArchUpdateChecker:
                 continue
             filtered_packages.append(pkg)
         mentioned_packages = filtered_packages
-        
+
         # Find which mentioned packages are installed
         affected_packages = []
         for pkg in mentioned_packages:
@@ -400,38 +400,38 @@ class ArchUpdateChecker:
                     if pkg in installed_pkg or installed_pkg in pkg:
                         affected_packages.append(installed_pkg)
                         break
-        
+
         # Remove duplicates
         affected_packages = list(set(affected_packages))
-        
+
         # Check if news is recent (within 30 days)
         is_recent = True
         if news_item['date']:
             age = datetime.now() - news_item['date']
             is_recent = age.days <= 30
-        
+
         is_relevant = len(affected_packages) > 0 and is_recent
-        
+
         return is_relevant, affected_packages
-    
+
     def format_news_item(self, news_item: Dict, affected_packages: List[str]) -> List[str]:
         """Format a news item and return as list of lines"""
         lines = []
-        
+
         lines.append(f"\n{Colors.INFO}📰 News:{Colors.RESET}")
         lines.append(f"{Colors.BOLD}{news_item['title']}{Colors.RESET}")
         lines.append(f"{Colors.INFO}Source: {news_item['source']} | Date: {news_item['date'].strftime('%Y-%m-%d') if news_item['date'] else 'Unknown'}")
-        
+
         # Wrap content
         wrapper = textwrap.TextWrapper(width=80, initial_indent="  ", subsequent_indent="  ")
         wrapped_content = wrapper.wrap(news_item['content'][:500] + "..." if len(news_item['content']) > 500 else news_item['content'])
         lines.append("")
         for line in wrapped_content[:5]:  # Show first 5 lines
             lines.append(line)
-        
+
         if len(wrapped_content) > 5:
             lines.append(f"  {Colors.INFO}[...truncated. See full article: {news_item['link']}]")
-        
+
         # Show affected packages
         if affected_packages:
             lines.append(f"\n  {Colors.WARNING}Your affected packages:{Colors.RESET}")
@@ -440,16 +440,16 @@ class ArchUpdateChecker:
                 lines.append(f"    • {pkg} ({version})")
             if len(affected_packages) > 10:
                 lines.append(f"    • ... and {len(affected_packages) - 10} more")
-        
+
         lines.append("")  # Add spacing between items
         return lines
-    
+
     def display_news_item(self, news_item: Dict, affected_packages: List[str]):
         """Display a formatted news item"""
         lines = self.format_news_item(news_item, affected_packages)
         for line in lines:
             print(line)
-    
+
     def check_pending_updates(self) -> List[str]:
         """Check which packages have updates available"""
         try:
@@ -459,7 +459,7 @@ class ArchUpdateChecker:
             else:
                 print(f"{Colors.WARNING}checkupdates not found. Falling back to 'pacman -Qu' (database may be stale).{Colors.RESET}")
                 result = subprocess.run(["pacman", "-Qu"], capture_output=True, text=True)
-            
+
             updates = []
             if result.stdout:
                 for line in result.stdout.strip().split('\n'):
@@ -468,13 +468,13 @@ class ArchUpdateChecker:
                         parts = line.split()
                         if parts:
                             updates.append(parts[0])
-            
+
             return updates
-            
+
         except subprocess.CalledProcessError:
             print(f"{Colors.WARNING}Could not check for pending updates")
             return []
-    
+
     def run(self, show_all_news: bool = False, non_interactive: bool = False, log_file: Optional[str] = None):
         """Main execution flow"""
         self.non_interactive = non_interactive
@@ -483,17 +483,17 @@ class ArchUpdateChecker:
         print(f"{Colors.HEADER}{'='*80}")
         print(f"{Colors.HEADER}Arch Smart Update Checker")
         print(f"{Colors.HEADER}{'='*80}{Colors.RESET}\n")
-        
+
         # Show detected distribution
         distro = self.detect_distribution()
         if distro != "arch":
             print(f"{Colors.INFO}Detected distribution: {distro.capitalize()}{Colors.RESET}")
-        
+
         # Get installed packages
         print(f"{Colors.INFO}Scanning installed packages...{Colors.RESET}")
         self.installed_packages = self.get_installed_packages()
         print(f"  Found {len(self.installed_packages)} installed packages")
-        
+
         # Check pending updates
         pending_updates = self.check_pending_updates()
         if pending_updates:
@@ -502,7 +502,7 @@ class ArchUpdateChecker:
             print(f"\n{Colors.SUCCESS}Your system is up to date!{Colors.RESET}")
             if not show_all_news:
                 return
-        
+
         # Fetch news from all sources concurrently for speed
         print(f"\n{Colors.INFO}Fetching news from RSS feeds...{Colors.RESET}")
         all_news = []
@@ -518,20 +518,20 @@ class ArchUpdateChecker:
                     continue
                 all_news.extend(news_items)
                 print(f"  • {feed['name']} {Colors.SUCCESS}✓{Colors.RESET} ({len(news_items)} items)")
-        
+
         # Sort by date and priority
         all_news.sort(key=lambda x: (x['date'] or datetime.min, x['priority']), reverse=True)
-        
+
         # Analyze relevance
         print(f"\n{Colors.INFO}Analyzing news relevance...{Colors.RESET}")
         relevant_warnings = []
         other_news = []
-        
+
         for news_item in all_news:
             is_relevant, affected_packages = self.analyze_news_relevance(
                 news_item, self.installed_packages
             )
-            
+
             if is_relevant:
                 relevant_warnings.append({
                     'news': news_item,
@@ -539,7 +539,7 @@ class ArchUpdateChecker:
                 })
             elif show_all_news:
                 other_news.append(news_item)
-        
+
         # Display results
         if relevant_warnings:
             # Check if we need pagination
@@ -547,10 +547,10 @@ class ArchUpdateChecker:
             for warning in relevant_warnings:
                 lines = self.format_news_item(warning['news'], warning['packages'])
                 total_lines += len(lines)
-            
+
             # Get terminal height
             terminal_height = shutil.get_terminal_size((80, 24)).lines
-            
+
             # Use pager if content won't fit on screen (leave some room for headers)
             if total_lines > terminal_height - 10:
                 print(f"\n{Colors.INFO}{'='*80}")
@@ -558,24 +558,24 @@ class ArchUpdateChecker:
                 print(f"{Colors.INFO}   Please read before updating to avoid potential problems")
                 print(f"{Colors.INFO}   (News will be displayed in pages - press SPACE to continue)")
                 print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
-                
+
                 # Prepare content for pager
                 pager = Pager()
                 pager.add_line(f"{Colors.INFO}{'='*80}")
                 pager.add_line(f"{Colors.INFO}📰 Important news available regarding your installed packages")
                 pager.add_line(f"{Colors.INFO}   Please read before updating to avoid potential problems")
                 pager.add_line(f"{Colors.INFO}{'='*80}{Colors.RESET}")
-                
+
                 for warning in relevant_warnings:
                     lines = self.format_news_item(warning['news'], warning['packages'])
                     pager.add_lines(lines)
-                
+
                 # Display with pagination
                 pager.display()
-                
+
                 # Clear screen after pager
                 os.system('clear' if os.name != 'nt' else 'cls')
-                
+
                 # Show brief summary after paging
                 print(f"\n{Colors.INFO}Displayed {len(relevant_warnings)} news items affecting your packages{Colors.RESET}")
             else:
@@ -584,7 +584,7 @@ class ArchUpdateChecker:
                 print(f"{Colors.INFO}📰 Important news available regarding your installed packages")
                 print(f"{Colors.INFO}   Please read before updating to avoid potential problems")
                 print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
-                
+
                 for warning in relevant_warnings:
                     self.display_news_item(
                         warning['news'],
@@ -592,28 +592,28 @@ class ArchUpdateChecker:
                     )
         else:
             print(f"\n{Colors.SUCCESS}✓ No news found affecting your installed packages{Colors.RESET}")
-        
+
         # Show other news if requested
         if show_all_news and other_news:
             print(f"\n{Colors.INFO}{'='*80}")
             print(f"{Colors.INFO}Other Recent News (Not Affecting Your System)")
             print(f"{Colors.INFO}{'='*80}{Colors.RESET}")
-            
+
             for news in other_news[:5]:
                 print(f"\n• {news['title']}")
                 print(f"  {Colors.INFO}{news['source']} | {news['date'].strftime('%Y-%m-%d') if news['date'] else 'Unknown'}{Colors.RESET}")
-        
+
         # Summary and prompt
         print(f"\n{Colors.HEADER}{'='*80}")
         print(f"{Colors.HEADER}SUMMARY")
         print(f"{Colors.HEADER}{'='*80}{Colors.RESET}")
-        
+
         print(f"Pending updates: {len(pending_updates)} packages")
         print(f"News items affecting your packages: {len(relevant_warnings)}")
-        
+
         if not pending_updates:
             return
-        
+
         # Handle logging (if requested)
         if log_file:
             try:
@@ -757,15 +757,14 @@ def main():
         action='store_true',
         help='Clear the news cache before checking'
     )
-    
+
     args = parser.parse_args()
-    
-    # Check if running as root
+
     if os.geteuid() == 0:
         print(f"{Colors.WARNING}Warning: Running as root is not recommended{Colors.RESET}")
-    
+
     checker = ArchUpdateChecker()
-    
+
     if args.init_config:
         checker.init_default_config()
         sys.exit(0)
@@ -774,7 +773,7 @@ def main():
         shutil.rmtree(checker.cache_dir, ignore_errors=True)
         os.makedirs(checker.cache_dir, exist_ok=True)
         print(f"{Colors.SUCCESS}Cache cleared{Colors.RESET}")
-    
+
     try:
         checker.run(
             show_all_news=args.all_news,
@@ -787,6 +786,10 @@ def main():
     except Exception as e:
         print(f"\n{Colors.ERROR}Error: {e}{Colors.RESET}")
         sys.exit(1)
+
+# ------------------------------------------------------------------
+# Module entry point
+# ------------------------------------------------------------------
 
 if __name__ == "__main__":
     main()
