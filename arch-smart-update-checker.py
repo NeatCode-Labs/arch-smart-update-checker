@@ -649,10 +649,39 @@ class ArchUpdateChecker:
                 break
 
             elif response == 'd':
-                # Show detailed package list
+                # Show detailed package list with pagination
                 print(f"\n{Colors.INFO}Packages to be updated:{Colors.RESET}")
-                for pkg in pending_updates:
-                    print(f"  • {pkg}")
+                
+                # Check if we need pagination for the package list
+                total_packages = len(pending_updates)
+                terminal_height = shutil.get_terminal_size((80, 24)).lines
+                
+                # Use pager if there are many packages (leave room for headers and prompt)
+                if total_packages > terminal_height - 10:
+                    # Prepare content for pager
+                    pager = Pager()
+                    pager.add_line(f"{Colors.INFO}{'='*80}")
+                    pager.add_line(f"{Colors.INFO}📦 Packages to be updated ({total_packages} total)")
+                    pager.add_line(f"{Colors.INFO}   These packages will be updated when you run 'sudo pacman -Syu'")
+                    pager.add_line(f"{Colors.INFO}{'='*80}{Colors.RESET}")
+                    
+                    # Add packages to pager
+                    for i, pkg in enumerate(pending_updates, 1):
+                        pager.add_line(f"{i:3d}. {pkg}")
+                    
+                    # Display with pagination
+                    pager.display()
+                    
+                    # Clear screen after pager
+                    os.system('clear' if os.name != 'nt' else 'cls')
+                    
+                    # Show brief summary after paging
+                    print(f"\n{Colors.INFO}Displayed {total_packages} packages to be updated{Colors.RESET}")
+                else:
+                    # Display normally if it fits on screen
+                    for i, pkg in enumerate(pending_updates, 1):
+                        print(f"{i:3d}. {pkg}")
+                
                 continue
 
             else:  # Default is No
