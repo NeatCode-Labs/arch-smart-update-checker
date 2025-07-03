@@ -68,6 +68,8 @@ The tool intelligently detects your distribution and monitors relevant feeds:
 
 ### Always Monitored:
 - 🏛️ **Arch Linux News** - Official Arch Linux announcements
+- 🔒 **Arch Linux Security Advisories** - Security updates and advisories
+- 📦 **Arch Stable Package Updates** - High-volume package update feed (with smart filtering)
 - 💾 **Arch32 News** - News for 32-bit architecture support
 
 ### Distribution-Specific (only if detected):
@@ -131,7 +133,7 @@ asuc
 |--------|-------------|
 | `-a, --all-news` | Show all recent news, not just relevant ones |
 | `--non-interactive` | Run without prompts; exit status 1 if relevant news found |
-| `--log FILE` | Append a one-line summary to FILE (useful in cron) |
+| `--log FILE` | Append a one-line summary to FILE (useful in cron) - format: `[timestamp] Updates: X, Relevant news: Y` |
 | `--clear-cache` | Clear the news cache before checking |
 | `--init-config` | Create a default user config file and exit |
 | `-h, --help` | Show help message |
@@ -151,14 +153,15 @@ asuc --clear-cache
 ## ⚙️ How It Works
 
 1. **📊 Package Scanning**: Retrieves list of all installed packages using `pacman -Q`
-2. **🔄 Update Check**: Runs `pacman -Sy` and `pacman -Qu` to check for available updates
+2. **🔄 Update Check**: Uses `checkupdates` (from pacman-contrib) or falls back to `pacman -Qu` to check for available updates
 3. **📡 News Fetching**: Downloads and parses RSS feeds from configured sources
 4. **🔍 Pattern Matching**: Searches news content for package names that match your installed packages
 5. **📄 Pagination**: Automatically paginates news when content exceeds terminal height
    - Press `SPACE` to continue to next page
    - Press `q` to skip remaining news
    - Similar to `less` or `more` commands
-6. **💬 User Interaction**: Presents findings and allows you to proceed, cancel, or refresh
+   - Also paginates package lists when using the "details" option
+6. **💬 User Interaction**: Presents findings and allows you to proceed, cancel, refresh, or view details
 
 ## 🎯 Package Detection
 
@@ -184,7 +187,7 @@ Open the generated file and add entries, e.g.
 
 ```json
 {
-  "cache_ttl_hours": 2,
+  "cache_ttl_hours": 1,
   "feeds": [
     {"name": "Arch Linux News", "url": "https://archlinux.org/feeds/news/", "priority": 1},
     {"name": "Arch Linux Security Advisories", "url": "https://security.archlinux.org/advisory/feed.atom", "priority": 1},
