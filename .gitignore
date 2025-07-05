@@ -22,4 +22,40 @@ arch-smart-update-checker-venv.sh
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Python package build artifacts
+*.egg-info/
+build/
+dist/
+*.egg
+
+# Test coverage and cache
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+.tox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Logs
+*.log 
