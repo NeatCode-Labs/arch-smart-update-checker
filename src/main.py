@@ -86,13 +86,21 @@ def main() -> int:
         config = Config(args.config) if args.config else Config()
         checker = UpdateChecker(config)
 
+        # Clear cache if requested
+        if args.clear_cache:
+            checker.clear_cache()
+            
         # Run the checker
-        return checker.run(
-            all_news=args.all_news,
-            non_interactive=args.non_interactive,
-            clear_cache=args.clear_cache,
-            log_file=args.log,
-        )
+        result = checker.check_updates()
+        
+        # Log results if requested
+        if args.log:
+            with open(args.log, 'w') as f:
+                f.write(f"Update check completed at {result.timestamp}\n")
+                f.write(f"Updates available: {result.update_count}\n")
+                f.write(f"News items: {result.news_count}\n")
+        
+        return 0
 
     except ArchSmartUpdateCheckerError as e:
         print(f"Error: {e}")

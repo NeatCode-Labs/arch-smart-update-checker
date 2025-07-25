@@ -45,7 +45,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             super().__init__(temp_root, style='Content.TFrame')
         self.main_window = main_window
         self.package_manager = main_window.checker.package_manager
-        self.config = main_window.config
+        self._config = main_window.config
         self.dims = get_dimensions()
 
         # Sort state tracking
@@ -221,20 +221,20 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                          style='PackageManager.Treeview')
 
         # Configure columns
-        self.package_tree.heading('#0', text='Package Name', anchor='c')  # Center
-        self.package_tree.heading('version', text='Version', anchor='c')  # Center
-        self.package_tree.heading('repository', text='Repository', anchor='c')  # Center
-        self.package_tree.heading('size', text='Size', anchor='c')  # Center
-        self.package_tree.heading('install_date', text='Install Date', anchor='c')  # Center
-        self.package_tree.heading('status', text='Priority', anchor='c')  # Center
+        self.package_tree.heading('#0', text='Package Name', anchor='c')  # type: ignore[call-overload]  # Center
+        self.package_tree.heading('version', text='Version', anchor='c')  # type: ignore[call-overload]  # Center
+        self.package_tree.heading('repository', text='Repository', anchor='c')  # type: ignore[call-overload]  # Center
+        self.package_tree.heading('size', text='Size', anchor='c')  # type: ignore[call-overload]  # Center
+        self.package_tree.heading('install_date', text='Install Date', anchor='c')  # type: ignore[call-overload]  # Center
+        self.package_tree.heading('status', text='Priority', anchor='c')  # type: ignore[call-overload]  # Center
 
         # Set column widths and alignments for data - all centered
-        self.package_tree.column('#0', width=250, minwidth=180, anchor='c')  # Center data
-        self.package_tree.column('version', width=120, minwidth=100, anchor='c')  # Center data
-        self.package_tree.column('repository', width=100, minwidth=80, anchor='c')  # Center data
-        self.package_tree.column('size', width=80, minwidth=60, anchor='c')  # Center data
-        self.package_tree.column('install_date', width=140, minwidth=120, anchor='c')  # Center data
-        self.package_tree.column('status', width=80, minwidth=60, anchor='c')  # Center data
+        self.package_tree.column('#0', width=250, minwidth=180, anchor='c')  # type: ignore[call-overload]  # Center data
+        self.package_tree.column('version', width=120, minwidth=100, anchor='c')  # type: ignore[call-overload]  # Center data
+        self.package_tree.column('repository', width=100, minwidth=80, anchor='c')  # type: ignore[call-overload]  # Center data
+        self.package_tree.column('size', width=80, minwidth=60, anchor='c')  # type: ignore[call-overload]  # Center data
+        self.package_tree.column('install_date', width=140, minwidth=120, anchor='c')  # type: ignore[call-overload]  # Center data
+        self.package_tree.column('status', width=80, minwidth=60, anchor='c')  # type: ignore[call-overload]  # Center data
 
         # Store reference to package_tree
         self.package_container = package_container
@@ -261,12 +261,12 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         self.package_tree.bind('<F5>', lambda e: self.load_packages())
 
         # Bind column header clicks for sorting
-        self.package_tree.heading('#0', command=lambda: self.sort_packages('#0'))
-        self.package_tree.heading('version', command=lambda: self.sort_packages('version'))
-        self.package_tree.heading('repository', command=lambda: self.sort_packages('repository'))
-        self.package_tree.heading('size', command=lambda: self.sort_packages('size'))
-        self.package_tree.heading('install_date', command=lambda: self.sort_packages('install_date'))
-        self.package_tree.heading('status', command=lambda: self.sort_packages('status'))
+        self.package_tree.heading('#0', command=lambda: self.sort_packages('#0')) # type: ignore[call-overload]
+        self.package_tree.heading('version', command=lambda: self.sort_packages('version')) # type: ignore[call-overload]
+        self.package_tree.heading('repository', command=lambda: self.sort_packages('repository')) # type: ignore[call-overload]
+        self.package_tree.heading('size', command=lambda: self.sort_packages('size')) # type: ignore[call-overload]
+        self.package_tree.heading('install_date', command=lambda: self.sort_packages('install_date')) # type: ignore[call-overload]
+        self.package_tree.heading('status', command=lambda: self.sort_packages('status')) # type: ignore[call-overload]
 
         # Stats label
         self.stats_label = tk.Label(package_frame,
@@ -390,7 +390,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 packages = self.package_manager.get_installed_packages()
 
                 # Get critical packages
-                critical_packages = set(self.config.get_critical_packages())
+                critical_packages = set(self._config.get_critical_packages())
 
                 # Update UI in main thread
                 self.main_window.root.after(0, lambda: self.display_packages(packages, critical_packages))
@@ -624,13 +624,13 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         for col in ['#0', 'version', 'repository', 'size', 'install_date', 'status']:
             if col == column:
                 # Add sort indicator
-                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼')
+                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼') # type: ignore[call-overload]
                 indicator = ' ▼' if self.sort_reverse else ' ▲'
-                self.package_tree.heading(col, text=heading_text + indicator)
+                self.package_tree.heading(col, text=heading_text + indicator) # type: ignore[call-overload]
             else:
                 # Remove sort indicator from other columns
-                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼')
-                self.package_tree.heading(col, text=heading_text)
+                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼') # type: ignore[call-overload]
+                self.package_tree.heading(col, text=heading_text) # type: ignore[call-overload]
 
     def mark_package_critical(self) -> None:
         """Mark selected package as critical."""
@@ -652,10 +652,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 continue
 
             # Add to critical packages
-            critical_packages = self.config.get_critical_packages()
+            critical_packages = self._config.get_critical_packages()
             if package_name not in critical_packages:
                 critical_packages.append(package_name)
-                self.config.set('critical_packages', critical_packages)
+                self._config.set('critical_packages', critical_packages)
                 logger.info(f"Marked package as critical: {package_name}")
                 marked_count += 1
             else:
@@ -693,10 +693,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             package_name = self.package_tree.item(item)['text']
 
             # Remove from critical packages
-            critical_packages = self.config.get_critical_packages()
+            critical_packages = self._config.get_critical_packages()
             if package_name in critical_packages:
                 critical_packages.remove(package_name)
-                self.config.set('critical_packages', critical_packages)
+                self._config.set('critical_packages', critical_packages)
                 logger.info(f"Removed package from critical list: {package_name}")
                 removed_count += 1
             else:
@@ -774,7 +774,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         info_window.resizable(True, True)
 
         # Use proper positioning
-        self.position_window(info_window, 700, 500, self.main_window.root)
+        self.position_window(info_window, 700, 500, self.main_window.root) # type: ignore[arg-type]
 
         # Header
         header_frame = tk.Frame(info_window, bg=self.colors['primary'], height=60)
@@ -1477,7 +1477,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         if filter_type == "all":
             return packages
         elif filter_type == "critical":
-            critical = self.config.get_critical_packages()
+            critical = self._config.get_critical_packages()
             return [p for p in packages if p.get('name') in critical]
         elif filter_type == "installed":
             return packages  # All are installed
@@ -1495,7 +1495,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         dialog.resizable(True, True)
 
         # Use proper positioning
-        self.position_window(dialog, 500, 400, self.main_window.root)
+        self.position_window(dialog, 500, 400, self.main_window.root) # type: ignore[arg-type]
 
         # Header
         header_frame = tk.Frame(dialog, bg=self.colors['primary'], height=60)
@@ -1771,7 +1771,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Apply fixed column widths
         for col_id, config in column_config.items():
-            self.package_tree.column(col_id, width=config['width'],
+            self.package_tree.column(col_id, width=config['width'], # type: ignore[call-overload]
                                      minwidth=config['min'], stretch=True)
 
         # Show all columns for fixed layout

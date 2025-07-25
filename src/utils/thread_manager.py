@@ -308,7 +308,7 @@ class ThreadResourceManager:
 
     @classmethod
     def create_managed_thread(cls, thread_id: str, target: Callable,
-                              args: tuple = (), kwargs: dict = None,
+                              args: tuple = (), kwargs: Optional[dict] = None,
                               is_background: bool = False, component_id: Optional[str] = None) -> Optional[threading.Thread]:
         """
         Create a managed thread with comprehensive security controls.
@@ -518,7 +518,7 @@ class ThreadResourceManager:
 
 
 def create_managed_thread(thread_id: str, target: Callable,
-                          args: tuple = (), kwargs: dict = None,
+                          args: tuple = (), kwargs: Optional[dict] = None,
                           is_background: bool = False, component_id: Optional[str] = None) -> Optional[threading.Thread]:
     """
     Convenience function to create a managed thread.

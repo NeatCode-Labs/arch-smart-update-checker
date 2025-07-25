@@ -52,6 +52,7 @@ class NewsFetcher:
         
         # Rate limiting tracking
         self._last_request_time: float = 0.0
+        self._host_request_times: dict[str, list[float]] = {}
 
         # Default freshness window (in days)
         self.max_news_age_days = 30
@@ -175,7 +176,7 @@ class NewsFetcher:
             })
 
             # Configure adapters with enhanced retry and security settings
-            from requests.adapters import HTTPAdapter
+            from requests.adapters import HTTPAdapter  # type: ignore[import-untyped]
             from urllib3.util.retry import Retry
             import urllib3
 
@@ -264,7 +265,7 @@ class NewsFetcher:
 
         return response
 
-    def _validate_request_parameters(self, url: str, timeout: int = None) -> tuple:
+    def _validate_request_parameters(self, url: str, timeout: Optional[int] = None) -> tuple:
         """
         Validate and normalize request parameters for security.
 
@@ -340,7 +341,7 @@ class NewsFetcher:
 
         return url, timeout
 
-    def _make_secure_request(self, url: str, timeout: int = None, **kwargs) -> 'requests.Response':
+    def _make_secure_request(self, url: str, timeout: Optional[int] = None, **kwargs) -> 'requests.Response':
         """
         Make a secure HTTP request with comprehensive controls.
 

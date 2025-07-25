@@ -34,7 +34,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         """Initialize the settings frame."""
         super().__init__(parent, style='Content.TFrame')
         self.main_window = main_window
-        self.config = main_window.config
+        self._config: Config = main_window.config
         self.dims = get_dimensions()
 
         # Initialize secure callback manager for settings
@@ -135,7 +135,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     self._on_mousewheel(event)
                     return "break"  # type: ignore[return-value]
                 try:
-                    parent = parent.master
+                    parent = parent.master  # type: ignore[assignment]
                 except Exception:
                     break
 
@@ -291,7 +291,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.feed_container = feed_container
 
         # Store feed variables
-        self.feed_vars = []
+        self.feed_vars: list[tuple[int, tk.BooleanVar]] = []
 
         # Feed buttons
         feed_buttons_frame = ttk.Frame(feeds_frame, style='Card.TFrame')
@@ -372,7 +372,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                    anchor='w')
         freshness_label.pack(side='left')
 
-        self.news_age_var = tk.StringVar(value=str(self.config.get_max_news_age_days()))
+        self.news_age_var = tk.StringVar(value=str(self._config.get_max_news_age_days()))
         freshness_entry = tk.Entry(freshness_frame,
                                    textvariable=self.news_age_var,
                                    font=('Segoe UI', 11, 'normal'),
@@ -400,7 +400,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                    anchor='w')
         max_items_label.pack(side='left')
 
-        self.max_items_var = tk.StringVar(value=str(self.config.get_max_news_items()))
+        self.max_items_var = tk.StringVar(value=str(self._config.get_max_news_items()))
         max_items_entry = tk.Entry(max_items_frame,
                                    textvariable=self.max_items_var,
                                    font=('Segoe UI', 11, 'normal'),
@@ -490,9 +490,9 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                 anchor='w')
         config_label.pack(side='left')
 
-        self.config_path_var = tk.StringVar(value=self.config.config_file or "Default")
+        self._config_path_var = tk.StringVar(value=self._config.config_file or "Default")
         config_path_entry = tk.Entry(config_frame,
-                                     textvariable=self.config_path_var,
+                                     textvariable=self._config_path_var,
                                      font=('Segoe UI', 11, 'normal'),
                                      bg=self.colors['surface'],
                                      fg=self.colors['text'],
@@ -688,7 +688,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
     def load_settings(self) -> None:
         """Load current settings into the UI."""
         try:
-            cfg = self.config.config
+            cfg = self._config.config
             # Sync basic display settings
             self.theme_var.set(cfg.get('theme', 'light'))
             # General settings
@@ -701,7 +701,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             self.retention_var.set(str(cfg.get('update_history_retention_days', 365)))
 
             # Load feeds
-            feeds = self.config.get_feeds()
+            feeds = self._config.get_feeds()
             self.feed_vars = []
 
             # Clear existing checkboxes
@@ -849,45 +849,45 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 'update_history_enabled': self.history_enabled_var.get(),
                 'update_history_retention_days': retention_value
             }
-            old_theme = self.config.config.get('theme', 'light')
-            old_debug = self.config.config.get('debug_mode', False)
-            old_verbose = self.config.config.get('verbose_logging', False)
+            old_theme = self._config.config.get('theme', 'light')
+            old_debug = self._config.config.get('debug_mode', False)
+            old_verbose = self._config.config.get('verbose_logging', False)
 
             # Save feed states before saving config
             if hasattr(self, 'feed_vars') and self.feed_vars:
-                feeds = self.config.get_feeds()
+                feeds = self._config.get_feeds()
                 for original_index, var in self.feed_vars:
                     if original_index < len(feeds):
                         feeds[original_index]['enabled'] = var.get()
-                self.config.set_feeds(feeds)
+                self._config.set_feeds(feeds)
 
             # Save to config
-            if hasattr(self.config, 'update_settings'):
+            if hasattr(self._config, 'update_settings'):
                 try:
-                    self.config.update_settings(settings)
+                    self._config.update_settings(settings)
                 except Exception:
                     # If update_settings exists but fails (e.g., mock mis-configured), fall back
-                    if hasattr(self.config, 'save'):
+                    if hasattr(self._config, 'save'):
                         try:
                             # Update config dict before saving
                             for k, v in settings.items():
-                                self.config.config[k] = v
-                            self.config.save()
+                                self._config.config[k] = v
+                            self._config.save()
                         except Exception:
                             pass
-            elif hasattr(self.config, 'save'):
+            elif hasattr(self._config, 'save'):
                 # Fall back to legacy single-save API used in tests/mocks
                 try:
-                    # Assume config.save() persists self.config.config dict
+                    # Assume config.save() persists self._config.config dict
                     for k, v in settings.items():
-                        self.config.config[k] = v
-                    self.config.save()
+                        self._config.config[k] = v
+                    self._config.save()
                 except Exception:
                     pass
             else:
                 # As a last resort, just update attribute directly (for plain mocks)
-                if isinstance(getattr(self.config, 'config', None), dict):
-                    self.config.config.update(settings)
+                if isinstance(getattr(self._config, 'config', None), dict):
+                    self._config.config.update(settings)
             # Inform news_fetcher of new freshness value and clear cache
             try:
                 if hasattr(self.main_window, 'checker') and hasattr(self.main_window.checker, 'news_fetcher'):
@@ -927,7 +927,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             if settings['debug_mode'] != old_debug or settings['verbose_logging'] != old_verbose:
                 # Reconfigure logging
                 from ..utils.logger import set_global_config
-                set_global_config(self.config.config)
+                set_global_config(self._config.config)
 
                 # Update status indicator in main window
                 if hasattr(self.main_window, 'update_logging_status'):
@@ -958,8 +958,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 self.retention_var.set("365")
 
                 # Reset feeds to defaults if method exists
-                if hasattr(self.config, 'reset_feeds_to_defaults'):
-                    self.config.reset_feeds_to_defaults()
+                if hasattr(self._config, 'reset_feeds_to_defaults'):
+                    self._config.reset_feeds_to_defaults()
 
                 # Reset all settings in config
                 default_settings = {
@@ -975,15 +975,15 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 }
 
                 # Try to update settings, but handle missing methods gracefully
-                if hasattr(self.config, 'update_settings'):
-                    self.config.update_settings(default_settings)
-                elif hasattr(self.config, 'config') and isinstance(self.config.config, dict):
+                if hasattr(self._config, 'update_settings'):
+                    self._config.update_settings(default_settings)
+                elif hasattr(self._config, 'config') and isinstance(self._config.config, dict):
                     # Fallback: directly update config dict
-                    self.config.config.update(default_settings)
-                    if hasattr(self.config, 'save_config'):
-                        self.config.save_config()
-                    elif hasattr(self.config, 'save'):
-                        self.config.save()
+                    self._config.config.update(default_settings)
+                    if hasattr(self._config, 'save_config'):
+                        self._config.save_config()
+                    elif hasattr(self._config, 'save'):
+                        self._config.save()
 
                 # Update news fetcher freshness and clear cache
                 try:
@@ -1023,7 +1023,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             )
 
             if filename:
-                config_data = self.config.get_all_settings()
+                config_data = self._config.get_all_settings()
                 with open(filename, 'w') as f:
                     json.dump(config_data, f, indent=2)
 
@@ -1063,7 +1063,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     return
 
                 # Backup current config
-                backup = self.config.get_all_settings()
+                backup = self._config.get_all_settings()
 
                 try:
                     with open(filename, 'r', encoding='utf-8') as f:
@@ -1081,8 +1081,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     sanitized_config = sanitize_config_json(new_config)
 
                     # Update config with sanitized data
-                    self.config.config = sanitized_config
-                    self.config.save_config()
+                    self._config.config = sanitized_config
+                    self._config.save_config()
 
                     # Reload UI
                     self.refresh_theme()
@@ -1091,8 +1091,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
                 except Exception as exc:
                     # Restore backup on error
-                    self.config.config = backup
-                    self.config.save_config()
+                    self._config.config = backup
+                    self._config.save_config()
                     raise exc
 
         except Exception as exc:
@@ -1100,7 +1100,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
     def edit_feed(self) -> None:
         """Edit selected RSS feed (popup window)."""
-        feeds = self.config.get_feeds()
+        feeds = self._config.get_feeds()
 
         if not feeds:
             messagebox.showinfo("Info", "No feeds to edit")
@@ -1112,7 +1112,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         dialog.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(dialog, 500, 300, self.main_window.root)
+        self.position_window(dialog, 500, 300, self.main_window.root)  # type: ignore[arg-type]
 
         label = tk.Label(dialog,
                          text="Select a feed to edit:",
@@ -1174,7 +1174,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         popup.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(popup, 450, 300, self.main_window.root)
+        self.position_window(popup, 450, 300, self.main_window.root)  # type: ignore[arg-type]
 
         # Feed name
         name_var = tk.StringVar(value=feed.get('name', ''))
@@ -1221,7 +1221,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
             try:
                 # Update the feed in the config
-                feeds = self.config.get_feeds()
+                feeds = self._config.get_feeds()
                 feeds[index] = {
                     'name': name,
                     'url': url,
@@ -1229,7 +1229,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     'enabled': enabled_var.get(),
                     'priority': feed.get('priority', 2)  # Keep existing priority
                 }
-                self.config.set_feeds(feeds)
+                self._config.set_feeds(feeds)
 
                 # Reload the feed list
                 self.load_settings()
@@ -1251,7 +1251,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
     def test_feed(self) -> None:
         """Test RSS feed accessibility."""
         # Since we don't have a selection, test all enabled feeds
-        feeds = self.config.get_feeds()
+        feeds = self._config.get_feeds()
         enabled_feeds = [f for f in feeds if f.get('enabled', True)]
 
         if not enabled_feeds:
@@ -1267,7 +1267,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         dialog.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(dialog, 400, 300, self.main_window.root)
+        self.position_window(dialog, 400, 300, self.main_window.root)  # type: ignore[arg-type]
 
         label = tk.Label(dialog,
                          text="Select a feed to test:",
@@ -1327,7 +1327,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         test_dialog.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(test_dialog, 400, 150, self.main_window.root)
+        self.position_window(test_dialog, 400, 150, self.main_window.root)  # type: ignore[arg-type]
 
         label = tk.Label(test_dialog,
                          text=f"Testing: {name}\n{url}",
@@ -1424,7 +1424,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         popup.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(popup, 350, 180, self.main_window.root)
+        self.position_window(popup, 350, 180, self.main_window.root)  # type: ignore[arg-type]
         name_var = tk.StringVar()
         url_var = tk.StringVar()
         ttk.Label(
@@ -1473,7 +1473,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             try:
                 # Determine feed type based on URL
                 feed_type = "package" if "packages" in url else "news"
-                self.config.add_feed(name, url, priority=2, feed_type=feed_type)
+                self._config.add_feed(name, url, priority=2, feed_type=feed_type)
                 # Reload the feed list
                 self.load_settings()
                 popup.destroy()
@@ -1506,7 +1506,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         from ..utils.validators import validate_config_path
 
         # Get the directory of the current config file
-        current_config = self.config_path_var.get()
+        current_config = self._config_path_var.get()
         initial_dir = None
 
         if current_config and current_config != "Default":
@@ -1537,7 +1537,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             try:
                 # Validate the selected path for security
                 validate_config_path(filename)
-                self.config_path_var.set(filename)
+                self._config_path_var.set(filename)
                 messagebox.showinfo("Success", "Configuration file path updated.")
             except ValueError as e:
                 messagebox.showerror(
@@ -1574,7 +1574,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             # Store feed data before recreating UI
             current_feeds = []
             if hasattr(self, 'feed_vars') and self.feed_vars:
-                feeds = self.config.get_feeds()
+                feeds = self._config.get_feeds()
                 for original_index, var in self.feed_vars:
                     if original_index < len(feeds):
                         feeds[original_index]['enabled'] = var.get()
@@ -1610,11 +1610,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             # If we have stored feeds, update the config first, then load settings
             if current_feeds:
                 # Use batch mode to prevent multiple saves
-                if hasattr(self.config, 'batch_update'):
-                    with self.config.batch_update():
-                        self.config.set_feeds(current_feeds)
+                if hasattr(self._config, 'batch_update'):
+                    with self._config.batch_update():
+                        self._config.set_feeds(current_feeds)
                 else:
-                    self.config.set_feeds(current_feeds)
+                    self._config.set_feeds(current_feeds)
 
             # Always load settings to populate the UI properly
             self.load_settings()
@@ -1627,7 +1627,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
     def remove_feed(self) -> None:
         """Remove selected RSS feed (popup confirmation)."""
-        feeds = self.config.get_feeds()
+        feeds = self._config.get_feeds()
 
         if not feeds:
             messagebox.showinfo("Info", "No feeds to remove")
@@ -1639,7 +1639,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         dialog.configure(bg=self.colors['background'])
 
         # Use proper positioning
-        self.position_window(dialog, 400, 300, self.main_window.root)
+        self.position_window(dialog, 400, 300, self.main_window.root)  # type: ignore[arg-type]
 
         label = tk.Label(dialog,
                          text="Select a feed to remove:",
@@ -1676,7 +1676,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 try:
                     # Remove from config
                     del feeds[index]
-                    self.config.set_feeds(feeds)
+                    self._config.set_feeds(feeds)
                     # Reload the feed list
                     self.load_settings()
                     messagebox.showinfo("Success", "Feed removed successfully!")
@@ -1728,13 +1728,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             # Create secure save callback
             secure_save_callback = self.callback_manager.register_callback(
                 lambda: self.save_settings(silent=True),
-                sensitive_data=self.config,
+                sensitive_data=self._config,
                 auto_cleanup=False  # We'll manage cleanup manually
             )
 
             # Set a new timer using secure timer manager
             self._autosave_timer_id = create_autosave_timer(
-                root=self.main_window.root,
+                root=self.main_window.root,  # type: ignore[arg-type]
                 save_callback=secure_save_callback,
                 component_id=self._component_id,
                 delay_ms=1000
@@ -1747,14 +1747,14 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         """Handle feed checkbox toggle."""
         if self._autosave_enabled:
             try:
-                feeds = self.config.get_feeds()  # type: ignore[attr-defined]
+                feeds = self._config.get_feeds()  # type: ignore[attr-defined]
                 if feed_index < len(feeds):
                     # Find the var for this feed index
                     for orig_idx, var in self.feed_vars:
                         if orig_idx == feed_index:
                             feeds[feed_index]['enabled'] = var.get()
                             break
-                    self.config.set_feeds(feeds)  # type: ignore[attr-defined]
+                    self._config.set_feeds(feeds)  # type: ignore[attr-defined]
             except Exception:
                 pass  # Silently ignore errors during auto-save
 
@@ -1768,7 +1768,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
             # Clear sensitive data references
             if hasattr(self, 'config'):
-                self.config = None
+                self._config = None
 
             # Clear main window reference
             if hasattr(self, 'main_window'):

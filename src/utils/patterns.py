@@ -6,7 +6,7 @@ Package pattern matching utilities with ReDoS protection.
 
 import re
 import threading
-from typing import Set, List, Optional, Iterator
+from typing import Set, List, Optional, Iterator, Any
 from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError, as_completed
 
@@ -142,7 +142,7 @@ class PackagePatternMatcher:
         ]
 
         self.custom_patterns: List[str] = []
-        self.pattern_cache = {}  # Cache compiled patterns
+        self.pattern_cache: dict[str, Any] = {}  # Cache compiled patterns
         logger.debug("Initialized PackagePatternMatcher with secure patterns")
 
     def add_custom_patterns(self, patterns: List[str]) -> None:

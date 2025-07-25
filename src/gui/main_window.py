@@ -870,7 +870,7 @@ class MainWindow(WindowPositionMixin):
         for frame_name, btn in self.nav_buttons.items():
             if btn is None:
                 continue
-            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))
+            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))  # type: ignore[misc])
             btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))
 
     def on_nav_hover(self, button: tk.Widget, entering: bool) -> None:
@@ -879,7 +879,7 @@ class MainWindow(WindowPositionMixin):
             button.configure(
                 bg=self.colors['background'],
                 fg=self.colors['primary']
-            )
+)  # type: ignore[call-arg]  # bg keyword arg for button styling
         else:
             # Check if this button is active
             active_frame = getattr(self, 'current_frame', 'dashboard')

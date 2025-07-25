@@ -37,7 +37,7 @@ class DashboardFrame(ttk.Frame):
             super().__init__(temp_root)
         self.main_window = main_window
         self.checker = main_window.checker
-        self.config = main_window.config
+        self._config = main_window.config
         self.dims = get_dimensions()
 
         # Stats file for non-update persistence (total packages, etc.)
@@ -191,8 +191,8 @@ class DashboardFrame(ttk.Frame):
         if "Issues Found" in title or "News Items" in title:
             # Change cursor and add click handler
             for widget in [card, content_frame, title_label, value_label, desc_label]:
-                widget.configure(cursor='hand2')
-                widget.bind("<Button-1>", lambda e, t=title: self.on_card_click(t))
+                widget.configure(cursor='hand2')  # type: ignore[call-arg]
+                widget.bind("<Button-1>", lambda e, t=title: self.on_card_click(t))  # type: ignore[misc]
 
         return card
 
@@ -849,7 +849,7 @@ class DashboardFrame(ttk.Frame):
         """Refresh all dashboard data."""
         # Update system info
         try:
-            config_file = self.config.config_file or "Default"
+            config_file = self._config.config_file or "Default"
             self.system_labels["Config File"].configure(text=config_file)
 
             # Update last check time
@@ -1018,7 +1018,7 @@ class DashboardFrame(ttk.Frame):
             issues_count = 0
 
             # Get critical packages that might have issues
-            critical_packages = self.config.config.get('critical_packages', [])
+            critical_packages = self._config.config.get('critical_packages', [])
             installed_packages = set(self.checker.package_manager.get_installed_package_names())
 
             # Check if critical packages have updates (potential issues)

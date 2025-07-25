@@ -92,7 +92,7 @@ class WindowPositionMixin:
 
         # Make window transient if parent provided
         if parent:
-            window.transient(parent)
+            window.transient(parent)  # type: ignore[call-overload]
 
         # Show the window
         window.deiconify()
