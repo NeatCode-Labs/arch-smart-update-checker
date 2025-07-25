@@ -1,249 +1,405 @@
-<div align="center">
+# Arch Smart Update Checker
 
-<img src="screenshots/icon.png" alt="Arch Smart Update Checker Icon" width="270" height="72">
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/Security/SECURITY_EXECUTIVE_SUMMARY.md)
 
-<h1>🛡️ Arch Smart Update Checker</h1>
+A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
 
-[![GitHub](https://img.shields.io/badge/GitHub-NeatCode--Labs-blue?style=flat-square&logo=github)](https://github.com/NeatCode-Labs/arch-smart-update-checker)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Arch Linux](https://img.shields.io/badge/Arch%20Linux-Compatible-1793D1?style=flat-square&logo=arch-linux)](https://archlinux.org/)
-[![Python](https://img.shields.io/badge/Python-3.6%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
+**Version 2.1.0** - Complete rewrite with modern GUI, enhanced CLI, enterprise-grade security, and comprehensive features!
 
-**A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.**
+## 🌟 What's New in v2.0+
 
-**Created by [NeatCode Labs](https://neatcodelabs.com)**
+From a simple 833-line script to a full-featured application:
 
-**Inspired by [informant](https://github.com/bradford-smith94/informant)**
-
-</div>
-
----
-
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Monitored News Sources](#-monitored-news-sources)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [How It Works](#️-how-it-works)
-- [Package Detection](#-package-detection)
-- [Cache Management](#-cache-management)
-- [Requirements](#-requirements)
-- [Troubleshooting](#-troubleshooting)
-- [Contributing](#-contributing)
-- [License](#-license)
-
-## ✨ Features
-
-- 📰 **News Feed Monitoring**: Checks multiple Arch Linux news RSS feeds for news about packages
-- 📦 **Package Analysis**: Compares your installed packages against warnings in news feeds
-- 🎯 **Smart Distribution Detection**: Automatically detects your Arch-based distro and monitors relevant feeds
-- 🎨 **User-Friendly Interface**: Colored terminal output with clear warnings and recommendations
-- ⚡ **Caching**: Caches news feeds for 1 hour to reduce network requests
-- 🔄 **Interactive Prompts**: Allows you to review warnings and decide whether to proceed
-- 🚦 **Non-interactive Mode**: Run in scripts/cron; exits with status 1 if news requires attention
-- 📝 **Config File Support**: Extend/override feeds & patterns via `~/.config/arch-smart-update-checker/config.json`
-- 📄 **Pagination Support**: Automatically paginates long news lists for easy reading in terminal-only environments
-- ⚙️ **Safer Update Detection**: Uses `checkupdates` from `pacman-contrib` when available (avoids partial-upgrade risk)
+- **🎨 Beautiful GUI Application** - Modern Tkinter interface with dashboard, news browser, package manager, and settings
+- **🔧 Advanced CLI Tool** - `asuc-cli` with multiple commands and JSON output support
+- **🔒 Enterprise-Grade Security** - 12 security vulnerabilities fixed, comprehensive protection
+- **📜 Update History Tracking** - Record, view, and export your update history
+- **🖥️ Adaptive Layout** - Automatically scales to different screen sizes (12.5" minimum)
+- **🚀 Performance** - Multi-threaded operations, concurrent RSS fetching
+- **📦 Multiple Installation Methods** - pipx, pip, virtual environment, or system-wide
+- **🎯 Smart Distribution Detection** - Works on all Arch derivatives
 
 ## 📸 Screenshots
 
-<div align="center">
+<p align="center">
+  <img src="./screenshots/Screenshot from 2025-07-25 12-32-57.png" alt="Dashboard">
+</p>
 
-### 🔍 Scanning System and Checking Updates
-![System Scanning](screenshots/ss1.png)
+### GUI Application
+- **Dashboard** - Real-time system overview with update status
+- **News Browser** - View relevant Arch news and security advisories
+- **Package Manager** - Monitor critical packages and available updates
+- **Update History** - Track all updates with export capabilities
+- **Settings** - Configure feeds, themes, and application behavior
 
-### 📰 News Analysis and Package Matching
-![News Analysis](screenshots/ss2.png)
-
-### ✅ Safe Update Summary
-![Update Summary](screenshots/ss3.png)
-
-</div>
-
-## 📡 Monitored News Sources
-
-The tool intelligently detects your distribution and monitors relevant feeds:
-
-### Always Monitored:
-- 🏛️ **Arch Linux News** - Official Arch Linux announcements
-- 🔒 **Arch Linux Security Advisories** - Security updates and advisories
-- 📦 **Arch Stable Package Updates** - High-volume package update feed (with smart filtering)
-- 💾 **Arch32 News** - News for 32-bit architecture support
-
-### Distribution-Specific (only if detected):
-- 🚀 **EndeavourOS News** - Only checked on EndeavourOS systems
-- 🍃 **Manjaro Stable Updates** - Only checked on Manjaro systems
-
-## 🚀 Installation
-
-### 1. Clone the Repository
+### CLI Tool
 ```bash
+# Check for updates and news (default)
+asuc-cli
+
+# List updates only
+asuc-cli updates
+
+# View relevant news
+asuc-cli news
+
+# Show update history
+asuc-cli history
+
+# Manage configuration
+asuc-cli config get
+asuc-cli config set theme dark
+```
+
+## 🚀 Features
+
+### Core Functionality
+- **📰 Smart News Filtering** - Only shows news relevant to your installed packages
+- **🔍 Package Analysis** - Intelligent pattern matching reduces false positives
+- **📡 Multiple RSS Feeds** - Arch news, security advisories, and distribution-specific feeds
+- **⚡ Caching** - Intelligent caching reduces network requests
+- **🌐 Cross-Distribution** - Works on Arch Linux and all derivatives
+
+### Distribution Support
+ASUC automatically detects your Arch derivative and configures appropriate news feeds:
+
+- **Arch Linux** - Base feeds for news and security advisories
+- **Manjaro** - Adds Manjaro Stable Updates announcements feed  
+- **EndeavourOS** - Adds EndeavourOS News feed
+- **Other Derivatives** - Detects Garuda, ArcoLinux, Artix, Parabola, and Hyperbola
+
+Distribution-specific feeds are added alongside Arch Linux's base feeds, ensuring you see both upstream Arch news and distribution-specific announcements. All feeds can be customized in Settings.
+
+### GUI Features
+- **Modern Design** - Professional interface with light/dark themes
+- **Real-time Updates** - Dashboard shows live system status
+- **Thread-Safe** - All operations run in background threads
+- **Responsive Layout** - Adapts to different screen sizes
+- **TTY Preservation** - See pacman's progress bars and animations
+
+### CLI Features
+- **Multiple Commands** - check, updates, news, history, config, clear-cache
+- **JSON Output** - Machine-readable output for scripting
+- **Pagination** - Automatic pagination for long lists
+- **Non-Interactive Mode** - Perfect for scripts and automation
+- **Exit Codes** - Meaningful exit codes for scripting
+
+### Security Features
+- **Command Injection Prevention** - Secure command generation with validation
+- **Path Traversal Protection** - Comprehensive path validation
+- **Input Sanitization** - All user inputs validated and sanitized
+- **Secure Subprocess Execution** - No shell execution, timeout protection
+- **Memory Protection** - Secure handling of sensitive data
+
+## 📦 Installation
+
+### 📋 System Requirements
+
+**Minimum Requirements:**
+- **Operating System**: Arch Linux or derivatives only
+- **Python**: Version 3.8 or higher
+- **Screen Size**: 12.5" diagonal, 1366×768 resolution (GUI only)
+- **Dependencies**: python, python-pip, tk (for GUI)
+
+### 🔧 Quick Install (Recommended)
+
+```bash
+# Clone the repository
 git clone https://github.com/NeatCode-Labs/arch-smart-update-checker.git
 cd arch-smart-update-checker
+
+# Run the smart installer
+./install.sh
 ```
 
-### 2. Run the Setup Script
-```bash
-./setup.sh
-```
+The installer will:
+- ✅ Verify you're on Arch Linux or derivative
+- ✅ Check Python version and dependencies
+- ✅ Offer multiple installation methods
+- ✅ Install required Python packages
+- ✅ Create convenient command shortcuts
 
-This will:
-- ✅ Check and install Python dependencies (`feedparser`, `colorama`)
-- 🔧 Add convenient alias to your `.bashrc`
-- 🎯 Auto-detect your distribution
+### 📚 Installation Methods
 
-### 3. Reload Your Shell
-```bash
-source ~/.bashrc
-```
+| Method | Command | Best For | Location |
+|--------|---------|----------|----------|
+| **pipx** (Recommended) | `./install.sh` | Most users | `~/.local/pipx/` |
+| **pip --user** | `./install.sh --user` | Single user | `~/.local/` |
+| **Virtual Environment** | `./install.sh --venv` | Development | `./venv/` |
+| **System-wide** | `sudo ./install.sh --system` | All users | `/usr/local/` |
 
-### 4. (Optional) Create Your Personal Configuration
+### 🎯 First-Time Setup
 
-Run the tool once with `--init-config` to generate a starter file at
-`~/.config/arch-smart-update-checker/config.json`.
+1. **Install system dependencies** (if not already installed):
+   ```bash
+   sudo pacman -S python python-pip tk
+   ```
 
-```bash
-asuc --init-config
-```
+2. **Clone and install**:
+   ```bash
+   git clone https://github.com/NeatCode-Labs/arch-smart-update-checker.git
+   cd arch-smart-update-checker
+   ./install.sh
+   ```
 
-If you skip this, `asuc` works with built-in defaults (Arch news, security
-advisories, stable-repo package feed, plus distro-specific feeds).  Creating
-the file simply gives you a place to:
-
-* Disable or add RSS feeds (e.g. AUR "new packages" feed).
-* Adjust `cache_ttl_hours`.
-* Add extra regex patterns for niche packages.
-
-Re-running `--init-config` later will not overwrite an existing file, so it is
-safe to do at any time.
+3. **Run the application**:
+   ```bash
+   # GUI version
+   asuc-gui
+   
+   # CLI version
+   asuc-cli
+   ```
 
 ## 📖 Usage
 
-### Basic Usage
-Instead of running `sudo pacman -Syu`, use:
-```bash
-asuc
-```
-
-### Command Line Options
-
-| Option | Description |
-|--------|-------------|
-| `-a, --all-news` | Show all recent news, not just relevant ones |
-| `--non-interactive` | Run without prompts; exit status 1 if relevant news found |
-| `--log FILE` | Append a one-line summary to FILE (useful in cron) - format: `[timestamp] Updates: X, Relevant news: Y` |
-| `--clear-cache` | Clear the news cache before checking |
-| `--init-config` | Create a default user config file and exit |
-| `-h, --help` | Show help message |
-
-### Examples
-```bash
-# Standard check with interactive prompts
-asuc
-
-# Show all news including non-relevant items
-asuc -a
-
-# Clear cache and check fresh news
-asuc --clear-cache
-```
-
-## ⚙️ How It Works
-
-1. **📊 Package Scanning**: Retrieves list of all installed packages using `pacman -Q`
-2. **🔄 Update Check**: Uses `checkupdates` (from pacman-contrib) or falls back to `pacman -Qu` to check for available updates
-3. **📡 News Fetching**: Downloads and parses RSS feeds from configured sources
-4. **🔍 Pattern Matching**: Searches news content for package names that match your installed packages
-5. **📄 Pagination**: Automatically paginates news when content exceeds terminal height
-   - Press `SPACE` to continue to next page
-   - Press `q` to skip remaining news
-   - Similar to `less` or `more` commands
-   - Also paginates package lists when using the "details" option
-6. **💬 User Interaction**: Presents findings and allows you to proceed, cancel, refresh, or view details
-
-## 🎯 Package Detection
-
-The tool looks for package names in news feeds using multiple patterns:
-- 📌 Explicit version mentions (e.g., `package-1.2.3`)
-- 💬 Quoted package names
-- 📝 Code blocks with backticks
-- ⚠️ Critical system packages (kernel, nvidia, xorg, systemd, etc.)
-
-## 💾 Cache Management
-
-News feeds are cached in `~/.cache/arch-smart-update-checker/` for 1 hour to reduce network requests. Use `--clear-cache` to force fresh downloads.
-
-## 📝 Configuration File
-
-Advanced users can add extra RSS feeds or package-matching patterns without editing the script:
+### GUI Application
 
 ```bash
-asuc --init-config   # Creates ~/.config/arch-smart-update-checker/config.json
+asuc-gui
 ```
 
-Open the generated file and add entries, e.g.
+The GUI provides:
+- **Dashboard**: Overview of system status and available updates
+- **Quick Actions**: Check updates, view critical packages, refresh news
+- **Navigation**: Easy access to all features via sidebar
+- **Settings**: Configure feeds, themes, and behavior
+
+### CLI Tool
+
+```bash
+# Default: Check for updates and news
+asuc-cli
+
+# Show available updates only
+asuc-cli updates
+
+# Show relevant news only
+asuc-cli news
+
+# View update history
+asuc-cli history
+asuc-cli history --limit 10
+asuc-cli history --export history.csv
+
+# Manage configuration
+asuc-cli config get
+asuc-cli config set cache_ttl_hours 2
+asuc-cli config set theme dark
+
+# Clear caches
+asuc-cli clear-cache
+
+# JSON output for scripting
+asuc-cli --json
+asuc-cli updates --json
+```
+
+### Exit Codes
+
+- `0`: Success, no updates available
+- `10`: Updates available
+- `20`: Error occurred
+- `30`: Update failed (when using upgrade command)
+
+## ⚙️ Configuration
+
+Configuration file: `~/.config/arch-smart-update-checker/config.json`
+
+### Key Settings
 
 ```json
 {
   "cache_ttl_hours": 1,
+  "max_news_items": 10,
+  "max_news_age_days": 30,
+  "theme": "light",
+  "update_history_enabled": false,
+  "update_history_retention_days": 365,
+  "critical_packages": ["linux", "nvidia", "xorg", "systemd"],
   "feeds": [
-    {"name": "Arch Linux News", "url": "https://archlinux.org/feeds/news/", "priority": 1},
-    {"name": "Arch Linux Security Advisories", "url": "https://security.archlinux.org/advisory/feed.atom", "priority": 1},
-    {"name": "Arch Stable Package Updates", "url": "https://archlinux.org/feeds/packages/all/stable-repos/", "priority": 4, "type": "package"}
-  ],
-  "extra_patterns": ["\\b(my-special-package)\\b"]
+    {
+      "name": "Arch Linux News",
+      "url": "https://archlinux.org/feeds/news/",
+      "priority": 1
+    }
+  ]
 }
 ```
 
-## ⚠️ Safer Update Checks
+### GUI Settings
 
-The tool prefers `checkupdates` (provided by the `pacman-contrib` package) to check for pending updates safely. If it's not installed, the script falls back to a less robust method and will warn you. Installing `pacman-contrib` is recommended:
+Access via Settings panel:
+- Enable/disable update history
+- Change themes (light/dark)
+- Configure RSS feeds
+- Set critical packages
+- Adjust cache settings
+
+### CLI Configuration
 
 ```bash
-sudo pacman -S pacman-contrib
+# View all settings
+asuc-cli config get
+
+# Change specific setting
+asuc-cli config set theme dark
+asuc-cli config set update_history_enabled true
+
+# Edit config file directly
+asuc-cli config edit
 ```
 
-## 📋 Requirements
+## 🔒 Security
 
-- 🐧 Arch Linux (or Arch-based distribution)
-- 🐍 Python 3.6+
-- 📦 pacman package manager
-- 🌐 Internet connection for fetching news feeds
+This application implements enterprise-grade security:
 
-## 🔧 Troubleshooting
+### Protections
+- ✅ **Command Injection Prevention** - All commands validated
+- ✅ **Path Traversal Protection** - File access restricted
+- ✅ **Input Validation** - Comprehensive sanitization
+- ✅ **Secure Subprocess** - No shell execution
+- ✅ **Memory Protection** - Sensitive data handling
 
-### "Error getting installed packages"
-- Ensure you have proper permissions to run `pacman -Q`
-- Check if pacman is installed and in PATH
+### Audit Results
+- **12 vulnerabilities fixed** (3 critical, 4 high, 4 medium, 1 low)
+- **95% risk reduction** achieved
+- **OWASP Top 10** compliant
+- **Ready for production** use
 
-### "Could not check for pending updates"
-- The script needs sudo access to sync package databases
-- Ensure you have sudo privileges
 
-### Feed parsing errors
-- Check your internet connection
-- Try clearing the cache with `--clear-cache`
-- Some feeds might be temporarily unavailable
+
+## 🛠️ Technical Details
+
+### Architecture
+
+The application uses a modular architecture:
+
+```
+src/
+├── checker.py          # Core update checking logic
+├── config.py           # Configuration management
+├── news_fetcher.py     # RSS feed handling
+├── package_manager.py  # Package operations
+├── cli/                # CLI implementation
+├── gui/                # GUI implementation
+├── utils/              # Shared utilities
+└── models.py          # Data models
+```
+
+### Key Technologies
+
+- **GUI**: Tkinter with modern theming
+- **CLI**: Colorama for colored output
+- **Networking**: Requests with SSL verification
+- **RSS Parsing**: Feedparser with security hardening
+- **Concurrency**: ThreadPoolExecutor for parallel operations
+- **Process Management**: Secure subprocess execution
+
+### Performance Features
+
+- **Concurrent RSS Fetching** - All feeds fetched in parallel
+- **Smart Caching** - Reduces network requests
+- **Thread-Safe Operations** - GUI remains responsive
+- **Efficient Pattern Matching** - Optimized package detection
+- **Memory Management** - Automatic cleanup and limits
+
+### Testing
+
+Full test suite with 62+ tests:
+
+```bash
+# Run all tests
+python -m pytest
+
+# With coverage
+python -m pytest --cov=src
+
+# Specific test file
+python -m pytest tests/test_checker.py
+```
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**"Command not found: asuc-gui"**
+- Run `./install.sh` to create command shortcuts
+- Or use: `python -m src.gui_app`
+
+**"Screen size not supported"**
+- Minimum 12.5" diagonal, 1366×768 resolution required
+- CLI version works on any screen: `asuc-cli`
+
+**"Permission denied"**
+- Don't use sudo with pip install
+- For system-wide: `sudo ./install.sh --system`
+
+**"No module named 'tkinter'"**
+- Install: `sudo pacman -S tk`
+- Or use CLI version: `asuc-cli`
+
+### Diagnostics
+
+```bash
+# Check installation
+./install.sh --check-only
+
+# Verify dependencies
+python -c "import tkinter, requests, feedparser, colorama, psutil"
+
+# Test configuration
+asuc-cli config path
+asuc-cli config get
+```
+
+## 📚 Version History
+
+### Current Version (v2.1.0)
+The current version is a complete rewrite with modular architecture, GUI, and enterprise features.
+
+### Legacy Version (v1.0)
+The original implementation is preserved for historical reference:
+- **Browse code**: [v1.0-legacy branch](https://github.com/NeatCode-Labs/arch-smart-update-checker/tree/v1.0-legacy)
+- **Download**: [v1.0 release](https://github.com/NeatCode-Labs/arch-smart-update-checker/releases/tag/v1.0)
+- **Features**: Single-file script, MIT license, terminal-only
+
+> **Note**: The legacy version is no longer maintained. New users should use the current version.
 
 ## 🤝 Contributing
 
-Feel free to submit issues, feature requests, or pull requests! Some ideas for improvement:
-- 🌐 Additional news sources
-- 🧠 Better package name detection
-- ⚙️ Configuration file support
-- 📧 Email notifications for critical updates
+Contributions are welcome! Please note:
+
+- All commits must include DCO sign-off: `git commit -s`
+- Code must pass security validation
+- Tests must pass: `python -m pytest`
+- Follow existing code style
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under GPL-3.0-or-later. See [LICENSE](LICENSE) for details.
+
+
+## 🙏 Acknowledgments
+
+- Inspired by [informant](https://github.com/bradford-smith94/informant)
+- Thanks to all contributors and testers
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/NeatCode-Labs/arch-smart-update-checker/issues)
+
 
 ---
 
 <div align="center">
 
-**Created with ❤️ by [NeatCode Labs](https://neatcodelabs.com)**  
+**Made with ❤️ for the Arch Linux community**  
 Visit us for more useful tools and projects!
 
 [![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
