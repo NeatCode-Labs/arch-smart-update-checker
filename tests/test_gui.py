@@ -880,20 +880,40 @@ class TestGUIIntegration(unittest.TestCase):
              patch.object(NewsBrowserFrame, 'refresh_news', lambda self: None), \
              patch.object(PackageManagerFrame, 'load_packages', lambda self: None), \
              patch.object(PackageManagerFrame, 'refresh_packages', lambda self: None):
-            mock_config_class.return_value = Mock()
-            mock_checker_class.return_value = Mock()
+            
+            # Set up proper mocks with context manager support
+            mock_config = Mock()
+            mock_config.config = {'theme': 'light', 'window_width': 1200, 'window_height': 800}
+            mock_config.get.side_effect = lambda key, default=None: mock_config.config.get(key, default)
+            mock_config.get_feeds.return_value = []
+            mock_config.load_settings.return_value = {}
+            mock_config.batch_update.return_value.__enter__ = Mock(return_value=None)
+            mock_config.batch_update.return_value.__exit__ = Mock(return_value=None)
+            
+            mock_checker = Mock()
+            mock_checker.last_news_items = []
+            mock_checker.get_available_updates.return_value = []
+            
+            mock_config_class.return_value = mock_config
+            mock_checker_class.return_value = mock_checker
             main_window = MainWindow()
             main_window.root.withdraw()
             try:
                 # Test frame switching
                 main_window.show_frame('dashboard')
-                self.assertEqual(main_window.current_frame, 'dashboard')
+                self.assertEqual(main_window.current_frame.get(), 'dashboard')
+                
                 main_window.show_frame('news')
-                self.assertEqual(main_window.current_frame, 'news')
+                self.assertEqual(main_window.current_frame.get(), 'news')
+                
                 main_window.show_frame('packages')
-                self.assertEqual(main_window.current_frame, 'packages')
+                self.assertEqual(main_window.current_frame.get(), 'packages')
+                
                 main_window.show_frame('settings')
-                self.assertEqual(main_window.current_frame, 'settings')
+                self.assertEqual(main_window.current_frame.get(), 'settings')
+                
+                main_window.show_frame('history')
+                self.assertEqual(main_window.current_frame.get(), 'history')
             finally:
                 try:
                     main_window.root.destroy()

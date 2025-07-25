@@ -206,21 +206,23 @@ class TestPackageOperations(unittest.TestCase):
         except:
             pass
 
-    @patch('tkinter.messagebox.showinfo')
-    def test_package_removal_success(self, mock_info):
-        """Test package removal placeholder functionality."""
+    @patch('tkinter.messagebox.askyesno')
+    def test_package_removal_success(self, mock_askyesno):
+        """Test package removal confirmation functionality."""
         # Mock package selection
         mock_item = Mock()
         self.pkg_frame.package_tree.selection = Mock(return_value=[mock_item])
-        self.pkg_frame.package_tree.item = Mock(return_value={'text': 'test-package', 'values': ['1.0-1', 'core', '1024', 'Today', 'Normal']})
+        self.pkg_frame.package_tree.item = Mock(return_value={'values': ['test-package', '1.0-1', 'core', '1024', 'Today', 'Normal']})
         
-        # Test removal - should show not implemented message
+        # Mock user canceling the removal
+        mock_askyesno.return_value = False
+        
+        # Test removal - should ask for confirmation
         self.pkg_frame.remove_selected()
         
-        # Verify the not implemented message was shown
-        mock_info.assert_called_once_with("Not Implemented", 
-                                         "Package removal functionality is not implemented yet.\n"
-                                         "Please use 'sudo pacman -R package_name' in terminal.")
+        # Verify confirmation dialog was shown
+        mock_askyesno.assert_called_once()
+        self.assertIn("Remove 1 package", mock_askyesno.call_args[0][1])
 
     @patch('subprocess.Popen')
     @patch('tkinter.messagebox.showerror')
@@ -320,20 +322,23 @@ Required By     : None
             # Verify show_package_info was called with correct arguments
             mock_show.assert_called_once_with('test-package', mock_info)
 
-    def test_invalid_package_name_validation(self):
+    @patch('tkinter.messagebox.askyesno')
+    def test_invalid_package_name_validation(self, mock_askyesno):
         """Test validation of invalid package names."""
         # Mock package selection with invalid name
         mock_item = Mock()
         self.pkg_frame.package_tree.selection = Mock(return_value=[mock_item])
         self.pkg_frame.package_tree.item = Mock(return_value={'values': ['test;package', '1.0-1', 'Installed', 'No']})
         
-        # Test removal - it should show info message (not implemented)
-        with patch('tkinter.messagebox.showinfo') as mock_info:
-            self.pkg_frame.remove_selected()
-            
-            # Verify info message was shown about not implemented
-            mock_info.assert_called_once()
-            self.assertIn("Not Implemented", mock_info.call_args[0][0])
+        # Mock user confirming the removal (to test that it gets to validation)
+        mock_askyesno.return_value = True
+        
+        # Test removal - should ask for confirmation
+        self.pkg_frame.remove_selected()
+        
+        # Verify confirmation dialog was shown (package name validation happens later in the process)
+        mock_askyesno.assert_called_once()
+        self.assertIn("Remove 1 package", mock_askyesno.call_args[0][1])
 
 
 class TestDashboardFeatures(unittest.TestCase):
