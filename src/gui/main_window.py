@@ -52,11 +52,11 @@ class MainWindow(WindowPositionMixin):
 
         # Initialize secure callback manager for memory protection
         self.callback_manager = create_secure_callback_manager("main_window")
-        
+
         # Get dimensions for all components
         from .dimensions import get_dimensions
         self.dims = get_dimensions()
-        
+
         # Initialize configuration and backend components first
         self.config = Config(config_file)
 
@@ -81,21 +81,21 @@ class MainWindow(WindowPositionMixin):
 
         # Update status bar to show logging state
         self.update_logging_status()
-        
-        # Update database sync time on startup  
+
+        # Update database sync time on startup
         if hasattr(self.frames['dashboard'], 'update_database_sync_time'):
             self.frames['dashboard'].update_database_sync_time()
-        
+
         # Schedule a sidebar width update after window is fully rendered
         secure_update_callback = self.callback_manager.register_callback(
-            self._update_sidebar_width, 
+            self._update_sidebar_width,
             sensitive_data=self.config
         )
         self.root.after(100, secure_update_callback)
-        
+
         # Register cleanup callback for proper resource management
         self.callback_manager.register_cleanup_callback(self._cleanup_resources)
-        
+
         # Thread safety lock for preventing concurrent update checks
         self._update_check_lock = threading.Lock()
         self._is_checking_simple = False  # Simple boolean instead of tkinter BooleanVar
@@ -116,18 +116,18 @@ class MainWindow(WindowPositionMixin):
         header_frame.pack(fill='x', padx=self.dims.pad_large, pady=self.dims.pad_large)
 
         title_label = tk.Label(header_frame,
-                              text="⚠️ Critical Package Updates",
-                              font=self.dims.font('Segoe UI', 'large', 'bold'),
-                              fg=self.colors['text'],
-                              bg=self.colors['background'])
+                               text="⚠️ Critical Package Updates",
+                               font=self.dims.font('Segoe UI', 'large', 'bold'),
+                               fg=self.colors['text'],
+                               bg=self.colors['background'])
         title_label.pack(anchor='w')
 
         info_label = tk.Label(header_frame,
-                             text="These critical packages have updates available and may require special attention:",
-                             font=self.dims.font('Segoe UI', 'normal'),
-                             fg=self.colors['text_secondary'],
-                             bg=self.colors['background'],
-                             wraplength=self.dims.scale(550))
+                              text="These critical packages have updates available and may require special attention:",
+                              font=self.dims.font('Segoe UI', 'normal'),
+                              fg=self.colors['text_secondary'],
+                              bg=self.colors['background'],
+                              wraplength=self.dims.scale(550))
         info_label.pack(anchor='w', pady=(self.dims.pad_medium, 0))
 
         # Content frame with scrollbar
@@ -136,14 +136,14 @@ class MainWindow(WindowPositionMixin):
 
         # Create text widget for issues
         text_widget = tk.Text(content_frame,
-                             font=self.dims.font('Segoe UI', 'normal'),
-                             fg=self.colors['text'],
-                             bg=self.colors['surface'],
-                             wrap='word',
-                             height=10,
-                             relief='flat',
-                             padx=10,
-                             pady=10)
+                              font=self.dims.font('Segoe UI', 'normal'),
+                              fg=self.colors['text'],
+                              bg=self.colors['surface'],
+                              wrap='word',
+                              height=10,
+                              relief='flat',
+                              padx=10,
+                              pady=10)
 
         scrollbar = ttk.Scrollbar(content_frame, command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -190,17 +190,17 @@ class MainWindow(WindowPositionMixin):
 
         # Close button
         close_btn = tk.Button(dialog,
-                             text="Close",
-                             font=('Segoe UI', 11, 'normal'),
-                             fg='white',
-                             bg=self.colors['primary'],
-                             activebackground=self.colors['primary'],
-                             activeforeground='white',
-                             bd=0,
-                             padx=20,
-                             pady=8,
-                             cursor='hand2',
-                             command=dialog.destroy)
+                              text="Close",
+                              font=('Segoe UI', 11, 'normal'),
+                              fg='white',
+                              bg=self.colors['primary'],
+                              activebackground=self.colors['primary'],
+                              activeforeground='white',
+                              bd=0,
+                              padx=20,
+                              pady=8,
+                              cursor='hand2',
+                              command=dialog.destroy)
         close_btn.pack(pady=(0, 20))
 
         # Dialog positioning already handled by position_window [[memory:2371890]]
@@ -225,17 +225,17 @@ class MainWindow(WindowPositionMixin):
         header_frame.pack(fill='x', padx=20, pady=20)
 
         title_label = tk.Label(header_frame,
-                              text="📰 Recent News",
-                              font=('Segoe UI', 16, 'bold'),
-                              fg=self.colors['text'],
-                              bg=self.colors['background'])
+                               text="📰 Recent News",
+                               font=('Segoe UI', 16, 'bold'),
+                               fg=self.colors['text'],
+                               bg=self.colors['background'])
         title_label.pack(anchor='w')
 
         info_label = tk.Label(header_frame,
-                             text="Recent news from Arch Linux that may affect your system:",
-                             font=('Segoe UI', 11, 'normal'),
-                             fg=self.colors['text_secondary'],
-                             bg=self.colors['background'])
+                              text="Recent news from Arch Linux that may affect your system:",
+                              font=('Segoe UI', 11, 'normal'),
+                              fg=self.colors['text_secondary'],
+                              bg=self.colors['background'])
         info_label.pack(anchor='w', pady=(10, 0))
 
         # Content frame with scrollbar
@@ -244,13 +244,13 @@ class MainWindow(WindowPositionMixin):
 
         # Create text widget for news
         text_widget = tk.Text(content_frame,
-                             font=('Segoe UI', 11, 'normal'),
-                             fg=self.colors['text'],
-                             bg=self.colors['surface'],
-                             wrap='word',
-                             relief='flat',
-                             padx=10,
-                             pady=10)
+                              font=('Segoe UI', 11, 'normal'),
+                              fg=self.colors['text'],
+                              bg=self.colors['surface'],
+                              wrap='word',
+                              relief='flat',
+                              padx=10,
+                              pady=10)
 
         scrollbar = ttk.Scrollbar(content_frame, command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -284,14 +284,14 @@ class MainWindow(WindowPositionMixin):
 
         # Configure tags
         text_widget.tag_configure('title', font=('Segoe UI', 14, 'bold'),
-                                 foreground=self.colors['primary'])
+                                  foreground=self.colors['primary'])
         text_widget.tag_configure('date', font=('Segoe UI', 10, 'normal'),
-                                 foreground=self.colors['text_secondary'])
+                                  foreground=self.colors['text_secondary'])
         text_widget.tag_configure('content', font=('Segoe UI', 11, 'normal'))
         text_widget.tag_configure('info', font=('Segoe UI', 11, 'italic'),
-                                 foreground=self.colors['text_secondary'])
+                                  foreground=self.colors['text_secondary'])
         text_widget.tag_configure('link', foreground=self.colors['primary'],
-                                 underline=True)
+                                  underline=True)
         text_widget.tag_configure('separator', foreground=self.colors['text_secondary'])
 
         # Import webbrowser at the top of the function if not already imported
@@ -323,33 +323,33 @@ class MainWindow(WindowPositionMixin):
 
         # View in browser button
         browser_btn = tk.Button(button_frame,
-                               text="View News Browser",
-                               font=('Segoe UI', 11, 'normal'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'],
-                               activebackground=self.colors['primary_hover'],
-                               activeforeground=self.colors['text'],
-                               bd=1,
-                               relief='solid',
-                               padx=15,
-                               pady=6,
-                               cursor='hand2',
-                               command=lambda: [dialog.destroy(), self.show_frame("news")])
+                                text="View News Browser",
+                                font=('Segoe UI', 11, 'normal'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'],
+                                activebackground=self.colors['primary_hover'],
+                                activeforeground=self.colors['text'],
+                                bd=1,
+                                relief='solid',
+                                padx=15,
+                                pady=6,
+                                cursor='hand2',
+                                command=lambda: [dialog.destroy(), self.show_frame("news")])
         browser_btn.pack(side='left', padx=(0, 10))
 
         # Close button
         close_btn = tk.Button(button_frame,
-                             text="Close",
-                             font=('Segoe UI', 11, 'normal'),
-                             fg='white',
-                             bg=self.colors['primary'],
-                             activebackground=self.colors['primary'],
-                             activeforeground='white',
-                             bd=0,
-                             padx=20,
-                             pady=8,
-                             cursor='hand2',
-                             command=dialog.destroy)
+                              text="Close",
+                              font=('Segoe UI', 11, 'normal'),
+                              fg='white',
+                              bg=self.colors['primary'],
+                              activebackground=self.colors['primary'],
+                              activeforeground='white',
+                              bd=0,
+                              padx=20,
+                              pady=8,
+                              cursor='hand2',
+                              command=dialog.destroy)
         close_btn.pack(side='right')
 
         # Dialog positioning already handled by position_window [[memory:2371890]]
@@ -367,7 +367,7 @@ class MainWindow(WindowPositionMixin):
 
         # Initialize layout manager
         self.layout_manager = get_layout_manager()
-        
+
         # Check if screen is supported
         if not self.layout_manager.initialize_for_screen(self.root):
             # Show error for unsupported screen size
@@ -380,20 +380,20 @@ class MainWindow(WindowPositionMixin):
             self.root.destroy()
             import sys
             sys.exit(1)
-            
+
         # Get dimensions from layout manager
         self.dimensions = self.layout_manager.get_dimensions()
         width, height = self.layout_manager.get_window_size()
-        
+
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        
+
         # Ensure window fits on screen with some margin
         margin = 50  # pixels from edge
         max_width = screen_width - (2 * margin)
         max_height = screen_height - (2 * margin)
-        
+
         # Adjust if window is too large
         if width > max_width:
             width = max_width
@@ -408,7 +408,7 @@ class MainWindow(WindowPositionMixin):
         # Set adaptive window size - no resizing allowed
         self.root.geometry(f"{width}x{height}")
         self.root.resizable(False, False)
-        
+
         # Store fixed size
         self.min_width = width
         self.min_height = height
@@ -516,8 +516,6 @@ class MainWindow(WindowPositionMixin):
         except Exception as e:
             logger.warning(f"Failed to save window geometry: {e}")
 
-
-
     def setup_styles(self):
         """Setup color schemes and ttk styles."""
         # Modern color schemes with better contrast and visual hierarchy
@@ -526,11 +524,11 @@ class MainWindow(WindowPositionMixin):
                 'background': '#F5F7FA',
                 'surface': '#FFFFFF',
                 'primary': '#2563EB',      # Modern blue
-                'primary_hover': '#1D4ED8', # Darker blue
+                'primary_hover': '#1D4ED8',  # Darker blue
                 'secondary': '#64748B',     # Slate gray
                 'accent': '#06B6D4',        # Cyan
                 'text': '#1E293B',          # Dark slate
-                'text_secondary': '#64748B', # Medium slate
+                'text_secondary': '#64748B',  # Medium slate
                 'border': '#E2E8F0',        # Light gray border
                 'success': '#10B981',       # Emerald
                 'warning': '#F59E0B',       # Amber
@@ -541,11 +539,11 @@ class MainWindow(WindowPositionMixin):
                 'background': '#0F172A',    # Dark navy
                 'surface': '#1E293B',       # Lighter navy
                 'primary': '#3B82F6',       # Bright blue
-                'primary_hover': '#2563EB', # Lighter blue
+                'primary_hover': '#2563EB',  # Lighter blue
                 'secondary': '#64748B',     # Slate
                 'accent': '#14B8A6',        # Teal
                 'text': '#F1F5F9',          # Light gray
-                'text_secondary': '#94A3B8', # Medium gray
+                'text_secondary': '#94A3B8',  # Medium gray
                 'border': '#334155',        # Dark border
                 'success': '#10B981',       # Emerald
                 'warning': '#F59E0B',       # Amber
@@ -563,54 +561,54 @@ class MainWindow(WindowPositionMixin):
 
         # Main frame style
         style.configure('Main.TFrame',
-                       background=self.colors['background'],
-                       relief='flat',
-                       borderwidth=0)
+                        background=self.colors['background'],
+                        relief='flat',
+                        borderwidth=0)
 
         # Content frame style
         style.configure('Content.TFrame',
-                       background=self.colors['background'],
-                       relief='flat',
-                       borderwidth=0)
+                        background=self.colors['background'],
+                        relief='flat',
+                        borderwidth=0)
 
         # Card frame style with subtle elevation
         style.configure('Card.TFrame',
-                       background=self.colors['surface'],
-                       relief='flat',
-                       borderwidth=0)
+                        background=self.colors['surface'],
+                        relief='flat',
+                        borderwidth=0)
 
         # Treeview styling
         style.configure('Treeview',
-                       background=self.colors['surface'],
-                       foreground=self.colors['text'],
-                       fieldbackground=self.colors['surface'],
-                       borderwidth=0)
+                        background=self.colors['surface'],
+                        foreground=self.colors['text'],
+                        fieldbackground=self.colors['surface'],
+                        borderwidth=0)
 
         style.configure('Treeview.Heading',
-                       background=self.colors['surface'],
-                       foreground=self.colors['text'],
-                       borderwidth=0)
+                        background=self.colors['surface'],
+                        foreground=self.colors['text'],
+                        borderwidth=0)
 
         style.map('Treeview',
-                 background=[('selected', self.colors['primary'])],
-                 foreground=[('selected', 'white')])
+                  background=[('selected', self.colors['primary'])],
+                  foreground=[('selected', 'white')])
 
         style.map('Treeview.Heading',
-                 background=[('active', self.colors['primary'])],
-                 foreground=[('active', 'white')])
+                  background=[('active', self.colors['primary'])],
+                  foreground=[('active', 'white')])
 
         # Modern scrollbar styling
         style.configure('Vertical.TScrollbar',
-                       background=self.colors['surface'],
-                       troughcolor=self.colors['background'],
-                       bordercolor=self.colors['surface'],
-                       arrowcolor=self.colors['text_secondary'],
-                       darkcolor=self.colors['surface'],
-                       lightcolor=self.colors['surface'])
+                        background=self.colors['surface'],
+                        troughcolor=self.colors['background'],
+                        bordercolor=self.colors['surface'],
+                        arrowcolor=self.colors['text_secondary'],
+                        darkcolor=self.colors['surface'],
+                        lightcolor=self.colors['surface'])
 
         style.map('Vertical.TScrollbar',
-                 background=[('active', self.colors['border']),
-                           ('pressed', self.colors['primary'])])
+                  background=[('active', self.colors['border']),
+                              ('pressed', self.colors['primary'])])
 
         # Configure scrollbar size
         style.configure('Vertical.TScrollbar', width=12)
@@ -685,18 +683,18 @@ class MainWindow(WindowPositionMixin):
         brand_content.pack(expand=True)
 
         app_icon = tk.Label(brand_content,
-                           text="🔄",
-                           font=self.dims.font('Segoe UI', size_name='large'),
-                           fg='white',
-                           bg=self.colors['primary'])
+                            text="🔄",
+                            font=self.dims.font('Segoe UI', size_name='large'),
+                            fg='white',
+                            bg=self.colors['primary'])
         app_icon.pack()
 
         app_name = tk.Label(brand_content,
-                           text="Arch Smart Update Checker",
-                           font=self.dims.font('Segoe UI', 'small', 'bold'),
-                           fg='white',
-                           bg=self.colors['primary'],
-                           wraplength=170)  # Fixed wrap width
+                            text="Arch Smart Update Checker",
+                            font=self.dims.font('Segoe UI', 'small', 'bold'),
+                            fg='white',
+                            bg=self.colors['primary'],
+                            wraplength=170)  # Fixed wrap width
         app_name.pack(padx=3)
 
         # Navigation items with better organization
@@ -747,18 +745,18 @@ class MainWindow(WindowPositionMixin):
         # Update Summary (only visible on updates screen)
         self.update_summary_frame = tk.Frame(nav_frame, bg=self.colors['surface'])
         # Don't pack it yet - will be shown/hidden dynamically
-        
+
         # Summary content with smaller design to fit sidebar
         summary_bg = tk.Frame(self.update_summary_frame, bg=self.colors['background'], relief='ridge', bd=1)
         summary_bg.pack(fill='x', pady=(0, self.dims.pad_large))
-        
+
         summary_title = tk.Label(summary_bg,
-                               text="Update Summary",
-                               font=self.dims.font('Segoe UI', 'normal', 'bold'),
-                               fg=self.colors['primary'],
-                               bg=self.colors['background'])
+                                 text="Update Summary",
+                                 font=self.dims.font('Segoe UI', 'normal', 'bold'),
+                                 fg=self.colors['primary'],
+                                 bg=self.colors['background'])
         summary_title.pack(pady=(self.dims.pad_medium, self.dims.pad_small))
-        
+
         # Summary details
         self.sidebar_summary_labels = {}
         summary_items = [
@@ -766,29 +764,29 @@ class MainWindow(WindowPositionMixin):
             ('Download:', '—'),
             ('Disk space:', '—')
         ]
-        
+
         for label_text, initial_value in summary_items:
             row_frame = tk.Frame(summary_bg, bg=self.colors['background'])
             row_frame.pack(fill='x', padx=self.dims.pad_medium, pady=self.dims.scale(2))
-            
+
             tk.Label(row_frame,
-                    text=label_text,
-                    font=self.dims.font('Segoe UI', 'tiny'),
-                    fg=self.colors['text_secondary'],
-                    bg=self.colors['background'],
-                    width=self.dims.scale(10),
-                    anchor='w').pack(side='left')
-            
+                     text=label_text,
+                     font=self.dims.font('Segoe UI', 'tiny'),
+                     fg=self.colors['text_secondary'],
+                     bg=self.colors['background'],
+                     width=self.dims.scale(10),
+                     anchor='w').pack(side='left')
+
             value_label = tk.Label(row_frame,
-                                 text=initial_value,
-                                 font=self.dims.font('Segoe UI', 'tiny', 'bold'),
-                                 fg=self.colors['text'],
-                                 bg=self.colors['background'],
-                                 anchor='w')
+                                   text=initial_value,
+                                   font=self.dims.font('Segoe UI', 'tiny', 'bold'),
+                                   fg=self.colors['text'],
+                                   bg=self.colors['background'],
+                                   anchor='w')
             value_label.pack(side='left', fill='x', expand=True)
-            
+
             self.sidebar_summary_labels[label_text] = value_label
-        
+
         # Add some padding at bottom
         tk.Frame(summary_bg, bg=self.colors['background'], height=self.dims.pad_medium).pack()
 
@@ -852,15 +850,13 @@ class MainWindow(WindowPositionMixin):
         # Ensure sidebar is wide enough for content
         base_width = 210  # Slightly wider for button text
         sidebar_width = max(190, self.dims.scale(base_width))
-        
+
         # Apply the width
         self.sidebar.configure(width=sidebar_width)
 
         # Update wraplength for status labels
         if hasattr(self, 'status_label'):
             self.status_label.configure(wraplength=sidebar_width - 30)
-
-
 
     def setup_bindings(self):
         """Setup event bindings."""
@@ -872,8 +868,6 @@ class MainWindow(WindowPositionMixin):
                 continue
             btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))
             btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))
-
-
 
     def on_nav_hover(self, button, entering):
         """Handle navigation button hover effects."""
@@ -984,7 +978,7 @@ class MainWindow(WindowPositionMixin):
 
             self._is_checking_simple = True
             logger.info("Starting update check")
-        
+
         # Also set the tkinter variable for UI state
         self.is_checking.set(True)
         self.update_status("Checking for updates...", "info")
@@ -997,7 +991,7 @@ class MainWindow(WindowPositionMixin):
                     logger.debug("Cleared package manager cache before update check")
                 except Exception as e:
                     logger.warning(f"Failed to clear cache before check: {e}")
-                
+
                 # Clear any cached update data first
                 if hasattr(self.checker, 'last_updates'):
                     self.checker.last_updates = []
@@ -1029,7 +1023,7 @@ class MainWindow(WindowPositionMixin):
                 relevant_news = []
 
                 for item in news_only:
-                    txt = f"{item.get('title','')} {item.get('content','')} {item.get('description','')}"
+                    txt = f"{item.get('title', '')} {item.get('content', '')} {item.get('description', '')}"
                     # Check against ALL installed packages first
                     affected = self.checker.pattern_matcher.find_affected_packages(txt, all_installed_packages)
                     # Then see if any of the affected packages have updates
@@ -1055,7 +1049,7 @@ class MainWindow(WindowPositionMixin):
                     logger.debug("Cleared package manager cache after update check")
                 except Exception as e:
                     logger.warning(f"Failed to clear cache: {e}")
-                
+
                 # Reset both flags
                 with self._update_check_lock:
                     self._is_checking_simple = False
@@ -1065,7 +1059,7 @@ class MainWindow(WindowPositionMixin):
         from ..utils.thread_manager import create_managed_thread
         import uuid
         thread_id = f"check_thread_{uuid.uuid4().hex[:8]}"
-        
+
         thread = create_managed_thread(thread_id, check_thread, is_background=True, component_id=thread_id)
         if thread is None:
             self.on_check_error("Unable to start update check: thread limit reached")
@@ -1145,36 +1139,36 @@ class MainWindow(WindowPositionMixin):
 
             # Update Treeview styling
             style.configure('Treeview',
-                           background=self.colors['surface'],
-                           foreground=self.colors['text'],
-                           fieldbackground=self.colors['surface'],
-                           borderwidth=0)
+                            background=self.colors['surface'],
+                            foreground=self.colors['text'],
+                            fieldbackground=self.colors['surface'],
+                            borderwidth=0)
 
             style.configure('Treeview.Heading',
-                           background=self.colors['surface'],
-                           foreground=self.colors['text'],
-                           borderwidth=0)
+                            background=self.colors['surface'],
+                            foreground=self.colors['text'],
+                            borderwidth=0)
 
             style.map('Treeview',
-                     background=[('selected', self.colors['primary'])],
-                     foreground=[('selected', 'white')])
+                      background=[('selected', self.colors['primary'])],
+                      foreground=[('selected', 'white')])
 
             style.map('Treeview.Heading',
-                     background=[('active', self.colors['primary'])],
-                     foreground=[('active', 'white')])
+                      background=[('active', self.colors['primary'])],
+                      foreground=[('active', 'white')])
 
             # Update scrollbar styles
             style.configure('Vertical.TScrollbar',
-                           background=self.colors['surface'],
-                           troughcolor=self.colors['background'],
-                           bordercolor=self.colors['border'],
-                           arrowcolor=self.colors['text_secondary'],
-                           darkcolor=self.colors['surface'],
-                           lightcolor=self.colors['surface'])
+                            background=self.colors['surface'],
+                            troughcolor=self.colors['background'],
+                            bordercolor=self.colors['border'],
+                            arrowcolor=self.colors['text_secondary'],
+                            darkcolor=self.colors['surface'],
+                            lightcolor=self.colors['surface'])
 
             style.map('Vertical.TScrollbar',
-                     background=[('active', self.colors['border']),
-                               ('pressed', self.colors['primary'])])
+                      background=[('active', self.colors['border']),
+                                  ('pressed', self.colors['primary'])])
         except Exception:
             pass  # Ignore TTK style errors
 
@@ -1191,7 +1185,7 @@ class MainWindow(WindowPositionMixin):
                 else:
                     # Store current frame reference
                     old_frame = frame
-                    
+
                     # Create new frame with updated theme
                     if frame_name == 'dashboard':
                         from .dashboard import DashboardFrame
@@ -1208,10 +1202,10 @@ class MainWindow(WindowPositionMixin):
                     elif frame_name == 'news':
                         # News frame might not be initialized yet
                         pass
-                    
+
                     # Destroy old frame
                     old_frame.destroy()
-                    
+
             except Exception as e:
                 logger.warning(f"Error refreshing frame {frame_name}: {e}")
 
@@ -1228,7 +1222,7 @@ class MainWindow(WindowPositionMixin):
 
         # Force update
         self.root.update_idletasks()
-        
+
         # Update logging status after theme change
         self.update_logging_status()
 
@@ -1253,20 +1247,20 @@ class MainWindow(WindowPositionMixin):
             # Clear sensitive configuration data
             if hasattr(self, 'config') and self.config:
                 self.config.clear_sensitive_data()
-            
+
             # Clear update history manager
             if hasattr(self, 'update_history') and self.update_history:
                 self.update_history.shutdown(wait=False)
-            
+
             # Clear checker references
             if hasattr(self, 'checker'):
                 delattr(self, 'checker')
-            
+
             # Get logger fresh to avoid scope issues during cleanup
             from ..utils.logger import get_logger
             cleanup_logger = get_logger(__name__)
             cleanup_logger.debug("Completed main window resource cleanup")
-            
+
         except Exception as e:
             # Get logger fresh to avoid scope issues during cleanup
             from ..utils.logger import get_logger
@@ -1282,7 +1276,7 @@ class MainWindow(WindowPositionMixin):
         finally:
             # Ensure cleanup happens even if mainloop exits unexpectedly
             self._perform_final_cleanup()
-    
+
     def _on_window_close(self):
         """Handle window close event with secure cleanup."""
         try:
@@ -1290,48 +1284,48 @@ class MainWindow(WindowPositionMixin):
             # Get the actual current window position
             self.root.update()  # Force full update to get accurate position
             self.root.update_idletasks()  # Ensure window info is current
-            
+
             x = self.root.winfo_x()
             y = self.root.winfo_y()
             width = self.root.winfo_width()
             height = self.root.winfo_height()
-            
+
             # Build geometry string from actual window state
             geometry = f"{width}x{height}+{x}+{y}"
             logger.debug(f"Saving window geometry on close: {geometry}")
-            
+
             self.geometry_manager.save_geometry("main_window", geometry)
-            
+
             # Cleanup callback manager
             if hasattr(self, 'callback_manager'):
                 self.callback_manager.cleanup_all()
-            
+
             # Cleanup component callbacks
             cleanup_component_callbacks("main_window")
-            
+
             # Destroy the window
             self.root.destroy()
-            
+
         except Exception as e:
             logger.error(f"Error during window close: {e}")
             # Force destroy even if cleanup fails
             try:
                 self.root.destroy()
-            except:
+            except BaseException:
                 pass
-    
+
     def _perform_final_cleanup(self):
         """Perform final cleanup of all resources."""
         try:
             # Emergency callback cleanup
             emergency_callback_cleanup()
-            
+
             # Force garbage collection
             import gc
             gc.collect()
-            
+
             logger.debug("Completed final cleanup")
-            
+
         except Exception as e:
             logger.error(f"Error during final cleanup: {e}")
 
@@ -1344,7 +1338,7 @@ class MainWindow(WindowPositionMixin):
         dialog = tk.Toplevel(self.root)
         dialog.title("Updates Available")
         dialog.configure(bg=self.colors['background'])
-        
+
         # Use position_window for persistent positioning [[memory:2371890]]
         self.position_window(dialog, width=900, height=600, parent=self.root)
 
@@ -1356,13 +1350,25 @@ class MainWindow(WindowPositionMixin):
         left.pack(side='left', fill='both', expand=True, padx=10, pady=10)
         right.pack(side='right', fill='both', expand=True, padx=10, pady=10)
 
-        ttk.Label(left, text="Packages", style='Card.TFrame', background=self.colors['surface'], foreground=self.colors['text']).pack(anchor='w')
+        ttk.Label(
+            left,
+            text="Packages",
+            style='Card.TFrame',
+            background=self.colors['surface'],
+            foreground=self.colors['text']).pack(
+            anchor='w')
         pkg_list = tk.Listbox(left, bg=self.colors['surface'], fg=self.colors['text'])
         pkg_list.pack(fill='both', expand=True)
         for p in packages:
             pkg_list.insert(tk.END, p)
 
-        ttk.Label(right, text="Related News", style='Card.TFrame', background=self.colors['surface'], foreground=self.colors['text']).pack(anchor='w')
+        ttk.Label(
+            right,
+            text="Related News",
+            style='Card.TFrame',
+            background=self.colors['surface'],
+            foreground=self.colors['text']).pack(
+            anchor='w')
         news_text = tk.Text(right, wrap='word', bg=self.colors['surface'], fg=self.colors['text'])
         news_text.pack(fill='both', expand=True)
         news_text.insert('1.0', 'Fetching related news...')
@@ -1373,7 +1379,7 @@ class MainWindow(WindowPositionMixin):
             installed = set(packages)
             relevant = []
             for item in all_news:
-                txt = f"{item.get('title','')} {item.get('content','')} {item.get('description','')}"
+                txt = f"{item.get('title', '')} {item.get('content', '')} {item.get('description', '')}"
                 affected = self.checker.pattern_matcher.find_affected_packages(txt, installed)
                 if affected:
                     relevant.append(item)
@@ -1386,8 +1392,8 @@ class MainWindow(WindowPositionMixin):
                 news_text.insert('1.0', 'No news related to these updates for your installed packages.')
             else:
                 for it in items:
-                    title = it.get('title','Unknown')
-                    date = it.get('published','')
+                    title = it.get('title', 'Unknown')
+                    date = it.get('published', '')
                     news_text.insert(tk.END, f"{title} ({date})\n\n")
             news_text.config(state='disabled')
 
@@ -1415,14 +1421,15 @@ class MainWindow(WindowPositionMixin):
                 thread_id = f"apply_updates_{uuid.uuid4().hex[:8]}"
                 thread = ThreadResourceManager.create_managed_thread(
                     thread_id=thread_id,
-                    target=lambda: subprocess.run(["sudo","pacman","-Syu"]),
+                    target=lambda: subprocess.run(["sudo", "pacman", "-Syu"]),
                     is_background=True
                 )
                 if thread:
                     thread.start()
                 else:
                     logger.warning("Could not create thread for system update - thread limit reached")
-                    messagebox.showwarning("Thread Limit", "Cannot start update - thread limit reached. Please try again.")
+                    messagebox.showwarning("Thread Limit",
+                                           "Cannot start update - thread limit reached. Please try again.")
 
             apply_btn = tk.Button(
                 btn_frame,
@@ -1447,7 +1454,7 @@ class MainWindow(WindowPositionMixin):
                 command=dialog.destroy
             )
             close_btn.pack(side='right', padx=20, pady=10)
-        except Exception as e:
+        except Exception:
             pass
 
     # --------------------
@@ -1582,7 +1589,7 @@ class MainWindow(WindowPositionMixin):
         dialog = tk.Toplevel(self.root)
         dialog.title("Update Error - Solutions")
         dialog.configure(bg=self.colors['background'])
-        
+
         # Use position_window for persistent positioning [[memory:2371890]]
         self.position_window(dialog, width=700, height=500, parent=self.root)
 
@@ -1592,8 +1599,8 @@ class MainWindow(WindowPositionMixin):
         header_frame.pack_propagate(False)
 
         tk.Label(header_frame, text="⚠️ Update Failed",
-                font=('Segoe UI', 18, 'bold'),
-                fg='white', bg=self.colors['error']).pack(pady=20)
+                 font=('Segoe UI', 18, 'bold'),
+                 fg='white', bg=self.colors['error']).pack(pady=20)
 
         # Content
         content_frame = tk.Frame(dialog, bg=self.colors['background'])
@@ -1606,20 +1613,21 @@ class MainWindow(WindowPositionMixin):
             error_desc = "Some packages couldn't be found on the mirrors. This usually happens when:\n• Your mirror list is outdated\n• Mirrors haven't synced the latest packages yet"
 
             solutions = [
-                ("🔄 Refresh Package Database", "sudo pacman -Syy",
+                ("🔄 Refresh Package Database",
+                 "sudo pacman -Syy",
                  "Forces a refresh of all package databases"),
-                ("🌐 Update Mirror List", "sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist",
+                ("🌐 Update Mirror List",
+                 "sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist",
                  "Updates your mirror list with the fastest, most up-to-date mirrors"),
-                ("⏱️ Wait and Retry", "Wait a few hours and try again",
-                 "Sometimes mirrors need time to sync new packages")
-            ]
+                ("⏱️ Wait and Retry",
+                 "Wait a few hours and try again",
+                 "Sometimes mirrors need time to sync new packages")]
 
             # Extract failed packages
-            import re
             failed_packages = re.findall(r"failed retrieving file '([^']+)'", full_output)
             if failed_packages:
                 unique_packages = list(set([p.split('.pkg.tar')[0] for p in failed_packages]))
-                error_desc += f"\n\nFailed packages:\n• " + "\n• ".join(unique_packages[:5])
+                error_desc += "\n\nFailed packages:\n• " + "\n• ".join(unique_packages[:5])
                 if len(unique_packages) > 5:
                     error_desc += f"\n• ... and {len(unique_packages) - 5} more"
 
@@ -1660,25 +1668,25 @@ class MainWindow(WindowPositionMixin):
 
         # Display error info
         tk.Label(content_frame, text=error_title,
-                font=('Segoe UI', 14, 'bold'),
-                fg=self.colors['text'], bg=self.colors['background']).pack(anchor='w')
+                 font=('Segoe UI', 14, 'bold'),
+                 fg=self.colors['text'], bg=self.colors['background']).pack(anchor='w')
 
         tk.Label(content_frame, text=error_desc,
-                font=('Segoe UI', 10),
-                fg=self.colors['text_secondary'], bg=self.colors['background'],
-                justify='left', wraplength=650).pack(anchor='w', pady=(5, 15))
+                 font=('Segoe UI', 10),
+                 fg=self.colors['text_secondary'], bg=self.colors['background'],
+                 justify='left', wraplength=650).pack(anchor='w', pady=(5, 15))
 
         # Solutions frame
         tk.Label(content_frame, text="Recommended Solutions:",
-                font=('Segoe UI', 12, 'bold'),
-                fg=self.colors['text'], bg=self.colors['background']).pack(anchor='w', pady=(10, 5))
+                 font=('Segoe UI', 12, 'bold'),
+                 fg=self.colors['text'], bg=self.colors['background']).pack(anchor='w', pady=(10, 5))
 
         solutions_frame = tk.Frame(content_frame, bg=self.colors['background'])
         solutions_frame.pack(fill='both', expand=True)
 
         for i, (title, command, desc) in enumerate(solutions):
             sol_frame = tk.Frame(solutions_frame, bg=self.colors['surface'],
-                               relief='ridge', bd=1)
+                                 relief='ridge', bd=1)
             sol_frame.pack(fill='x', pady=5)
 
             # Solution content
@@ -1686,12 +1694,12 @@ class MainWindow(WindowPositionMixin):
             sol_content.pack(fill='x', padx=10, pady=10)
 
             tk.Label(sol_content, text=title,
-                    font=('Segoe UI', 11, 'bold'),
-                    fg=self.colors['primary'], bg=self.colors['surface']).pack(anchor='w')
+                     font=('Segoe UI', 11, 'bold'),
+                     fg=self.colors['primary'], bg=self.colors['surface']).pack(anchor='w')
 
             tk.Label(sol_content, text=desc,
-                    font=('Segoe UI', 9),
-                    fg=self.colors['text_secondary'], bg=self.colors['surface']).pack(anchor='w', pady=(2, 5))
+                     font=('Segoe UI', 9),
+                     fg=self.colors['text_secondary'], bg=self.colors['surface']).pack(anchor='w', pady=(2, 5))
 
             # Command frame with copy button
             if not command.startswith("http") and not command.startswith("Wait"):
@@ -1699,9 +1707,9 @@ class MainWindow(WindowPositionMixin):
                 cmd_frame.pack(anchor='w', fill='x')
 
                 cmd_text = tk.Text(cmd_frame, height=1, width=len(command),
-                                  font=('Consolas', 9), fg=self.colors['text'],
-                                  bg=self.colors['background'], bd=1, relief='solid',
-                                  padx=5, pady=2)
+                                   font=('Consolas', 9), fg=self.colors['text'],
+                                   bg=self.colors['background'], bd=1, relief='solid',
+                                   padx=5, pady=2)
                 cmd_text.pack(side='left', fill='x', expand=True)
                 cmd_text.insert('1.0', command)
                 cmd_text.config(state='disabled')
@@ -1712,19 +1720,19 @@ class MainWindow(WindowPositionMixin):
                     messagebox.showinfo("Copied", "Command copied to clipboard!")
 
                 tk.Button(cmd_frame, text="📋 Copy",
-                         font=('Segoe UI', 9), command=copy_cmd,
-                         bg=self.colors['surface'], fg=self.colors['text'],
-                         bd=1, padx=10, cursor='hand2').pack(side='left', padx=(5, 0))
+                          font=('Segoe UI', 9), command=copy_cmd,
+                          bg=self.colors['surface'], fg=self.colors['text'],
+                          bd=1, padx=10, cursor='hand2').pack(side='left', padx=(5, 0))
 
         # Buttons
         btn_frame = tk.Frame(dialog, bg=self.colors['background'])
         btn_frame.pack(fill='x', padx=20, pady=20)
 
         tk.Button(btn_frame, text="Close",
-                 font=('Segoe UI', 11),
-                 bg=self.colors['surface'], fg=self.colors['text'],
-                 padx=20, pady=8, bd=1, relief='solid',
-                 command=dialog.destroy).pack(side='right')
+                  font=('Segoe UI', 11),
+                  bg=self.colors['surface'], fg=self.colors['text'],
+                  padx=20, pady=8, bd=1, relief='solid',
+                  command=dialog.destroy).pack(side='right')
 
         # Update main window status
         self.update_status("Update failed - see solutions dialog", "error")
@@ -1757,14 +1765,14 @@ class MainWindow(WindowPositionMixin):
                     ('org.gnome.Terminal', 'gnome-terminal'),
                     ('org.kde.konsole', 'konsole')
                 ]
-                
+
                 for app_id, terminal_name in priority_flatpak_terminals:
                     if app_id in flatpak_output:
                         logger.debug(f"Found priority flatpak terminal: {app_id} ({terminal_name})")
                         return f"flatpak run {app_id}"
         except Exception as e:
             logger.debug(f"Flatpak check failed: {e}")
-        
+
         # Method 2: Check TERMINAL environment variable
         terminal_env = os.environ.get('TERMINAL')
         if terminal_env:
@@ -1773,11 +1781,11 @@ class MainWindow(WindowPositionMixin):
             if self._is_safe_terminal(terminal_name):
                 logger.debug(f"Found terminal from TERMINAL env var: {terminal_env}")
                 return terminal_env
-        
+
         # Method 3: Try x-terminal-emulator (Debian/Ubuntu systems)
         try:
-            result = subprocess.run(['which', 'x-terminal-emulator'], 
-                                  capture_output=True, check=False)
+            result = subprocess.run(['which', 'x-terminal-emulator'],
+                                    capture_output=True, check=False)
             if result.returncode == 0:
                 terminal_path = result.stdout.decode().strip()
                 if terminal_path and self._is_safe_terminal(os.path.basename(terminal_path)):
@@ -1785,11 +1793,11 @@ class MainWindow(WindowPositionMixin):
                     return terminal_path
         except Exception as e:
             logger.debug(f"x-terminal-emulator check failed: {e}")
-        
+
         # Method 4: Check common desktop environment settings
         desktop_env = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
-        session_type = os.environ.get('XDG_SESSION_TYPE', '').lower()
-        
+        # session_type = os.environ.get('XDG_SESSION_TYPE', '').lower()  # Reserved for future use
+
         if 'gnome' in desktop_env:
             return 'gnome-terminal'
         elif 'kde' in desktop_env or 'plasma' in desktop_env:
@@ -1802,7 +1810,7 @@ class MainWindow(WindowPositionMixin):
             return 'gnome-terminal'  # Cinnamon uses gnome-terminal
         elif 'lxde' in desktop_env or 'lxqt' in desktop_env:
             return 'lxterminal'
-        
+
         # Method 4: Check running processes to detect user's actual terminal preference
         try:
             result = subprocess.run(['ps', 'aux'], capture_output=True, check=False)
@@ -1815,7 +1823,7 @@ class MainWindow(WindowPositionMixin):
                         if term in line and 'ps aux' not in line and 'grep' not in line:
                             if self._is_safe_terminal(term):
                                 terminal_processes.append(term)
-                
+
                 if terminal_processes:
                     # Use the most frequently running terminal
                     from collections import Counter
@@ -1826,11 +1834,11 @@ class MainWindow(WindowPositionMixin):
                         return preferred_terminal
         except Exception as e:
             logger.debug(f"Process detection failed: {e}")
-        
+
         # Method 5: Try to detect through gsettings (GNOME-based)
         try:
             result = subprocess.run(['gsettings', 'get', 'org.gnome.desktop.default-applications.terminal', 'exec'],
-                                  capture_output=True, check=False, timeout=5)
+                                    capture_output=True, check=False, timeout=5)
             if result.returncode == 0:
                 terminal = result.stdout.decode().strip().strip("'\"")
                 if terminal and self._is_safe_terminal(terminal):
@@ -1838,7 +1846,7 @@ class MainWindow(WindowPositionMixin):
                     return terminal
         except Exception as e:
             logger.debug(f"gsettings check failed: {e}")
-        
+
         # Method 6: Fallback to common terminals that exist on system
         # Prioritize modern terminals first, then traditional ones
         common_terminals = [
@@ -1847,20 +1855,20 @@ class MainWindow(WindowPositionMixin):
             'terminator', 'tilix', 'terminology', 'contour', 'tabby',
             'xterm'  # Basic fallback
         ]
-        
+
         for terminal in common_terminals:
             try:
-                result = subprocess.run(['which', terminal], 
-                                      capture_output=True, check=False)
+                result = subprocess.run(['which', terminal],
+                                        capture_output=True, check=False)
                 if result.returncode == 0:
                     logger.debug(f"Found fallback terminal: {terminal}")
                     return terminal
             except Exception:
                 continue
-        
+
         logger.warning("No suitable terminal emulator found")
         return None
-    
+
     def _is_safe_terminal(self, terminal_name):
         """Check if a terminal name is safe to execute."""
         # Handle flatpak commands
@@ -1871,7 +1879,7 @@ class MainWindow(WindowPositionMixin):
                 'org.gnome.Terminal', 'org.kde.konsole'
             }
             return app_id in safe_flatpak_apps
-        
+
         # Only allow known safe terminal names
         safe_terminals = {
             'gnome-terminal', 'konsole', 'xfce4-terminal', 'mate-terminal',
@@ -1880,7 +1888,7 @@ class MainWindow(WindowPositionMixin):
             'wezterm', 'foot', 'contour', 'tabby'
         }
         return terminal_name in safe_terminals
-    
+
     def _build_terminal_command(self, terminal, script_path):
         """Build the appropriate terminal command for different terminal types."""
         # Handle flatpak applications
@@ -1897,10 +1905,10 @@ class MainWindow(WindowPositionMixin):
             else:
                 # Generic flatpak fallback
                 return ['flatpak', 'run', app_id, '-e', 'bash', script_path]
-        
+
         # Handle regular system terminals
         terminal_name = os.path.basename(terminal)
-        
+
         # Terminal-specific command structures
         if terminal_name == 'gnome-terminal':
             return [terminal, '--', 'bash', script_path]
@@ -1928,12 +1936,12 @@ class MainWindow(WindowPositionMixin):
             # Generic fallback
             return [terminal, '-e', 'bash', script_path]
 
-    def update_sidebar_summary(self, total_packages, download_size, disk_space, 
-                             download_size_text=None, disk_space_text=None):
+    def update_sidebar_summary(self, total_packages, download_size, disk_space,
+                               download_size_text=None, disk_space_text=None):
         """Update the sidebar summary display with package info."""
         # Update packages count
         self.sidebar_summary_labels['Packages:'].configure(text=str(total_packages))
-        
+
         # Update download size
         if download_size_text:
             self.sidebar_summary_labels['Download:'].configure(text=download_size_text)
@@ -1942,7 +1950,7 @@ class MainWindow(WindowPositionMixin):
             self.sidebar_summary_labels['Download:'].configure(text=size_text)
         else:
             self.sidebar_summary_labels['Download:'].configure(text="—")
-        
+
         # Update disk space
         if disk_space_text:
             self.sidebar_summary_labels['Disk space:'].configure(text=disk_space_text)
@@ -1951,7 +1959,7 @@ class MainWindow(WindowPositionMixin):
             self.sidebar_summary_labels['Disk space:'].configure(text=size_text)
         else:
             self.sidebar_summary_labels['Disk space:'].configure(text="—")
-    
+
     def _format_size(self, size_bytes):
         """Format size in bytes to human readable format."""
         if size_bytes is None:
@@ -1964,105 +1972,6 @@ class MainWindow(WindowPositionMixin):
             return f"{size_bytes / (1024 * 1024):.1f} MB"
         else:
             return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
-
-    def run_check(self):
-        """Run the update check in a background thread."""
-        # Use instance lock to prevent concurrent update checks
-        with self._update_check_lock:
-            if self._is_checking_simple:
-                logger.debug("Update check already in progress, ignoring request")
-                return
-
-            self._is_checking_simple = True
-            logger.info("Starting update check")
-        
-        # Also set the tkinter variable for UI state
-        self.is_checking.set(True)
-        self.update_status("Checking for updates...", "info")
-
-        def check_thread():
-            try:
-                # Clear package manager cache BEFORE checking to free memory
-                try:
-                    self.checker.package_manager.clear_cache()
-                    logger.debug("Cleared package manager cache before update check")
-                except Exception as e:
-                    logger.warning(f"Failed to clear cache before check: {e}")
-                
-                # Clear any cached update data first
-                if hasattr(self.checker, 'last_updates'):
-                    self.checker.last_updates = []
-                if hasattr(self.checker, 'last_update_objects'):
-                    self.checker.last_update_objects = {}
-                if hasattr(self.checker, 'last_news_items'):
-                    self.checker.last_news_items = []
-
-                # Check for updates using package manager
-                updates = self.checker.package_manager.check_for_updates()
-                update_count = len(updates)
-
-                # Store package names and full update info for GUI display
-                self.checker.last_updates = [u.name for u in updates]
-                self.checker.last_update_objects = {u.name: u for u in updates}  # Store full objects for version info
-
-                # Get ALL installed packages for news matching
-                all_installed_packages = set(self.checker.package_manager.get_installed_package_names())
-
-                # Fetch news for ALL installed packages
-                feeds = self.config.get_feeds()
-                all_news = self.checker.news_fetcher.fetch_all_feeds_legacy(feeds)
-
-                # Filter out package-type feeds, keep only news feeds
-                news_only = [item for item in all_news if item.get('source_type', 'news') != 'package']
-
-                # Find news relevant to packages with updates
-                packages_with_updates = set([u.name for u in updates])
-                relevant_news = []
-
-                for item in news_only:
-                    txt = f"{item.get('title','')} {item.get('content','')} {item.get('description','')}"
-                    # Check against ALL installed packages first
-                    affected = self.checker.pattern_matcher.find_affected_packages(txt, all_installed_packages)
-                    # Then see if any of the affected packages have updates
-                    if affected and affected.intersection(packages_with_updates):
-                        item['affected_packages'] = affected.intersection(packages_with_updates)
-                        relevant_news.append(item)
-
-                # Store news items count for dashboard
-                self.checker.last_news_items = relevant_news
-
-                # Update UI in main thread
-                self.root.after(0, lambda: self.on_check_complete(update_count, updates, relevant_news))
-
-            except Exception as exc:
-                import traceback
-                error_msg = f"Error: {str(exc)}"
-                logger.error(f"Update check failed: {traceback.format_exc()}")
-                self.root.after(0, lambda: self.on_check_error(error_msg))
-            finally:
-                # Clear package manager caches to free memory
-                try:
-                    self.checker.package_manager.clear_cache()
-                    logger.debug("Cleared package manager cache after update check")
-                except Exception as e:
-                    logger.warning(f"Failed to clear cache: {e}")
-                
-                # Reset both flags
-                with self._update_check_lock:
-                    self._is_checking_simple = False
-                self.root.after(0, lambda: self.is_checking.set(False))
-
-        # Use secure thread management
-        from ..utils.thread_manager import create_managed_thread
-        import uuid
-        thread_id = f"check_thread_{uuid.uuid4().hex[:8]}"
-        
-        thread = create_managed_thread(thread_id, check_thread, is_background=True, component_id=thread_id)
-        if thread is None:
-            self.on_check_error("Unable to start update check: thread limit reached")
-            self.is_checking.set(False)
-        else:
-            thread.start()  # Start the thread!
 
 
 class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
@@ -2098,15 +2007,15 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         tk.Label(header_content,
                  text="Updates Available",
-                              font=('Segoe UI', 24, 'bold'),
-                              fg='white',
+                 font=('Segoe UI', 24, 'bold'),
+                 fg='white',
                  bg=self.main_window.colors['primary']).pack()
 
         self.header_count_label = tk.Label(header_content,
-                                 text=f"{len(self.packages)} packages need updating",
-                                 font=('Segoe UI', 12, 'normal'),
-                                 fg='white',
-                 bg=self.main_window.colors['primary'])
+                                           text=f"{len(self.packages)} packages need updating",
+                                           font=('Segoe UI', 12, 'normal'),
+                                           fg='white',
+                                           bg=self.main_window.colors['primary'])
         self.header_count_label.pack()
 
         # Content area (row 1)
@@ -2159,10 +2068,9 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         self.pkg_list_canvas.create_window((0, 0), window=self.pkg_frame, anchor='nw')
 
         # Add packages
-        import re
         safe_pattern = re.compile(r'^[A-Za-z0-9_.+-]+$')
         self.pkg_vars = {}
-        
+
         # Create a map of package names to version info if updates provided
         version_map = {}
         if self.updates:
@@ -2172,27 +2080,27 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         'old': update.current_version,
                         'new': update.new_version
                     }
-        
+
         for pkg in sorted(self.packages):
             if not safe_pattern.match(pkg):
                 continue
             var = tk.BooleanVar(value=True)
             self.pkg_vars[pkg] = var
-            
+
             # Create display text with version info if available
             display_text = pkg
             if pkg in version_map:
                 v_info = version_map[pkg]
                 display_text = f"{pkg} ({v_info['old']} → {v_info['new']})"
-            
+
             tk.Checkbutton(self.pkg_frame, text=display_text, variable=var,
-                          font=('Segoe UI', 10, 'normal'),  # Standardize with Package Manager
-                          fg=self.main_window.get_text_color('primary'),
-                          bg=self.main_window.colors['background'],
-                          selectcolor=self.main_window.colors['surface'],
-                          activebackground=self.main_window.colors['background'],
-                          activeforeground=self.main_window.get_text_color('primary'),
-                          anchor='w', command=self.update_news_display).pack(fill='x', padx=5, pady=1)
+                           font=('Segoe UI', 10, 'normal'),  # Standardize with Package Manager
+                           fg=self.main_window.get_text_color('primary'),
+                           bg=self.main_window.colors['background'],
+                           selectcolor=self.main_window.colors['surface'],
+                           activebackground=self.main_window.colors['background'],
+                           activeforeground=self.main_window.get_text_color('primary'),
+                           anchor='w', command=self.update_news_display).pack(fill='x', padx=5, pady=1)
 
         # Right: News
         news_frame = tk.Frame(content, bg=self.main_window.colors['surface'], relief='ridge', bd=2)
@@ -2280,7 +2188,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         # Initial news display
         self.update_news_display()
-        
+
         # Calculate sizes asynchronously after UI is built
         self.after(100, self._calculate_sizes_async)
 
@@ -2304,19 +2212,19 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 # Get update objects with size info
                 if not self.updates:
                     return
-                
+
                 # Create a map of package names to update objects
                 update_map = {u.name: u for u in self.updates}
-                
+
                 # Calculate totals for selected packages
                 selected = self.get_selected_packages()
                 selected_updates = [update_map[pkg] for pkg in selected if pkg in update_map]
-                
+
                 total_download = 0
                 total_installed = 0
                 packages_with_download_size = 0
                 packages_with_installed_size = 0
-                
+
                 for update in selected_updates:
                     if hasattr(update, 'size') and update.size is not None:
                         total_download += update.size
@@ -2324,7 +2232,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     if hasattr(update, 'installed_size') and update.installed_size is not None:
                         total_installed += update.installed_size
                         packages_with_installed_size += 1
-                
+
                 # Update UI in main thread
                 self.after(0, lambda: self._update_summary_display(
                     len(selected),
@@ -2333,8 +2241,8 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     packages_with_download_size,
                     packages_with_installed_size
                 ))
-                
-            except Exception as e:
+
+            except Exception:
                 import traceback
                 logger.error(f"Error calculating sizes: {traceback.format_exc()}")
 
@@ -2342,13 +2250,13 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         from ..utils.thread_manager import create_managed_thread
         import uuid
         thread_id = f"calc_sizes_{uuid.uuid4().hex[:8]}"
-        
+
         thread = create_managed_thread(thread_id, calculate, is_background=True, component_id=thread_id)
         if thread:
             thread.start()
 
-    def _update_summary_display(self, total_packages, download_size, installed_size, 
-                               packages_with_download_size, packages_with_installed_size):
+    def _update_summary_display(self, total_packages, download_size, installed_size,
+                                packages_with_download_size, packages_with_installed_size):
         """Update the summary display with calculated values."""
         # Build text for download size
         download_text = None
@@ -2357,7 +2265,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             if packages_with_download_size < total_packages:
                 # Show partial data in a compact way for sidebar
                 download_text = f"{self._format_size(download_size)}"
-        
+
         # Build text for disk space
         disk_text = None
         if installed_size is not None:
@@ -2369,7 +2277,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             # Fallback to estimate if no installed size data
             estimated = int(download_size * 2.5)
             disk_text = f"~{self._format_size(estimated)}"
-        
+
         # Update sidebar summary via main window
         self.main_window.update_sidebar_summary(
             total_packages,
@@ -2455,7 +2363,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             if (0 <= x <= self.winfo_width() and 0 <= y <= self.winfo_height()):
                 # Get relative position within the content area
                 content_x = x - 20  # Account for padding
-                content_y = y - 100  # Account for header height
+                # content_y = y - 100  # Account for header height (reserved for future use)
 
                 # If mouse is in the news area (right side), scroll news
                 if content_x > self.winfo_width() // 2:
@@ -2495,7 +2403,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         self.selected_packages = set(selected)
         count = len(selected)
         self.header_count_label.configure(text=f"{count} packages selected for update")
-        
+
         # Recalculate sizes when selection changes
         self._calculate_sizes_async()
 
@@ -2505,18 +2413,18 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         if not self.selected_packages:
             # No packages selected - create helpful message
-            message = f"📦 Select packages to view related news\n\n👈 Check packages on the left to see relevant\nnews and security advisories"
+            message = "📦 Select packages to view related news\n\n👈 Check packages on the left to see relevant\nnews and security advisories"
 
             # Create centered container with same background as news_frame
             container = tk.Frame(self.news_frame, bg=self.main_window.colors['background'])
             container.pack(expand=True, fill='both')
 
             no_selection = tk.Label(container,
-                                   text=message,
-                                   font=('Segoe UI', 11, 'normal'),
-                                   fg=self.main_window.get_text_color('secondary'),
-                                   bg=self.main_window.colors['background'],
-                                   justify='center')
+                                    text=message,
+                                    font=('Segoe UI', 11, 'normal'),
+                                    fg=self.main_window.get_text_color('secondary'),
+                                    bg=self.main_window.colors['background'],
+                                    justify='center')
             no_selection.pack(expand=True)  # Center the label in the container
             self.news_count.configure(text="")
             return
@@ -2568,11 +2476,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             # Add all lines in a single label with left alignment, but center the label
             message_text = "\n".join(message_lines)
             label = tk.Label(container,
-                            text=message_text,
-                            font=('Segoe UI', 11, 'normal'),
-                            fg=self.main_window.get_text_color('secondary'),
-                            bg=self.main_window.colors['background'],
-                            justify='left')  # Left-aligned text
+                             text=message_text,
+                             font=('Segoe UI', 11, 'normal'),
+                             fg=self.main_window.get_text_color('secondary'),
+                             bg=self.main_window.colors['background'],
+                             justify='left')  # Left-aligned text
             label.pack(expand=True)  # Center the label in the container
             return
 
@@ -2584,7 +2492,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         """Create a simple responsive news item."""
         # Simple card frame
         card = tk.Frame(self.news_frame, bg=self.main_window.colors['surface'],
-                       relief='solid', bd=1)
+                        relief='solid', bd=1)
         card.pack(fill='x', padx=5, pady=3)
 
         # Content frame
@@ -2596,13 +2504,13 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         # Title - with proper text wrapping
         title = tk.Label(content,
-                        text=item.get('title', 'Unknown Title'),
-                        font=('Segoe UI', 11, 'bold'),
-                        fg=self.main_window.get_text_color('primary'),
-                        bg=self.main_window.colors['surface'],
-                        justify='left',
-                        anchor='w',
-                        wraplength=400)
+                         text=item.get('title', 'Unknown Title'),
+                         font=('Segoe UI', 11, 'bold'),
+                         fg=self.main_window.get_text_color('primary'),
+                         bg=self.main_window.colors['surface'],
+                         justify='left',
+                         anchor='w',
+                         wraplength=400)
         title.pack(fill='x', anchor='w')
 
         # Store reference for dynamic resizing
@@ -2633,15 +2541,15 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             if len(affected) <= 3:
                 pkg_text = "📦 " + ", ".join(affected)
             else:
-                pkg_text = f"📦 {', '.join(affected[:2])} +{len(affected)-2} more"
+                pkg_text = f"📦 {', '.join(affected[:2])} +{len(affected) - 2} more"
 
             affects_label = tk.Label(content, text=pkg_text,
-                     font=('Segoe UI', 9),
-                     fg=self.main_window.get_text_color('warning'),
-                     bg=self.main_window.colors['surface'],
-                     justify='left',
-                     anchor='w',
-                     wraplength=400)
+                                     font=('Segoe UI', 9),
+                                     fg=self.main_window.get_text_color('warning'),
+                                     bg=self.main_window.colors['surface'],
+                                     justify='left',
+                                     anchor='w',
+                                     wraplength=400)
             affects_label.pack(fill='x', anchor='w', pady=(3, 0))
 
             # Store reference for dynamic resizing
@@ -2670,12 +2578,12 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         # Title
         title_label = tk.Label(main_frame,
-                              text=news_item.get('title', 'Unknown Title'),
-                              font=('Segoe UI', 16, 'bold'),
-                              fg=self.main_window.colors['text'],
-                              bg=self.main_window.colors['background'],
-                              wraplength=750,
-                              justify='left')
+                               text=news_item.get('title', 'Unknown Title'),
+                               font=('Segoe UI', 16, 'bold'),
+                               fg=self.main_window.colors['text'],
+                               bg=self.main_window.colors['background'],
+                               wraplength=750,
+                               justify='left')
         title_label.pack(anchor='w', pady=(0, 10))
 
         # Meta info
@@ -2686,29 +2594,29 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         if date:
             date_str = date.strftime('%Y-%m-%d %H:%M') if hasattr(date, 'strftime') else str(date)
             tk.Label(meta_frame,
-                    text=f"📅 {date_str}",
-                    font=('Segoe UI', 11, 'normal'),
-                    fg=self.main_window.colors['text_secondary'],
-                    bg=self.main_window.colors['background']).pack(side='left', padx=(0, 20))
+                     text=f"📅 {date_str}",
+                     font=('Segoe UI', 11, 'normal'),
+                     fg=self.main_window.colors['text_secondary'],
+                     bg=self.main_window.colors['background']).pack(side='left', padx=(0, 20))
 
         tk.Label(meta_frame,
-                text=f"📡 {news_item.get('source', 'Unknown')}",
-                font=('Segoe UI', 11, 'normal'),
-                fg=self.main_window.colors['text_secondary'],
-                bg=self.main_window.colors['background']).pack(side='left')
+                 text=f"📡 {news_item.get('source', 'Unknown')}",
+                 font=('Segoe UI', 11, 'normal'),
+                 fg=self.main_window.colors['text_secondary'],
+                 bg=self.main_window.colors['background']).pack(side='left')
 
         # Content
         content_frame = ttk.Frame(main_frame, style='Card.TFrame')
         content_frame.pack(fill='both', expand=True)
 
         content_text = tk.Text(content_frame,
-                              wrap='word',
-                              font=('Segoe UI', 11, 'normal'),
-                              bg=self.main_window.colors['surface'],
-                              fg=self.main_window.colors['text'],
-                              relief='flat',
-                              padx=20,
-                              pady=20)
+                               wrap='word',
+                               font=('Segoe UI', 11, 'normal'),
+                               bg=self.main_window.colors['surface'],
+                               fg=self.main_window.colors['text'],
+                               relief='flat',
+                               padx=20,
+                               pady=20)
         content_text.pack(fill='both', expand=True)
 
         # Add content
@@ -2722,29 +2630,29 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         if news_item.get('link'):
             open_btn = tk.Button(btn_frame,
-                                text="Open in Browser",
-                                font=('Segoe UI', 11, 'normal'),
-                                fg=self.main_window.colors['primary'],
-                                bg=self.main_window.colors['surface'],
-                                bd=1,
-                                relief='solid',
-                                padx=15,
-                                pady=8,
-                                cursor='hand2',
-                                command=lambda: webbrowser.open(news_item['link']))
+                                 text="Open in Browser",
+                                 font=('Segoe UI', 11, 'normal'),
+                                 fg=self.main_window.colors['primary'],
+                                 bg=self.main_window.colors['surface'],
+                                 bd=1,
+                                 relief='solid',
+                                 padx=15,
+                                 pady=8,
+                                 cursor='hand2',
+                                 command=lambda: webbrowser.open(news_item['link']))
             open_btn.pack(side='left', padx=(0, 10))
 
         close_btn = tk.Button(btn_frame,
-                             text="Close",
-                             font=('Segoe UI', 11, 'normal'),
-                             fg=self.main_window.colors['text'],
-                             bg=self.main_window.colors['surface'],
-                             bd=1,
-                             relief='solid',
-                             padx=15,
-                             pady=8,
-                             cursor='hand2',
-                             command=detail_window.destroy)
+                              text="Close",
+                              font=('Segoe UI', 11, 'normal'),
+                              fg=self.main_window.colors['text'],
+                              bg=self.main_window.colors['surface'],
+                              bd=1,
+                              relief='solid',
+                              padx=15,
+                              pady=8,
+                              cursor='hand2',
+                              command=detail_window.destroy)
         close_btn.pack(side='left')
 
     def apply_updates(self):
@@ -2781,7 +2689,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         text=True,
                         check=False
                     )
-                    logger.debug(f"pacman -Q {pkg} returned: {result.returncode}, stdout: {result.stdout}, stderr: {result.stderr}")
+                    logger.debug(
+                        f"pacman -Q {pkg} returned: {
+                            result.returncode}, stdout: {
+                            result.stdout}, stderr: {
+                            result.stderr}")
                     if result.returncode == 0 and result.stdout:
                         # Format: "package-name version"
                         parts = result.stdout.strip().split(' ', 1)
@@ -2794,13 +2706,14 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         logger.warning(f"pacman -Q {pkg} failed with code {result.returncode}")
                 except Exception as e:
                     logger.error(f"Exception getting pre-update version for {pkg}: {e}", exc_info=True)
-            
+
             # Log collected versions for debugging
             if pre_update_versions:
-                logger.info(f"Successfully collected pre-update versions for {len(pre_update_versions)} packages: {pre_update_versions}")
+                logger.info(
+                    f"Successfully collected pre-update versions for {len(pre_update_versions)} packages: {pre_update_versions}")
             else:
                 logger.warning("Failed to collect any pre-update versions!")
-            
+
             # Use -S to install/upgrade only selected packages
             # This avoids triggering a full system upgrade
             cmd_args = ["pacman", "-S", "--noconfirm"] + selected
@@ -2809,7 +2722,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             import stat
             output_fd, output_path = tempfile.mkstemp(suffix='.log', prefix='asuc_update_')
             os.close(output_fd)  # Close the file descriptor, we'll open by path
-            
+
             # Set secure permissions (owner only)
             os.chmod(output_path, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
@@ -2821,37 +2734,37 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 logger.error(f"Invalid path for update monitoring: {e}")
                 self.main_window.update_status("Update failed: security validation error", "error")
                 return
-            
+
             # Build the command with pkexec
             full_cmd = ["pkexec"] + cmd_args
-            
+
             logger.info(f"Starting package update with pkexec for packages: {selected}")
             logger.debug(f"Command: {' '.join(full_cmd)}")
-            
+
             self.main_window.update_status(f"🔄 Installing {len(selected)} package(s)...", "info")
-            
+
             # Execute the update command using SecureSubprocess
             try:
                 from ..utils.subprocess_wrapper import SecureSubprocess
-                
+
                 # Create a progress dialog
                 progress_dialog = tk.Toplevel(self.main_window.root)
                 progress_dialog.title("Installing Updates")
                 progress_dialog.geometry("700x500")  # Increased size to match other dialogs
                 progress_dialog.transient(self.main_window.root)
-                
+
                 # Center the dialog
                 progress_dialog.update_idletasks()
                 x = (progress_dialog.winfo_screenwidth() // 2) - (350)  # Adjusted for 700 width
                 y = (progress_dialog.winfo_screenheight() // 2) - (250)  # Adjusted for 500 height
                 progress_dialog.geometry(f"+{x}+{y}")
-                
+
                 # Create UI elements
-                info_label = ttk.Label(progress_dialog, 
-                    text=f"Installing {len(selected)} package(s) with system privileges...",
-                    font=('Arial', 12))
+                info_label = ttk.Label(progress_dialog,
+                                       text=f"Installing {len(selected)} package(s) with system privileges...",
+                                       font=('Arial', 12))
                 info_label.pack(pady=10)
-                
+
                 # Package list
                 pkg_frame = ttk.Frame(progress_dialog)
                 pkg_frame.pack(fill='x', padx=20, pady=5)
@@ -2860,34 +2773,33 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     ttk.Label(pkg_frame, text=f"  • {pkg}").pack(anchor='w')
                 if len(selected) > 10:
                     ttk.Label(pkg_frame, text=f"  ... and {len(selected) - 10} more").pack(anchor='w')
-                
+
                 # Progress text
                 progress_text = tk.Text(progress_dialog, height=10, width=70, wrap='word')
                 progress_text.pack(fill='both', expand=True, padx=20, pady=10)
-                
+
                 # Status label
                 status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
                 status_label.pack(pady=5)
-                
+
                 # Close button (disabled initially)
-                close_btn = ttk.Button(progress_dialog, text="Close", 
-                    command=progress_dialog.destroy, state='disabled')
+                close_btn = ttk.Button(progress_dialog, text="Close",
+                                       command=progress_dialog.destroy, state='disabled')
                 close_btn.pack(pady=10)
-                
+
                 # Function to update progress
                 def update_progress(line):
                     progress_text.insert('end', line + '\n')
                     progress_text.see('end')
                     progress_dialog.update()
-                
+
                 # Run the command with real-time output
                 success = False
                 try:
                     # Create process with output capture
                     import subprocess
-                    import time
                     start_time = time.time()  # Track update duration
-                    
+
                     process = subprocess.Popen(
                         full_cmd,
                         stdout=subprocess.PIPE,
@@ -2896,9 +2808,9 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         bufsize=1,
                         universal_newlines=True
                     )
-                    
+
                     status_label.config(text="Installing packages...")
-                    
+
                     # Read output line by line
                     full_output = []
                     while True:
@@ -2909,15 +2821,15 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                             # Store output
                             full_output.append(line)
                             # Update progress dialog
-                            self.main_window.root.after(0, lambda l=line.strip(): update_progress(l))
+                            self.main_window.root.after(0, lambda line_text=line.strip(): update_progress(line_text))
                             # Also log to file for history
                             with open(output_path, 'a') as f:
                                 f.write(line)
-                    
+
                     # Get exit code
                     exit_code = process.poll()
                     success = (exit_code == 0)
-                    
+
                     # Check output for errors even if exit code is 0
                     output_text = '\n'.join([line for line in open(output_path, 'r')])
                     has_errors = False
@@ -2926,69 +2838,73 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         'permission denied', 'file exists', 'corrupted',
                         'invalid or corrupted', 'signature from', 'unknown trust'
                     ]
-                    
+
                     for pattern in error_patterns:
                         if pattern.lower() in output_text.lower():
                             has_errors = True
                             logger.warning(f"Found error pattern '{pattern}' in output despite exit code {exit_code}")
                             break
-                    
+
                     # Override success if errors found in output
                     if has_errors and success:
                         success = False
                         logger.warning("Marking update as failed due to error patterns in output")
-                    
+
                     # Calculate duration
                     duration = time.time() - start_time
-                    
+
                     # Write exit code for history
                     with open(f"{output_path}.exitcode", 'w') as f:
                         f.write(str(exit_code))
-                    
+
                     # Update UI based on result
                     if success:
                         status_label.config(text="✅ Installation completed successfully!", foreground='green')
-                        self.main_window.update_status(f"✅ Successfully installed {len(selected)} package(s)", "success")
-                        
+                        self.main_window.update_status(
+                            f"✅ Successfully installed {
+                                len(selected)} package(s)", "success")
+
                         # Refresh the updates list
                         logger.info(f"Update successful, refreshing UI for packages: {selected}")
                         self.main_window.root.after(0, lambda: self.refresh_after_update(selected))
-                        
+
                         # Clear package manager cache
                         try:
                             self.main_window.checker.package_manager.clear_cache()
-                        except:
+                        except BaseException:
                             pass
                     else:
                         if exit_code == 126 or exit_code == 127:
                             # Authentication cancelled or pkexec not found
-                            status_label.config(text="❌ Authentication cancelled or pkexec not available", foreground='red')
+                            status_label.config(
+                                text="❌ Authentication cancelled or pkexec not available", foreground='red')
                             self.main_window.update_status("Update cancelled", "warning")
                         else:
                             status_label.config(text="❌ Installation failed", foreground='red')
                             self.main_window.update_status(f"❌ Update failed with exit code {exit_code}", "error")
-                    
+
                     # Record update history if enabled
                     if self.main_window.config.get('update_history_enabled', False) and success:
                         from ..utils.update_history import UpdateHistoryManager
-                        
+
                         history_mgr = UpdateHistoryManager()
-                        
+
                         # Get pre-update version info if available
                         pre_update_version_info = {}
-                        
+
                         # First, try to use the versions we collected before the update
                         logger.info(f"Building version info - selected packages: {selected}")
                         logger.info(f"Pre-update versions available: {pre_update_versions}")
-                        
+
                         for pkg_name in selected:
                             if pkg_name in pre_update_versions:
                                 pre_update_version_info[pkg_name] = {
                                     'old': pre_update_versions[pkg_name],
                                     'new': 'unknown'  # Will be filled in below
                                 }
-                                logger.debug(f"Added pre-update version for {pkg_name}: {pre_update_versions[pkg_name]}")
-                        
+                                logger.debug(
+                                    f"Added pre-update version for {pkg_name}: {pre_update_versions[pkg_name]}")
+
                         # If we still don't have old versions, try from last_update_objects
                         if hasattr(self.main_window.checker, 'last_update_objects'):
                             for pkg_name in selected:
@@ -2999,11 +2915,10 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                             'old': update_obj.current_version,
                                             'new': update_obj.new_version
                                         }
-                        
+
                         # Also try to extract version info from output
                         output_text = ''.join(full_output)
-                        import re
-                        
+
                         # Pattern for lines like "upgrading package (1.2.3-1 -> 1.2.4-1)..."
                         version_pattern = re.compile(r'upgrading\s+(\S+)\s*\((\S+)\s*->\s*(\S+)\)', re.IGNORECASE)
                         for match in version_pattern.finditer(output_text):
@@ -3013,10 +2928,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                     'old': match.group(2),
                                     'new': match.group(3)
                                 }
-                        
+
                         # Extract new versions from download/install lines
                         # Pattern for "downloading package-version..." or "installing package-version..."
-                        download_pattern = re.compile(r'(?:downloading|installing)\s+(\S+)-(\d+[^\s-]+(?:-\d+)?)\s*\.\.\.', re.IGNORECASE)
+                        download_pattern = re.compile(
+                            r'(?:downloading|installing)\s+(\S+)-(\d+[^\s-]+(?:-\d+)?)\s*\.\.\.', re.IGNORECASE)
                         for match in download_pattern.finditer(output_text):
                             pkg_name = match.group(1)
                             new_version = match.group(2)
@@ -3030,7 +2946,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                         'old': 'unknown',
                                         'new': new_version
                                     }
-                        
+
                         # Query post-update versions for packages we're still missing
                         for pkg_name in selected:
                             if pkg_name in pre_update_version_info and pre_update_version_info[pkg_name]['new'] == 'unknown':
@@ -3050,19 +2966,20 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                             logger.debug(f"Post-update version for {pkg_name}: {parts[1]}")
                                 except Exception as e:
                                     logger.warning(f"Failed to get post-update version for {pkg_name}: {e}")
-                        
+
                         # Check for reinstalls
-                        reinstall_pattern = re.compile(r'warning:\s+(\S+)-(\S+)\s+is up to date\s*--\s*reinstalling', re.IGNORECASE)
+                        reinstall_pattern = re.compile(
+                            r'warning:\s+(\S+)-(\S+)\s+is up to date\s*--\s*reinstalling', re.IGNORECASE)
                         reinstalled_packages = []
                         for match in reinstall_pattern.finditer(output_text):
                             pkg_name = match.group(1)
                             if pkg_name in selected:
                                 reinstalled_packages.append(pkg_name)
                                 logger.info(f"Skipping history record for reinstalled package: {pkg_name}")
-                        
+
                         # Filter out reinstalled packages from the list
                         packages_to_record = [pkg for pkg in selected if pkg not in reinstalled_packages]
-                        
+
                         # Only record if there are actual updates (not just reinstalls)
                         if packages_to_record:
                             # Pattern for "Packages (n) package-version package2-version2"
@@ -3078,7 +2995,9 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                             pkg_name, new_version = parts
                                             if pkg_name in packages_to_record and pkg_name not in pre_update_version_info:
                                                 # Try to get old version from last_update_objects
-                                                if hasattr(self.main_window.checker, 'last_update_objects') and pkg_name in self.main_window.checker.last_update_objects:
+                                                if hasattr(
+                                                        self.main_window.checker,
+                                                        'last_update_objects') and pkg_name in self.main_window.checker.last_update_objects:
                                                     update_obj = self.main_window.checker.last_update_objects[pkg_name]
                                                     if hasattr(update_obj, 'current_version'):
                                                         pre_update_version_info[pkg_name] = {
@@ -3091,17 +3010,17 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                                         'old': 'unknown',
                                                         'new': new_version
                                                     }
-                        
+
                             # Filter version info to only include packages we're recording
-                            filtered_version_info = {k: v for k, v in pre_update_version_info.items() 
-                                                   if k in packages_to_record}
-                            
+                            filtered_version_info = {k: v for k, v in pre_update_version_info.items()
+                                                     if k in packages_to_record}
+
                             # Read output for history
                             with open(output_path, 'r') as f:
                                 full_output_str = f.read()
-                            
+
                             logger.info(f"Recording history with version info: {filtered_version_info}")
-                            
+
                             history_mgr.add_entry(
                                 packages=packages_to_record,
                                 succeeded=success,
@@ -3110,8 +3029,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                 exit_code=exit_code,
                                 version_info=filtered_version_info
                             )
-                            logger.info(f"Recorded update history for {len(packages_to_record)} packages (excluded {len(reinstalled_packages)} reinstalls)")
-                            
+                            logger.info(
+                                f"Recorded update history for {
+                                    len(packages_to_record)} packages (excluded {
+                                    len(reinstalled_packages)} reinstalls)")
+
                             # Refresh update history panel if it exists and is visible
                             if 'history' in self.main_window.frames:
                                 history_frame = self.main_window.frames['history']
@@ -3120,30 +3042,30 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                 logger.info("Scheduled refresh of update history panel")
                         else:
                             logger.info("No update history recorded - all packages were reinstalls")
-                    
+
                 except subprocess.TimeoutExpired:
                     status_label.config(text="❌ Installation timed out", foreground='red')
                     self.main_window.update_status("Update timed out", "error")
                     try:
                         process.kill()
-                    except:
+                    except BaseException:
                         pass
                 except Exception as e:
                     logger.error(f"Error during pkexec update: {e}")
                     status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
                     self.main_window.update_status(f"Update error: {str(e)}", "error")
-                
+
                 # Enable close button
                 close_btn.config(state='normal')
-                
+
                 # Don't auto-close - let users read the output and close manually
                 # This was previously auto-closing after 3 seconds which was too fast
-                
+
             except Exception as e:
                 logger.error(f"Failed to execute update with pkexec: {e}")
-                messagebox.showerror("Update Error", 
-                    f"Failed to execute update: {str(e)}\n\n"
-                    "Make sure pkexec is installed (polkit package)")
+                messagebox.showerror("Update Error",
+                                     f"Failed to execute update: {str(e)}\n\n"
+                                     "Make sure pkexec is installed (polkit package)")
                 self.main_window.update_status("Update failed: pkexec error", "error")
 
         # Run in separate thread to avoid blocking UI using secure thread management
@@ -3165,19 +3087,19 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
     def refresh_after_update(self, installed_packages):
         """Remove successfully installed packages from the updates list.
-        
+
         Args:
             installed_packages: List of package names that were successfully installed
         """
         logger.info(f"Refreshing updates list after installing: {installed_packages}")
-        
+
         # Remove installed packages from our tracking
         for pkg in installed_packages:
             if pkg in self.packages:
                 self.packages.remove(pkg)
             if pkg in self.selected_packages:
                 self.selected_packages.discard(pkg)
-        
+
         # If all packages have been installed, go back to dashboard
         if not self.packages:
             logger.info("All packages updated, returning to dashboard")
@@ -3186,38 +3108,38 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 self.main_window.checker.last_updates = []
             if hasattr(self.main_window.checker, 'last_update_objects'):
                 self.main_window.checker.last_update_objects = {}
-            
+
             # Update dashboard to show no updates
             if 'dashboard' in self.main_window.frames:
                 self.main_window.frames['dashboard'].update_stats_cards(0, 0)
                 self.main_window.frames['dashboard'].refresh()
-            
+
             # Show success message and go back
             self.main_window.update_status("✅ All updates installed successfully!", "success")
             self.go_back()
         else:
             # Some packages remain, rebuild the UI
             logger.info(f"Remaining packages to update: {self.packages}")
-            
+
             # Update the checker's last_updates to reflect remaining packages
             if hasattr(self.main_window.checker, 'last_updates'):
                 self.main_window.checker.last_updates = list(self.packages)
-            
+
             # Update last_update_objects to remove installed packages
             if hasattr(self.main_window.checker, 'last_update_objects'):
                 for pkg in installed_packages:
                     self.main_window.checker.last_update_objects.pop(pkg, None)
-            
+
             # Update dashboard stats with new count
             if 'dashboard' in self.main_window.frames:
                 remaining_count = len(self.packages)
                 news_count = len(self.news_items) if self.news_items else 0
                 self.main_window.frames['dashboard'].update_stats_cards(remaining_count, news_count)
-            
+
             # Update the header count without rebuilding entire UI
             if hasattr(self, 'header_count_label'):
                 self.header_count_label.config(text=f"{len(self.packages)} packages need updating")
-            
+
             # Remove the package widgets for installed packages
             for widget in self.pkg_frame.winfo_children():
                 if isinstance(widget, tk.Checkbutton):
@@ -3228,20 +3150,18 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         widget.destroy()
                         # Also remove from pkg_vars
                         self.pkg_vars.pop(pkg_name, None)
-            
+
             # Update news display to reflect new selection
             self.update_news_display()
-            
+
             # Show success message for partial update
             installed_count = len(installed_packages)
             remaining_count = len(self.packages)
             self.main_window.update_status(
-                f"✅ {installed_count} package(s) updated, {remaining_count} remaining", 
+                f"✅ {installed_count} package(s) updated, {remaining_count} remaining",
                 "success"
             )
 
     def refresh_theme(self):
         """Refresh the frame with new theme colors."""
         self._build_ui()
-
-

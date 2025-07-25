@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import sys
 from datetime import datetime
-import re # Added for sanitize_log_message
+import re  # Added for sanitize_log_message
 
 
 class ColoredFormatter(logging.Formatter):
@@ -22,7 +22,7 @@ class ColoredFormatter(logging.Formatter):
         'INFO': '\033[32m',     # Green
         'WARNING': '\033[33m',  # Yellow
         'ERROR': '\033[31m',    # Red
-        'CRITICAL': '\033[35m', # Magenta
+        'CRITICAL': '\033[35m',  # Magenta
         'RESET': '\033[0m'      # Reset
     }
 
@@ -30,10 +30,10 @@ class ColoredFormatter(logging.Formatter):
         """Format log record with colors."""
         log_color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
         reset_color = self.COLORS['RESET']
-        
+
         # Apply color to the level name
         record.levelname = f"{log_color}{record.levelname}{reset_color}"
-        
+
         return super().format(record)
 
 
@@ -74,11 +74,11 @@ def set_global_config(config: Dict[str, Any]) -> None:
             # Create a symlink to latest log with race condition protection
             latest_log = log_dir / 'latest.log'
             temp_symlink = log_dir / f'latest.log.tmp.{os.getpid()}'
-            
+
             try:
                 # Create temporary symlink first (atomic operation)
                 temp_symlink.symlink_to(Path(_log_file_path).name)
-                
+
                 # Atomically replace the symlink
                 try:
                     latest_log.unlink()
@@ -86,7 +86,7 @@ def set_global_config(config: Dict[str, Any]) -> None:
                     # File didn't exist, which is fine
                     pass
                 temp_symlink.replace(latest_log)
-                
+
             except (OSError, FileNotFoundError):
                 # Clean up temp symlink on failure
                 try:
@@ -118,7 +118,7 @@ def _reconfigure_all_loggers() -> None:
     # Update all cached logger instances
     for logger in _logger_instances.values():
         logger.setLevel(level)
-        
+
         # Add file handler if file logging is enabled
         if _log_file_path:
             # Check if file handler already exists
@@ -137,7 +137,7 @@ def setup_logging(name: str, log_file: Optional[str] = None, debug: bool = False
 
     Args:
         name: Logger name
-        log_file: Optional log file path  
+        log_file: Optional log file path
         debug: Enable debug logging
 
     Returns:
@@ -178,10 +178,10 @@ def setup_logging(name: str, log_file: Optional[str] = None, debug: bool = False
                 except ValueError as e:
                     logger.error(f"Invalid log file path: {e}")
                     return logger
-                
+
                 log_dir = Path(log_file).parent
                 log_dir.mkdir(parents=True, exist_ok=True)
-                
+
                 # Set secure permissions on log directory
                 os.chmod(log_dir, 0o700)
 
@@ -192,10 +192,10 @@ def setup_logging(name: str, log_file: Optional[str] = None, debug: bool = False
                 )
                 file_handler.setFormatter(file_formatter)
                 logger.addHandler(file_handler)
-                
+
                 # Set secure permissions on log file
                 os.chmod(log_file, 0o600)
-                
+
             except Exception as e:
                 logger.error(f"Failed to create log file handler: {e}")
 
@@ -229,7 +229,6 @@ def get_logger(name: str) -> logging.Logger:
             return logger
 
         # Create fresh logger with global settings
-        global _global_config
         debug = _global_config.get('verbose_logging', False) if _global_config else False
         debug = debug or (_global_config.get('debug_mode', False) if _global_config else False)
 
@@ -258,7 +257,7 @@ def get_logger(name: str) -> logging.Logger:
                 )
                 file_handler.setFormatter(file_formatter)
                 logger.addHandler(file_handler)
-            except Exception as e:
+            except Exception:
                 # Don't log this error to avoid recursion
                 pass
 
@@ -274,37 +273,41 @@ def get_logger(name: str) -> logging.Logger:
 def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_level: bool = False) -> str:
     """
     Enhanced log message sanitization to prevent information disclosure.
-    
+
     Args:
         message: Original log message
         sensitive_patterns: Additional patterns to redact
         debug_level: If True, apply more aggressive sanitization for debug logs
-        
+
     Returns:
         Sanitized log message
     """
     if not isinstance(message, str):
         return str(message)
-    
+
     # Default sensitive patterns to redact
     default_patterns = [
         # File paths - redact home directory and username
         (r'/home/[^/\s]+', '/home/[USER]'),
         (r'C:[/\\]+Users[/\\]+[^/\\\\s]+', 'C:/Users/[USER]'),
         (r'/Users/[^/\s]+', '/Users/[USER]'),  # macOS
-        
+
         # Email addresses
         (r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '[EMAIL]'),
-        
+
         # IP addresses (all ranges)
-        (r'\b(?:192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})\b', '[PRIVATE_IP]'),
-        (r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b', '[IP_ADDRESS]'),
+        (
+            r'\b(?:192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})\b',
+            '[PRIVATE_IP]'),
+        (
+            r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b',
+            '[IP_ADDRESS]'),
         (r'\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b', '[IPV6_ADDRESS]'),
-        
+
         # URLs with authentication
         (r'https?://[^:]+:[^@]+@', 'https://[CREDENTIALS]@'),
         (r'(?:ftp|sftp)://[^:]+:[^@]+@', '[PROTOCOL]://[CREDENTIALS]@'),
-        
+
         # Credentials and secrets (enhanced patterns)
         (r'(?i)password["\s]*[:=]["\s]*[^\s"\']+', 'password="[REDACTED]"'),
         (r'(?i)passwd["\s]*[:=]["\s]*[^\s"\']+', 'passwd="[REDACTED]"'),
@@ -314,33 +317,33 @@ def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_le
         (r'(?i)auth["\s]*[:=]["\s]*[^\s"\']+', 'auth="[REDACTED]"'),
         (r'(?i)authorization["\s]*[:=]["\s]*[^\s"\']+', 'authorization="[REDACTED]"'),
         (r'(?i)bearer["\s]+[^\s"\']+', 'bearer [REDACTED]'),
-        
+
         # Cryptographic material
         (r'\b[a-fA-F0-9]{32,}\b', '[HEX_STRING]'),  # Hashes, keys
         (r'-----BEGIN [^-]+-----[^-]+-----END [^-]+-----', '[CERTIFICATE/KEY]'),
         (r'\b[A-Za-z0-9+/]{40,}={0,2}\b', '[BASE64_DATA]'),  # Base64 encoded data
-        
+
         # Session and security tokens
         (r'(?i)session["\s]*[:=]["\s]*[^\s"\']+', 'session="[REDACTED]"'),
         (r'(?i)cookie["\s]*[:=]["\s]*[^\s"\']+', 'cookie="[REDACTED]"'),
         (r'(?i)csrf["\s]*[:=]["\s]*[^\s"\']+', 'csrf="[REDACTED]"'),
         (r'(?i)nonce["\s]*[:=]["\s]*[^\s"\']+', 'nonce="[REDACTED]"'),
-        
+
         # Database connection strings
         (r'(?i)(?:mysql|postgresql|sqlite|mongodb)://[^\s]+', '[DATABASE_URL]'),
         (r'(?i)(?:user|username)["\s]*[:=]["\s]*[^\s"\']+', 'user="[USER]"'),
-        
+
         # System identifiers
         (r'(?i)hostname["\s]*[:=]["\s]*[^\s"\']+', 'hostname="[HOSTNAME]"'),
         (r'(?i)machine["\s]*[:=]["\s]*[^\s"\']+', 'machine="[MACHINE]"'),
         (r'(?i)uuid["\s]*[:=]["\s]*[0-9a-fA-F-]{32,}', 'uuid="[UUID]"'),
-        
+
         # Process and system info
         (r'\bpid["\s]*[:=]?\s*\d+', 'pid=[PID]'),
         (r'\btid["\s]*[:=]?\s*\d+', 'tid=[TID]'),
         (r'(?i)thread[_-]?id["\s]*[:=]["\s]*[^\s"\']+', 'thread_id="[THREAD_ID]"'),
     ]
-    
+
     # Enhanced debug-level sanitization patterns
     debug_patterns = [
         # Package and system information
@@ -348,24 +351,24 @@ def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_le
         (r'selected=\[[^\]]*\]', 'selected=[LIST_REDACTED]'),
         (r'installed=\[[^\]]*\]', 'installed=[LIST_REDACTED]'),
         (r'dependencies=\[[^\]]*\]', 'dependencies=[LIST_REDACTED]'),
-        
+
         # Command outputs and system info
         (r'(?i)(?:update|command|full)\s+output(?:\s+for[^:]+)?:\s*.*', 'Output: [CONTENT_REDACTED]'),
         (r'(?i)Running\s+command:\s+.*', 'Running command: [COMMAND_REDACTED]'),
         (r'(?i)Executing:\s+.*', 'Executing: [EXECUTION_REDACTED]'),
         (r'(?i)Shell\s+command:\s+.*', 'Shell command: [SHELL_REDACTED]'),
-        
+
         # System and environment details
         (r'(?i)environment:\s*\{[^}]*\}', 'environment: {[ENV_REDACTED]}'),
         (r'(?i)env_vars?:\s*\{[^}]*\}', 'env_vars: {[ENV_REDACTED]}'),
         (r'(?i)system_info:\s*\{[^}]*\}', 'system_info: {[SYS_REDACTED]}'),
-        
+
         # Version and architecture information
         (r'\b\d+\.\d+\.\d+[\w.-]*\b', '[VERSION]'),
         (r'(?i)arch(?:itecture)?["\s]*[:=]["\s]*[^\s"\']+', 'arch="[ARCH]"'),
         (r'(?i)platform["\s]*[:=]["\s]*[^\s"\']+', 'platform="[PLATFORM]"'),
         (r'(?i)kernel["\s]*[:=]["\s]*[^\s"\']+', 'kernel="[KERNEL]"'),
-        
+
         # File system paths and details
         (r'/usr/[^\s]+', '/usr/[PATH]'),
         (r'/etc/[^\s]+', '/etc/[PATH]'),
@@ -375,86 +378,86 @@ def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_le
         (r'/lib[^/]*[^\s]*', '/lib[PATH]'),
         (r'/bin/[^\s]+', '/bin/[PATH]'),
         (r'/sbin/[^\s]+', '/sbin/[PATH]'),
-        
+
         # Network and connection details
         (r'(?i)port["\s]*[:=]?\s*\d+', 'port=[PORT]'),
         (r'(?i)socket["\s]*[:=]["\s]*[^\s"\']+', 'socket="[SOCKET]"'),
         (r'(?i)interface["\s]*[:=]["\s]*[^\s"\']+', 'interface="[INTERFACE]"'),
-        
+
         # Process identifiers and thread info
         (r'thread_[a-f0-9]{8,}', 'thread_[ID]'),
         (r'process_[a-f0-9]{8,}', 'process_[ID]'),
         (r'job_[a-f0-9]{8,}', 'job_[ID]'),
         (r'task_[a-f0-9]{8,}', 'task_[ID]'),
-        
+
         # Timing and performance data
         (r'(?i)execution_time["\s]*[:=]["\s]*[\d.]+', 'execution_time="[TIME]"'),
         (r'(?i)duration["\s]*[:=]["\s]*[\d.]+', 'duration="[TIME]"'),
         (r'(?i)elapsed["\s]*[:=]["\s]*[\d.]+', 'elapsed="[TIME]"'),
         (r'(?i)latency["\s]*[:=]["\s]*[\d.]+', 'latency="[TIME]"'),
-        
+
         # Memory and resource usage
         (r'(?i)memory["\s]*[:=]["\s]*[\d.]+[^\s]*', 'memory="[MEMORY]"'),
         (r'(?i)cpu["\s]*[:=]["\s]*[\d.]+%?', 'cpu="[CPU]"'),
         (r'(?i)disk["\s]*[:=]["\s]*[\d.]+[^\s]*', 'disk="[DISK]"'),
         (r'(?i)load["\s]*[:=]["\s]*[\d.]+', 'load="[LOAD]"'),
-        
+
         # Configuration details
         (r'(?i)config["\s]*[:=]\s*\{[^}]*\}', 'config={[CONFIG_REDACTED]}'),
         (r'(?i)settings["\s]*[:=]\s*\{[^}]*\}', 'settings={[SETTINGS_REDACTED]}'),
         (r'(?i)options["\s]*[:=]\s*\{[^}]*\}', 'options={[OPTIONS_REDACTED]}'),
-        
+
         # Error context and stack traces
         (r'(?i)traceback["\s]*[:=][^,}]+', 'traceback="[TRACEBACK_REDACTED]"'),
         (r'(?i)stack["\s]*[:=][^,}]+', 'stack="[STACK_REDACTED]"'),
         (r'(?i)backtrace["\s]*[:=][^,}]+', 'backtrace="[BACKTRACE_REDACTED]"'),
-        
+
         # User and session context
         (r'(?i)current_user["\s]*[:=]["\s]*[^\s"\']+', 'current_user="[USER]"'),
         (r'(?i)logged_in_user["\s]*[:=]["\s]*[^\s"\']+', 'logged_in_user="[USER]"'),
         (r'(?i)active_session["\s]*[:=]["\s]*[^\s"\']+', 'active_session="[SESSION]"'),
-        
+
         # Application state
         (r'(?i)state["\s]*[:=]\s*\{[^}]*\}', 'state={[STATE_REDACTED]}'),
         (r'(?i)context["\s]*[:=]\s*\{[^}]*\}', 'context={[CONTEXT_REDACTED]}'),
         (r'(?i)metadata["\s]*[:=]\s*\{[^}]*\}', 'metadata={[METADATA_REDACTED]}'),
     ]
-    
+
     # Production-safe patterns (always applied regardless of debug level)
     production_patterns = [
         # Credit card numbers
         (r'\b(?:\d{4}[-\s]?){3}\d{4}\b', '[CREDIT_CARD]'),
-        
+
         # Social security numbers
         (r'\b\d{3}-\d{2}-\d{4}\b', '[SSN]'),
-        
+
         # Phone numbers
         (r'\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b', '[PHONE]'),
-        
+
         # More generic credentials
         (r'(?i)(?:key|pass|secret|token|auth)[_-]?[a-zA-Z0-9]{16,}', '[CREDENTIAL]'),
-        
+
         # JSON Web Tokens
         (r'\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\b', '[JWT_TOKEN]'),
-        
+
         # AWS/Cloud credentials
         (r'\bAKIA[0-9A-Z]{16}\b', '[AWS_ACCESS_KEY]'),
         (r'\b[0-9a-zA-Z/+]{40}\b', '[AWS_SECRET_KEY]'),
-        
+
         # Private keys and certificates (additional patterns)
         (r'(?i)private[_-]?key["\s]*[:=]["\s]*[^\s"\']+', 'private_key="[REDACTED]"'),
         (r'(?i)public[_-]?key["\s]*[:=]["\s]*[^\s"\']+', 'public_key="[REDACTED]"'),
         (r'(?i)certificate["\s]*[:=]["\s]*[^\s"\']+', 'certificate="[REDACTED]"'),
     ]
-    
+
     # Combine patterns based on debug level
     patterns = default_patterns + production_patterns
     if debug_level:
         patterns.extend(debug_patterns)
-    
+
     if sensitive_patterns:
         patterns.extend([(pattern, '[CUSTOM_REDACTED]') for pattern in sensitive_patterns])
-    
+
     sanitized = message
     for pattern, replacement in patterns:
         try:
@@ -464,21 +467,21 @@ def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_le
             logger = get_logger(__name__)
             logger.debug(f"Sanitization pattern failed: {e}")
             continue
-    
+
     # Additional security measures
     sanitized = _apply_additional_sanitization(sanitized, debug_level)
-    
+
     return sanitized
 
 
 def _apply_additional_sanitization(message: str, debug_level: bool = False) -> str:
     """
     Apply additional sanitization measures.
-    
+
     Args:
         message: Message to sanitize
         debug_level: Whether this is for debug logging
-        
+
     Returns:
         Further sanitized message
     """
@@ -486,28 +489,28 @@ def _apply_additional_sanitization(message: str, debug_level: bool = False) -> s
     max_length = 2000 if debug_level else 1000
     if len(message) > max_length:
         message = message[:max_length] + '... [TRUNCATED]'
-    
+
     # Remove control characters that might cause issues
     message = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]', '[CTRL]', message)
-    
+
     # Normalize whitespace
     message = re.sub(r'\s+', ' ', message).strip()
-    
+
     # Remove repeated patterns that might indicate attempts to bypass sanitization
     message = re.sub(r'(\[REDACTED\][\s,]*){3,}', '[MULTIPLE_REDACTED]', message)
     message = re.sub(r'(\[CREDENTIAL\][\s,]*){3,}', '[MULTIPLE_CREDENTIALS]', message)
-    
+
     return message
 
 
 def sanitize_debug_message(message: str, extra_patterns: list = None) -> str:
     """
     Enhanced debug message sanitization with stricter controls.
-    
+
     Args:
         message: Debug message to sanitize
         extra_patterns: Additional patterns to redact
-        
+
     Returns:
         Sanitized debug message
     """
@@ -517,61 +520,61 @@ def sanitize_debug_message(message: str, extra_patterns: list = None) -> str:
 def create_secure_debug_logger(name: str, enable_debug: bool = False) -> logging.Logger:
     """
     Create a logger with automatic debug message sanitization.
-    
+
     Args:
         name: Logger name
         enable_debug: Whether to enable debug logging
-        
+
     Returns:
         Logger with enhanced security
     """
     logger = get_logger(name)
-    
+
     # Create a wrapper that automatically sanitizes debug messages
     class SecureDebugLogger:
         def __init__(self, base_logger):
             self._logger = base_logger
             self._debug_enabled = enable_debug
-            
+
         def debug(self, msg, *args, **kwargs):
             if self._debug_enabled and self._logger.isEnabledFor(logging.DEBUG):
                 sanitized_msg = sanitize_debug_message(str(msg))
                 self._logger.debug(sanitized_msg, *args, **kwargs)
-        
+
         def info(self, msg, *args, **kwargs):
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.info(sanitized_msg, *args, **kwargs)
-            
+
         def warning(self, msg, *args, **kwargs):
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.warning(sanitized_msg, *args, **kwargs)
-            
+
         def error(self, msg, *args, **kwargs):
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.error(sanitized_msg, *args, **kwargs)
-            
+
         def critical(self, msg, *args, **kwargs):
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.critical(sanitized_msg, *args, **kwargs)
-            
+
         def __getattr__(self, name):
             # Forward other attributes to the base logger
             return getattr(self._logger, name)
-    
+
     return SecureDebugLogger(logger)
 
 
 def log_security_event(event_type: str, details: dict = None, severity: str = "warning") -> None:
     """
     Log security events with proper sanitization.
-    
+
     Args:
         event_type: Type of security event
         details: Event details (will be sanitized)
         severity: Log severity level
     """
     security_logger = get_logger("security")
-    
+
     # Sanitize event details
     if details:
         sanitized_details = {}
@@ -582,13 +585,13 @@ def log_security_event(event_type: str, details: dict = None, severity: str = "w
             sanitized_details[safe_key] = safe_value
     else:
         sanitized_details = {}
-    
+
     # Create secure log message
     log_msg = f"SECURITY_EVENT: {event_type}"
     if sanitized_details:
         detail_str = ", ".join(f"{k}={v}" for k, v in sanitized_details.items())
         log_msg += f" - {detail_str}"
-    
+
     # Log with appropriate severity
     if severity == "critical":
         security_logger.critical(log_msg)
@@ -602,15 +605,15 @@ def log_security_event(event_type: str, details: dict = None, severity: str = "w
 
 class ContextualSanitizer:
     """Context-aware log sanitization for different application components."""
-    
+
     def __init__(self, component_name: str):
         self.component_name = component_name
         self.component_patterns = self._get_component_patterns()
-    
+
     def _get_component_patterns(self) -> list:
         """Get sanitization patterns specific to component."""
         patterns = []
-        
+
         if self.component_name in ['network', 'feed', 'http']:
             patterns.extend([
                 (r'(?i)url["\s]*[:=]["\s]*[^\s"\']+', 'url="[URL_REDACTED]"'),
@@ -619,7 +622,7 @@ class ContextualSanitizer:
                 (r'(?i)request["\s]*[:=][^,}]+', 'request="[REQUEST_REDACTED]"'),
                 (r'(?i)headers["\s]*[:=]\s*\{[^}]*\}', 'headers={[HEADERS_REDACTED]}'),
             ])
-        
+
         elif self.component_name in ['package', 'pacman', 'system']:
             patterns.extend([
                 (r'(?i)package[_\s]list["\s]*[:=][^,}]+', 'package_list="[PACKAGES_REDACTED]"'),
@@ -627,7 +630,7 @@ class ContextualSanitizer:
                 (r'(?i)system[_\s]info["\s]*[:=][^,}]+', 'system_info="[SYSTEM_REDACTED]"'),
                 (r'(?i)dependencies["\s]*[:=][^,}]+', 'dependencies="[DEPS_REDACTED]"'),
             ])
-        
+
         elif self.component_name in ['gui', 'ui', 'interface']:
             patterns.extend([
                 (r'(?i)user[_\s]input["\s]*[:=][^,}]+', 'user_input="[INPUT_REDACTED]"'),
@@ -635,24 +638,24 @@ class ContextualSanitizer:
                 (r'(?i)selection["\s]*[:=][^,}]+', 'selection="[SELECTION_REDACTED]"'),
                 (r'(?i)widget[_\s]state["\s]*[:=][^,}]+', 'widget_state="[STATE_REDACTED]"'),
             ])
-        
+
         elif self.component_name in ['config', 'settings']:
             patterns.extend([
                 (r'(?i)configuration["\s]*[:=]\s*\{[^}]*\}', 'configuration={[CONFIG_REDACTED]}'),
                 (r'(?i)preferences["\s]*[:=]\s*\{[^}]*\}', 'preferences={[PREFS_REDACTED]}'),
                 (r'(?i)user[_\s]settings["\s]*[:=]\s*\{[^}]*\}', 'user_settings={[SETTINGS_REDACTED]}'),
             ])
-        
+
         return patterns
-    
+
     def sanitize(self, message: str, debug_level: bool = False) -> str:
         """
         Sanitize message with component-specific patterns.
-        
+
         Args:
             message: Message to sanitize
             debug_level: Whether this is debug-level logging
-            
+
         Returns:
             Sanitized message
         """
@@ -663,7 +666,7 @@ class ContextualSanitizer:
                 sanitized = re.sub(pattern, replacement, sanitized, flags=re.IGNORECASE)
             except Exception:
                 continue
-        
+
         # Apply general sanitization
         return sanitize_log_message(sanitized, debug_level=debug_level)
 
@@ -671,10 +674,10 @@ class ContextualSanitizer:
 def get_contextual_sanitizer(component_name: str) -> ContextualSanitizer:
     """
     Get a context-aware sanitizer for a specific component.
-    
+
     Args:
         component_name: Name of the component
-        
+
     Returns:
         ContextualSanitizer instance
     """

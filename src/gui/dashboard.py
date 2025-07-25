@@ -81,18 +81,18 @@ class DashboardFrame(ttk.Frame):
 
         # Title
         title_label = tk.Label(header_frame,
-                              text="📊 Dashboard",
-                              font=('Segoe UI', title_font_size, 'bold'),
-                              fg=self.main_window.colors['text'],
-                              bg=self.main_window.colors['background'])
+                               text="📊 Dashboard",
+                               font=('Segoe UI', title_font_size, 'bold'),
+                               fg=self.main_window.colors['text'],
+                               bg=self.main_window.colors['background'])
         title_label.pack(anchor='w', padx=self.dims.pad_large, pady=(self.dims.pad_large, self.dims.pad_medium))
 
         # Subtitle
         subtitle_label = tk.Label(header_frame,
-                                 text="System overview and quick actions",
-                                 font=('Segoe UI', subtitle_font_size, 'normal'),
-                                 fg=self.main_window.colors['text_secondary'],
-                                 bg=self.main_window.colors['background'])
+                                  text="System overview and quick actions",
+                                  font=('Segoe UI', subtitle_font_size, 'normal'),
+                                  fg=self.main_window.colors['text_secondary'],
+                                  bg=self.main_window.colors['background'])
         subtitle_label.pack(anchor='w', padx=self.dims.pad_large, pady=(0, self.dims.pad_large))
 
     def create_stats_cards(self):
@@ -133,14 +133,14 @@ class DashboardFrame(ttk.Frame):
     def create_stat_card(self, parent, title, value, description):
         """Create a single statistics card."""
         card = ttk.Frame(parent, style='Card.TFrame')
-        
+
         CARD_H = self.dims.card_height
         PAD = self.dims.card_padding
         # Calculate wrap based on actual card width minus padding
         # Smaller wrap for compact layout
         base_wrap = 180 if self.dims.window_size[0] < 1000 else 225
         WRAP = max(120, self.dims.scale(base_wrap) - (2 * PAD))
-        
+
         # Set a minimum height but allow expansion if needed
         card.configure(height=CARD_H)
         card.pack_propagate(False)  # Prevent frame from shrinking to fit content
@@ -151,32 +151,32 @@ class DashboardFrame(ttk.Frame):
 
         # Title
         title_label = tk.Label(content_frame,
-                              text=title,
-                              font=self.dims.font('Segoe UI', 'small'),  # Reduced from medium
-                              fg=self.main_window.colors['text_secondary'],
-                              bg=self.main_window.colors['surface'],
-                              wraplength=WRAP,
-                              justify='left')
+                               text=title,
+                               font=self.dims.font('Segoe UI', 'small'),  # Reduced from medium
+                               fg=self.main_window.colors['text_secondary'],
+                               bg=self.main_window.colors['surface'],
+                               wraplength=WRAP,
+                               justify='left')
         title_label.pack(anchor='w')
         card.title_label = title_label  # store reference for wrap update
 
         # Value
         value_label = tk.Label(content_frame,
-                              text=value,
-                              font=self.dims.font('Segoe UI', 'large', 'bold'),  # Reduced from xlarge
-                              fg=self.main_window.colors['primary'],
-                              bg=self.main_window.colors['surface'])
+                               text=value,
+                               font=self.dims.font('Segoe UI', 'large', 'bold'),  # Reduced from xlarge
+                               fg=self.main_window.colors['primary'],
+                               bg=self.main_window.colors['surface'])
         value_label.pack(anchor='w', pady=(5, 2))  # Reduced padding to make room
 
         # Description with consistent wraplength
         desc_label = tk.Label(content_frame,
-                             text=description,
-                             font=self.dims.font('Segoe UI', 'tiny'),  # Smaller font
-                             fg=self.main_window.colors['text_secondary'],
-                             bg=self.main_window.colors['surface'],
-                             wraplength=WRAP,
-                             anchor='nw',
-                             justify='left')
+                              text=description,
+                              font=self.dims.font('Segoe UI', 'tiny'),  # Smaller font
+                              fg=self.main_window.colors['text_secondary'],
+                              bg=self.main_window.colors['surface'],
+                              wraplength=WRAP,
+                              anchor='nw',
+                              justify='left')
         desc_label.pack(anchor='w', fill='x')
 
         # Store references for updates
@@ -202,10 +202,10 @@ class DashboardFrame(ttk.Frame):
 
         # Header
         header_label = tk.Label(actions_frame,
-                               text="Quick Actions",
-                               font=self.dims.font('Segoe UI', 'large', 'bold'),
-                               fg=self.main_window.colors['text'],
-                               bg=self.main_window.colors['surface'])
+                                text="Quick Actions",
+                                font=self.dims.font('Segoe UI', 'large', 'bold'),
+                                fg=self.main_window.colors['text'],
+                                bg=self.main_window.colors['surface'])
         header_label.pack(anchor='w', padx=self.dims.pad_large, pady=(self.dims.pad_large, self.dims.pad_medium))
 
         # Buttons container - align with header text
@@ -230,25 +230,25 @@ class DashboardFrame(ttk.Frame):
 
         # Check for Updates button
         self.check_button = tk.Button(left_column,
-                                    text="🔄 Check for Updates",
-                                    font=self.dims.font('Segoe UI', 'medium'),
-                                    fg='white',
-                                    bg=self.main_window.colors['primary'],
-                                    activebackground=self.main_window.colors['primary'],
-                                    activeforeground='white',
-                                    bd=0,
-                                    padx=self.dims.button_padx,
-                                    pady=self.dims.button_pady,
-                                    cursor='hand2',
-                                    width=button_width,
-                                    command=self.check_updates)
+                                      text="🔄 Check for Updates",
+                                      font=self.dims.font('Segoe UI', 'medium'),
+                                      fg='white',
+                                      bg=self.main_window.colors['primary'],
+                                      activebackground=self.main_window.colors['primary'],
+                                      activeforeground='white',
+                                      bd=0,
+                                      padx=self.dims.button_padx,
+                                      pady=self.dims.button_pady,
+                                      cursor='hand2',
+                                      width=button_width,
+                                      command=self.check_updates)
         self.check_button.pack(pady=(0, self.dims.pad_medium))
 
         # Update All button below Check for Updates
         # Add container to align with database sync info
         update_all_container = ttk.Frame(left_column, style='Card.TFrame')
         update_all_container.pack(fill='x', pady=(self.dims.pad_small, 0))  # Same padding as db_sync_container
-        
+
         # Calculate vertical offset to center button with two-line text
         # Text has: small font label + normal font value + line spacing
         # Button should be centered with the midpoint of these two lines
@@ -257,23 +257,25 @@ class DashboardFrame(ttk.Frame):
         vertical_offset = max(0, (text_height_estimate - button_height_estimate) // 2)
         # Add extra offset to move button down more for better visual alignment
         vertical_offset += self.dims.pad_small
-        
+
         self.update_all_button = tk.Button(update_all_container,
-                                         text="⬆️ Update All",
-                                         font=self.dims.font('Segoe UI', 'medium'),
-                                         fg='white',
-                                         bg=self.main_window.colors['primary'],
-                                         activebackground=self.main_window.colors['primary'],
-                                         activeforeground='white',
-                                         bd=0,
-                                         padx=self.dims.button_padx,
-                                         pady=self.dims.button_pady,
-                                         cursor='hand2',
-                                         width=button_width,
-                                         command=self.update_all_packages)
+                                           text="⬆️ Update All",
+                                           font=self.dims.font('Segoe UI', 'medium'),
+                                           fg='white',
+                                           bg=self.main_window.colors['primary'],
+                                           activebackground=self.main_window.colors['primary'],
+                                           activeforeground='white',
+                                           bd=0,
+                                           padx=self.dims.button_padx,
+                                           pady=self.dims.button_pady,
+                                           cursor='hand2',
+                                           width=button_width,
+                                           command=self.update_all_packages)
         self.update_all_button.pack(pady=(vertical_offset, 0))
         # Add tooltip to update all button with warning
-        self._add_tooltip(self.update_all_button, "Update all packages on the system (pacman -Syu)\n\n⚠️ WARNING: This will directly update the system without\nretrieving or displaying potentially important news items.\nConsider using 'Check for Updates' first to see news.")
+        self._add_tooltip(
+            self.update_all_button,
+            "Update all packages on the system (pacman -Syu)\n\n⚠️ WARNING: This will directly update the system without\nretrieving or displaying potentially important news items.\nConsider using 'Check for Updates' first to see news.")
 
         # Right column for Sync Database button (expands to fill remaining space)
         right_column = ttk.Frame(buttons_container, style='Card.TFrame')
@@ -281,50 +283,52 @@ class DashboardFrame(ttk.Frame):
 
         # Sync Database button with same dimensions as Check for Updates
         self.sync_button = tk.Button(right_column,
-                                   text="🔁 Sync Database",
-                                   font=self.dims.font('Segoe UI', 'medium'),
-                                   fg='white',
-                                   bg=self.main_window.colors['secondary'],
-                                   activebackground=self.main_window.colors['secondary'],
-                                   activeforeground='white',
-                                   bd=0,
-                                   padx=self.dims.button_padx,
-                                   pady=self.dims.button_pady,
-                                   cursor='hand2',
-                                   width=button_width,  # Same fixed width
-                                   command=self.sync_database)
+                                     text="🔁 Sync Database",
+                                     font=self.dims.font('Segoe UI', 'medium'),
+                                     fg='white',
+                                     bg=self.main_window.colors['secondary'],
+                                     activebackground=self.main_window.colors['secondary'],
+                                     activeforeground='white',
+                                     bd=0,
+                                     padx=self.dims.button_padx,
+                                     pady=self.dims.button_pady,
+                                     cursor='hand2',
+                                     width=button_width,  # Same fixed width
+                                     command=self.sync_database)
         self.sync_button.pack(pady=(0, self.dims.pad_medium))  # Match the Check for Updates button padding
         # Add tooltip to sync button
-        self._add_tooltip(self.sync_button, "Refresh the package database (sudo pacman -Sy)\nRecommended: Run this before checking for updates\nAlso run if packages seem out of date or missing")
+        self._add_tooltip(
+            self.sync_button,
+            "Refresh the package database (sudo pacman -Sy)\nRecommended: Run this before checking for updates\nAlso run if packages seem out of date or missing")
 
         # Database sync status container below sync button (aligned with sync button)
         db_sync_container = ttk.Frame(right_column, style='Card.TFrame')
         db_sync_container.pack(fill='x', pady=(self.dims.pad_small, 0))  # Aligned below sync button
-        
+
         # Database sync label (first line) - centered with sync button
         db_sync_label_text = tk.Label(db_sync_container,
-                                     text="Database last synced:",
-                                     font=self.dims.font('Segoe UI', 'small'),
-                                     fg=self.main_window.colors['text_secondary'],
-                                     bg=self.main_window.colors['surface'])
+                                      text="Database last synced:",
+                                      font=self.dims.font('Segoe UI', 'small'),
+                                      fg=self.main_window.colors['text_secondary'],
+                                      bg=self.main_window.colors['surface'])
         db_sync_label_text.pack()  # Centered alignment
-        
+
         # Database sync time (second line) - centered with sync button
         self.db_sync_time_label = tk.Label(db_sync_container,
-                                         text="Checking...",
-                                         font=self.dims.font('Segoe UI', 'normal'),
-                                         fg=self.main_window.colors['text'],
-                                         bg=self.main_window.colors['surface'])
+                                           text="Checking...",
+                                           font=self.dims.font('Segoe UI', 'normal'),
+                                           fg=self.main_window.colors['text'],
+                                           bg=self.main_window.colors['surface'])
         self.db_sync_time_label.pack()  # Centered alignment
 
         # Status label below buttons (second row)
         self.status_label = tk.Label(buttons_frame,
-                                   text="",
-                                   font=self.dims.font('Segoe UI', 'normal'),
-                                   fg=self.main_window.colors['text_secondary'],
-                                   bg=self.main_window.colors['surface'])
+                                     text="",
+                                     font=self.dims.font('Segoe UI', 'normal'),
+                                     fg=self.main_window.colors['text_secondary'],
+                                     bg=self.main_window.colors['surface'])
         self.status_label.pack(anchor='w', pady=(self.dims.pad_small, 0))
-        
+
         # Update database sync time
         self.update_database_sync_time()
 
@@ -337,14 +341,17 @@ class DashboardFrame(ttk.Frame):
         """Create system information section."""
         info_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         right_pad = 20  # Fixed small padding
-        info_frame.pack(fill='x', padx=(self.dims.pad_large, right_pad), pady=(self.dims.pad_large, self.dims.scale(30)))
+        info_frame.pack(
+            fill='x', padx=(
+                self.dims.pad_large, right_pad), pady=(
+                self.dims.pad_large, self.dims.scale(30)))
 
         # Header
         header_label = tk.Label(info_frame,
-                               text="System Information",
-                               font=self.dims.font('Segoe UI', 'large', 'bold'),
-                               fg=self.main_window.colors['text'],
-                               bg=self.main_window.colors['surface'])
+                                text="System Information",
+                                font=self.dims.font('Segoe UI', 'large', 'bold'),
+                                fg=self.main_window.colors['text'],
+                                bg=self.main_window.colors['surface'])
         header_label.pack(anchor='w', padx=self.dims.pad_large, pady=(self.dims.pad_large, self.dims.pad_medium))
 
         # Info content
@@ -365,20 +372,20 @@ class DashboardFrame(ttk.Frame):
             row_frame.pack(fill='x', pady=self.dims.scale(2))
 
             label_widget = tk.Label(row_frame,
-                                   text=f"{label}:",
-                                   font=self.dims.font('Segoe UI', 'normal', 'bold'),
-                                   fg=self.main_window.colors['text'],
-                                   bg=self.main_window.colors['surface'],
-                                   width=self.dims.scale(15),
-                                   anchor='w')
+                                    text=f"{label}:",
+                                    font=self.dims.font('Segoe UI', 'normal', 'bold'),
+                                    fg=self.main_window.colors['text'],
+                                    bg=self.main_window.colors['surface'],
+                                    width=self.dims.scale(15),
+                                    anchor='w')
             label_widget.pack(side='left')
 
             value_widget = tk.Label(row_frame,
-                                   text=value,
-                                   font=self.dims.font('Segoe UI', 'normal'),
-                                   fg=self.main_window.colors['text_secondary'],
-                                   bg=self.main_window.colors['surface'],
-                                   anchor='w')
+                                    text=value,
+                                    font=self.dims.font('Segoe UI', 'normal'),
+                                    fg=self.main_window.colors['text_secondary'],
+                                    bg=self.main_window.colors['surface'],
+                                    anchor='w')
             value_widget.pack(side='left', padx=(10, 0))
 
             self.system_labels[label] = value_widget
@@ -391,7 +398,7 @@ class DashboardFrame(ttk.Frame):
         dots = "." * (self.dots_count % 4)
         self.status_label.configure(text=f"Checking for updates{dots}")
         self.dots_count += 1
-        
+
         # Schedule next animation using simple tkinter after()
         if self.animation_timer_id is not None:
             self.scrollable_frame.after(500, self.animate_dots)
@@ -441,51 +448,51 @@ class DashboardFrame(ttk.Frame):
 
         # Refresh to show new last check time
         self.refresh()
-        
+
         # Update database sync time after check
         self.update_database_sync_time()
-    
+
     def sync_database(self):
         """Sync package database with progress indication."""
-        if not messagebox.askyesno("Sync Database", 
-            "This will sync the package database with the latest from mirrors.\n\n"
-            "Continue?"):
+        if not messagebox.askyesno("Sync Database",
+                                   "This will sync the package database with the latest from mirrors.\n\n"
+                                   "Continue?"):
             return
-        
+
         # Create a progress dialog first (in main thread)
         progress_dialog = tk.Toplevel(self.main_window.root)
         progress_dialog.title("Syncing Database")
         dialog_w, dialog_h = self.dims.dialog_size
         progress_dialog.geometry(f"{dialog_w}x{dialog_h}")
         progress_dialog.transient(self.main_window.root)
-        
+
         # Center the dialog
         progress_dialog.update_idletasks()
         x = (progress_dialog.winfo_screenwidth() // 2) - (dialog_w // 2)
         y = (progress_dialog.winfo_screenheight() // 2) - (dialog_h // 2)
         progress_dialog.geometry(f"+{x}+{y}")
-        
+
         # Create UI elements
-        info_label = ttk.Label(progress_dialog, 
-            text="Syncing package database with mirrors...",
-            font=self.dims.font('Arial', 'medium'))
+        info_label = ttk.Label(progress_dialog,
+                               text="Syncing package database with mirrors...",
+                               font=self.dims.font('Arial', 'medium'))
         info_label.pack(pady=self.dims.pad_medium)
-        
+
         # Progress text
         text_height = self.dims.scale(8)
         text_width = self.dims.scale(70)
         progress_text = tk.Text(progress_dialog, height=text_height, width=text_width, wrap='word')
         progress_text.pack(fill='both', expand=True, padx=self.dims.pad_large, pady=self.dims.pad_medium)
-        
+
         # Status label
         status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
         status_label.pack(pady=5)
-    
+
         # Close button (disabled initially)
-        close_btn = ttk.Button(progress_dialog, text="Close", 
-            command=progress_dialog.destroy, state='disabled')
+        close_btn = ttk.Button(progress_dialog, text="Close",
+                               command=progress_dialog.destroy, state='disabled')
         close_btn.pack(pady=10)
-        
+
         # Function to update progress (thread-safe)
         def update_progress(line):
             try:
@@ -494,34 +501,34 @@ class DashboardFrame(ttk.Frame):
                 progress_dialog.update()
             except tk.TclError:
                 pass  # Dialog was closed
-        
+
         # Run sync with pkexec in thread
         def sync_thread():
             try:
                 logger.info("=== SYNC THREAD STARTED ===")
                 print("DEBUG: sync_thread started", flush=True)
-                
-                # Build secure pacman command  
+
+                # Build secure pacman command
                 sync_cmd = ["pkexec", "pacman", "-Sy", "--noconfirm"]
-                
+
                 # Run the command with real-time output
                 success = False
                 exit_code = -1
-                
+
                 try:
                     import subprocess
-                    
+
                     logger.info(f"Starting sync with command: {sync_cmd}")
-                    
+
                     # Check if we're on a hardened kernel
                     uname_result = subprocess.run(["uname", "-r"], capture_output=True, text=True)
                     is_hardened = "hardened" in uname_result.stdout.lower()
                     logger.info(f"Kernel: {uname_result.stdout.strip()}, hardened: {is_hardened}")
-                    
+
                     # First check if we're already root or have passwordless sudo
                     check_cmd = ["sudo", "-n", "true"]
                     check_result = subprocess.run(check_cmd, capture_output=True)
-                    
+
                     if check_result.returncode == 0:
                         # We have passwordless sudo, use it instead of pkexec
                         sync_cmd = ["sudo", "pacman", "-Sy", "--noconfirm"]
@@ -529,29 +536,29 @@ class DashboardFrame(ttk.Frame):
                     elif is_hardened:
                         # On hardened kernels, skip pkexec entirely and go to zenity
                         logger.info("Hardened kernel detected, skipping pkexec")
-                        
+
                         # Update status
                         self.main_window.root.after(0, lambda: status_label.config(
                             text="Using alternative authentication for hardened kernel..."))
-                        
+
                         # Use zenity for password prompt
                         zenity_cmd = [
-                            "zenity", "--password", 
+                            "zenity", "--password",
                             "--title=Authentication Required",
                             "--text=Enter your password to sync package database:"
                         ]
-                        
+
                         logger.info("Showing zenity password dialog...")
                         zenity_result = subprocess.run(
                             zenity_cmd,
                             capture_output=True,
                             text=True
                         )
-                        
+
                         if zenity_result.returncode == 0 and zenity_result.stdout:
                             password = zenity_result.stdout.strip()
                             logger.info("Got password from zenity")
-                            
+
                             # Test sudo with password
                             test_sudo = subprocess.Popen(
                                 ["sudo", "-S", "true"],
@@ -561,7 +568,7 @@ class DashboardFrame(ttk.Frame):
                                 text=True
                             )
                             test_out, test_err = test_sudo.communicate(input=password + '\n')
-                            
+
                             if test_sudo.returncode == 0:
                                 sync_cmd = ["sudo", "-S", "pacman", "-Sy", "--noconfirm"]
                                 self._sudo_password = password
@@ -574,7 +581,7 @@ class DashboardFrame(ttk.Frame):
                     else:
                         # Try normal pkexec flow
                         logger.info("Trying standard pkexec authentication...")
-                        
+
                         # Try pkexec with a timeout - on hardened kernels it might hang
                         try:
                             # Use subprocess without pipes first to allow authentication dialog
@@ -585,7 +592,7 @@ class DashboardFrame(ttk.Frame):
                                 stdout=None,
                                 stderr=None
                             )
-                            
+
                             # Wait for up to 3 seconds for pkexec to complete
                             # On hardened kernels, it might hang indefinitely
                             try:
@@ -595,31 +602,31 @@ class DashboardFrame(ttk.Frame):
                                 logger.warning("pkexec timed out - likely blocked on hardened kernel")
                                 auth_process.kill()
                                 auth_result = -1
-                            
+
                             if auth_result == 0:
                                 logger.info("pkexec authentication successful")
                             else:
                                 raise Exception("pkexec failed or timed out")
-                                
+
                         except Exception as e:
                             logger.warning(f"pkexec failed: {e}, trying zenity fallback...")
-                            
+
                             # On hardened kernels, pkexec might not work properly
                             # Fallback to sudo with zenity for password if available
                             if subprocess.run(["which", "zenity"], capture_output=True).returncode == 0:
                                 logger.info("Using zenity for password prompt")
-                                
+
                                 # Update status to show we're using zenity
                                 self.main_window.root.after(0, lambda: status_label.config(
                                     text="pkexec not available, using alternative authentication..."))
-                                
+
                                 # Create a zenity password prompt
                                 zenity_cmd = [
-                                    "zenity", "--password", 
+                                    "zenity", "--password",
                                     "--title=Authentication Required",
                                     "--text=Enter your password to sync package database:"
                                 ]
-                                
+
                                 try:
                                     zenity_result = subprocess.run(
                                         zenity_cmd,
@@ -627,11 +634,11 @@ class DashboardFrame(ttk.Frame):
                                         text=True,
                                         timeout=60
                                     )
-                                    
+
                                     if zenity_result.returncode == 0 and zenity_result.stdout:
                                         # Got password, use it with sudo
                                         password = zenity_result.stdout.strip()
-                                        
+
                                         # Test sudo with password
                                         test_sudo = subprocess.Popen(
                                             ["sudo", "-S", "true"],
@@ -641,19 +648,19 @@ class DashboardFrame(ttk.Frame):
                                             text=True
                                         )
                                         test_sudo.communicate(input=password + '\n')
-                                        
+
                                         if test_sudo.returncode == 0:
                                             # Password worked, switch to sudo
                                             sync_cmd = ["sudo", "-S", "pacman", "-Sy", "--noconfirm"]
                                             logger.info("Switched to sudo with zenity authentication")
-                                            
+
                                             # Store password temporarily for the actual command
                                             self._sudo_password = password
                                         else:
                                             raise Exception("Invalid password")
                                     else:
                                         raise Exception("Password entry cancelled")
-                                        
+
                                 except Exception as e:
                                     logger.error(f"Zenity authentication failed: {e}")
                                     exit_code = 1
@@ -663,10 +670,10 @@ class DashboardFrame(ttk.Frame):
                                 exit_code = 1
                                 success = False
                                 raise Exception("No authentication method available")
-                    
+
                     # Update status
                     self.main_window.root.after(0, lambda: status_label.config(text="Syncing database..."))
-                    
+
                     # Run the actual sync command with output capture
                     # Now we can safely capture output since we're already authenticated
                     if sync_cmd[0] == "sudo" and sync_cmd[1] == "-S":
@@ -694,9 +701,9 @@ class DashboardFrame(ttk.Frame):
                             bufsize=1,
                             universal_newlines=True
                         )
-                    
+
                     logger.info(f"Process started with PID: {process.pid}")
-                    
+
                     # Read output line by line
                     while True:
                         line = process.stdout.readline()
@@ -706,13 +713,13 @@ class DashboardFrame(ttk.Frame):
                             line = line.strip()
                             if line:
                                 logger.info(f"Output: {line}")
-                                self.main_window.root.after(0, lambda l=line: update_progress(l))
-                    
+                                self.main_window.root.after(0, lambda line_text=line: update_progress(line_text))
+
                     # Get exit code
                     exit_code = process.poll()
                     success = (exit_code == 0)
                     logger.info(f"Sync process completed with exit code: {exit_code}")
-                    
+
                     # Update sync time if successful
                     if success:
                         # Create marker file to indicate successful sync
@@ -720,30 +727,30 @@ class DashboardFrame(ttk.Frame):
                         try:
                             with open(marker_file, 'w') as f:
                                 f.write(str(datetime.now().timestamp()))
-                        except:
+                        except BaseException:
                             pass
-                
+
                 except subprocess.TimeoutExpired:
                     logger.error("Sync command timed out")
                     success = False
                     exit_code = -1
                     try:
                         process.kill()
-                    except:
+                    except BaseException:
                         pass
                 except Exception as e:
                     logger.error(f"Error during sync execution: {e}")
                     success = False
                     if exit_code == -1:  # Only set if not already set
                         exit_code = 1
-                
+
                 # Update UI based on result (in main thread)
                 if success:
                     def on_success():
                         status_label.config(text="✅ Database sync completed successfully!", foreground='green')
                         self.main_window.update_status("✅ Database synced successfully", "success")
                         self._post_sync_update()
-                        
+
                         # Force refresh the sync time after a short delay to ensure files are updated
                         self.main_window.root.after(500, self.update_database_sync_time)
                     self.main_window.root.after(0, on_success)
@@ -752,10 +759,10 @@ class DashboardFrame(ttk.Frame):
                     if exit_code == 126 or exit_code == 127:
                         def on_cancelled():
                             error_msg = ("❌ Authentication failed\n\n"
-                                       "No polkit authentication agent found.\n"
-                                       "Please ensure a polkit agent is running.\n\n"
-                                       "For Cinnamon, try running:\n"
-                                       "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+                                         "No polkit authentication agent found.\n"
+                                         "Please ensure a polkit agent is running.\n\n"
+                                         "For Cinnamon, try running:\n"
+                                         "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
                             update_progress(error_msg)
                             status_label.config(text="❌ Authentication failed - see details above", foreground='red')
                             self.main_window.update_status("Sync failed - no auth agent", "error")
@@ -765,27 +772,29 @@ class DashboardFrame(ttk.Frame):
                             status_label.config(text="❌ Database sync failed", foreground='red')
                             self.main_window.update_status(f"❌ Sync failed with exit code {exit_code}", "error")
                         self.main_window.root.after(0, on_failed)
-                    
+
             except Exception as e:
                 logger.error(f"Failed to sync database: {e}")
+                error_msg = str(e)
+
                 def on_error():
-                    update_progress(f"Error: {str(e)}")
-                    status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
+                    update_progress(f"Error: {error_msg}")
+                    status_label.config(text=f"❌ Error: {error_msg}", foreground='red')
                 self.main_window.root.after(0, on_error)
-                
+
             # Enable close button (in main thread)
             self.main_window.root.after(0, lambda: close_btn.config(state='normal'))
-        
+
         # Use secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"db_sync_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, sync_thread, is_background=True)
         if thread is None:
             progress_dialog.destroy()
-            messagebox.showerror("Thread Error", 
-                               "Unable to start database sync: thread limit reached")
+            messagebox.showerror("Thread Error",
+                                 "Unable to start database sync: thread limit reached")
         else:
             # Start the thread!
             thread.start()
@@ -794,8 +803,8 @@ class DashboardFrame(ttk.Frame):
     def update_all_packages(self):
         """Update all packages on the system."""
         if messagebox.askyesno("Confirm Update",
-                             "Are you sure you want to update all packages?\n\n"
-                             "This will run 'sudo pacman -Syu' and may take some time."):
+                               "Are you sure you want to update all packages?\n\n"
+                               "This will run 'sudo pacman -Syu' and may take some time."):
             # Get the package manager frame and call its run_pacman_update method
             if 'packages' in self.main_window.frames:
                 package_frame = self.main_window.frames['packages']
@@ -810,24 +819,24 @@ class DashboardFrame(ttk.Frame):
         """Update status and database sync time after sync operation."""
         self.main_window.update_status("Ready", "info")
         self.update_database_sync_time()
-        
+
         # Check if sync was successful by looking for marker file
         marker_file = "/tmp/asuc_sync_success_marker"
         if os.path.exists(marker_file):
             try:
                 os.unlink(marker_file)
-            except:
+            except BaseException:
                 pass
 
     def update_database_sync_time(self):
         """Update the database sync time label."""
         sync_time = PacmanRunner.get_database_last_sync_time()
-        
+
         if sync_time:
             # Format as ISO date and time (YYYY-MM-DD HH:MM:SS)
             iso_time = sync_time.strftime('%Y-%m-%d %H:%M:%S')
             self.db_sync_time_label.configure(text=iso_time)
-            
+
             # Log for debugging
             logger.debug(f"Updated database sync time display to: {iso_time}")
         else:
@@ -1012,7 +1021,8 @@ class DashboardFrame(ttk.Frame):
             # Check if critical packages have updates (potential issues)
             if hasattr(self.checker, 'last_updates'):
                 updates_set = set(self.checker.last_updates or [])
-                critical_with_updates = [pkg for pkg in critical_packages if pkg in updates_set and pkg in installed_packages]
+                critical_with_updates = [
+                    pkg for pkg in critical_packages if pkg in updates_set and pkg in installed_packages]
                 issues_count = len(critical_with_updates)
 
             return issues_count
@@ -1085,7 +1095,7 @@ class DashboardFrame(ttk.Frame):
         if hasattr(self, 'animation_timer_id') and self.animation_timer_id:
             TimerResourceManager.cancel_timer(self.animation_timer_id)
             self.animation_timer_id = None
-        
+
         # Cancel all timers for this component
         if hasattr(self, '_component_id'):
             cancelled = TimerResourceManager.cancel_component_timers(self._component_id)
@@ -1115,16 +1125,16 @@ class DashboardFrame(ttk.Frame):
             tooltip.wm_overrideredirect(True)
             tooltip.wm_geometry(f"+{x_root + 10}+{y_root + 10}")
             label = tk.Label(tooltip,
-                           text=text,
-                           background="#FFFACD",
-                           foreground="#000000",
-                           relief='solid',
-                           borderwidth=1,
-                           font=self.dims.font('Segoe UI', 'tiny'),
-                           wraplength=self.dims.scale(300),
-                           justify='left',
-                           padx=self.dims.scale(8),
-                           pady=self.dims.pad_small)
+                             text=text,
+                             background="#FFFACD",
+                             foreground="#000000",
+                             relief='solid',
+                             borderwidth=1,
+                             font=self.dims.font('Segoe UI', 'tiny'),
+                             wraplength=self.dims.scale(300),
+                             justify='left',
+                             padx=self.dims.scale(8),
+                             pady=self.dims.pad_small)
             label.pack()
             widget.tooltip = tooltip
         except Exception:
@@ -1150,4 +1160,3 @@ class DashboardFrame(ttk.Frame):
             self.cleanup_timers()
         except Exception:
             pass  # Ignore errors during destruction
-

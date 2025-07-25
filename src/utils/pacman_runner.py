@@ -20,43 +20,43 @@ logger = get_logger(__name__)
 
 class PacmanRunner:
     """Handles execution of pacman commands."""
-    
+
     @staticmethod
     def get_database_last_sync_time() -> Optional[datetime]:
         """
         Get the last time pacman database was synced by checking the modification
         time of sync database files.
-        
+
         Returns:
             datetime of last sync or None if unable to determine
         """
         sync_dir = Path("/var/lib/pacman/sync")
-        
+
         try:
             if not sync_dir.exists():
                 logger.warning("Pacman sync directory does not exist")
                 return None
-            
+
             # Check for common db files (core.db, extra.db, multilib.db, etc.)
             db_files = list(sync_dir.glob("*.db"))
-            
+
             if not db_files:
                 logger.warning("No database files found in pacman sync directory")
                 return None
-            
+
             # Get the most recent modification time
             latest_mtime = max(db_file.stat().st_mtime for db_file in db_files)
-            
+
             # Convert to datetime in local timezone
             # The file system stores timestamps in UTC, but fromtimestamp() converts to local time
             # This is the correct behavior - we want to display local time to the user
             sync_time = datetime.fromtimestamp(latest_mtime)
-            
+
             # Log the detected time for debugging
             logger.debug(f"Database sync time detected: {sync_time} (timestamp: {latest_mtime})")
-            
+
             return sync_time
-            
+
         except Exception as e:
             logger.error(f"Error getting database sync time: {e}")
             return None
@@ -87,20 +87,20 @@ class PacmanRunner:
         import stat
         output_fd, output_path = tempfile.mkstemp(suffix='.log', prefix='asuc_pacman_')
         os.close(output_fd)  # Close the file descriptor, we'll open by path
-        
+
         # Set secure permissions (owner only)
         os.chmod(output_path, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
         # Create secure script to avoid shell injection
         from ..utils.validators import validate_log_path
-        
+
         # Validate output path for security
         try:
             validate_log_path(output_path)
         except ValueError as e:
             logger.error(f"Invalid output path: {e}")
             return None
-        
+
         # Create secure script file instead of shell command construction
         script_fd, script_path = tempfile.mkstemp(suffix='.sh', prefix='asuc_pacman_')
         try:
@@ -132,13 +132,13 @@ fi
 echo "Press Enter to close this window..."
 read
 '''
-            
+
             with os.fdopen(script_fd, 'w') as f:
                 f.write(script_content)
-            
+
             # Set secure executable permissions (owner only)
             os.chmod(script_path, 0o700)
-            
+
             # Use array-based terminal commands to avoid injection
             terminal_commands = [
                 ['gnome-terminal', '--', 'bash', script_path],
@@ -163,7 +163,7 @@ read
                     continue
 
             return None
-        
+
         finally:
             # Clean up script file
             try:

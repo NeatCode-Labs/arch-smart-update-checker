@@ -4,6 +4,11 @@ News browser frame for the Arch Smart Update Checker GUI.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from .dimensions import get_dimensions
+from ..utils.logger import get_logger
+from .window_mixin import WindowPositionMixin
+from ..config import Config
+from ..news_fetcher import NewsFetcher
 import tkinter as tk
 import os
 from tkinter import ttk, messagebox, scrolledtext
@@ -16,11 +21,6 @@ import webbrowser
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from ..news_fetcher import NewsFetcher
-from ..config import Config
-from .window_mixin import WindowPositionMixin
-from ..utils.logger import get_logger
-from .dimensions import get_dimensions
 
 logger = get_logger(__name__)
 
@@ -76,18 +76,18 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         title_frame.pack(fill='x', padx=20, pady=20)
 
         title_label = tk.Label(title_frame,
-                              text="📰 News Browser",
-                              font=('Segoe UI', 20, 'bold'),
-                              fg=self.main_window.colors['text'],
-                              bg=self.main_window.colors['surface'])
+                               text="📰 News Browser",
+                               font=('Segoe UI', 20, 'bold'),
+                               fg=self.main_window.colors['text'],
+                               bg=self.main_window.colors['surface'])
         title_label.pack(side='left')
 
         # Status label
         self.status_label = tk.Label(title_frame,
-                                    text="Ready",
-                                    font=('Segoe UI', 10, 'normal'),
-                                    fg=self.main_window.colors['text_secondary'],
-                                    bg=self.main_window.colors['surface'])
+                                     text="Ready",
+                                     font=('Segoe UI', 10, 'normal'),
+                                     fg=self.main_window.colors['text_secondary'],
+                                     bg=self.main_window.colors['surface'])
         self.status_label.pack(side='right', padx=(0, 20))
 
         # Control buttons
@@ -95,31 +95,31 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         controls_frame.pack(side='right')
 
         refresh_btn = tk.Button(controls_frame,
-                               text="🔄 Refresh",
-                               font=self.dims.font('Segoe UI', 'normal'),
-                               fg='white',
-                               bg=self.main_window.colors['primary'],
-                               activebackground=self.main_window.colors['primary_hover'],
-                               activeforeground='white',
-                               bd=0,
-                               padx=self.dims.button_padx,
-                               pady=self.dims.button_pady,
-                               cursor='hand2',
-                               command=self.refresh_news)
+                                text="🔄 Refresh",
+                                font=self.dims.font('Segoe UI', 'normal'),
+                                fg='white',
+                                bg=self.main_window.colors['primary'],
+                                activebackground=self.main_window.colors['primary_hover'],
+                                activeforeground='white',
+                                bd=0,
+                                padx=self.dims.button_padx,
+                                pady=self.dims.button_pady,
+                                cursor='hand2',
+                                command=self.refresh_news)
         refresh_btn.pack(side='left', padx=(0, 10))
 
         settings_btn = tk.Button(controls_frame,
-                                text="⚙️ Feeds",
-                                font=('Segoe UI', 11, 'normal'),
-                                fg=self.main_window.colors['text'],
-                                bg=self.main_window.colors['surface'],
-                                activebackground=self.main_window.colors['border'],
-                                bd=1,
-                                relief='solid',
-                                padx=15,
-                                pady=8,
-                                cursor='hand2',
-                                command=self.show_feed_settings)
+                                 text="⚙️ Feeds",
+                                 font=('Segoe UI', 11, 'normal'),
+                                 fg=self.main_window.colors['text'],
+                                 bg=self.main_window.colors['surface'],
+                                 activebackground=self.main_window.colors['border'],
+                                 bd=1,
+                                 relief='solid',
+                                 padx=15,
+                                 pady=8,
+                                 cursor='hand2',
+                                 command=self.show_feed_settings)
         settings_btn.pack(side='left')
 
     def create_search_bar(self, parent):
@@ -132,23 +132,23 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         search_container.pack(fill='x', padx=20, pady=15)
 
         search_label = tk.Label(search_container,
-                               text="🔍 Search:",
-                               font=('Segoe UI', 12, 'normal'),
-                               fg=self.main_window.colors['text'],
-                               bg=self.main_window.colors['surface'])
+                                text="🔍 Search:",
+                                font=('Segoe UI', 12, 'normal'),
+                                fg=self.main_window.colors['text'],
+                                bg=self.main_window.colors['surface'])
         search_label.pack(side='left', padx=(0, 10))
 
         self.search_var = tk.StringVar(master=self)
         self.search_var.trace('w', self.on_search_change)
 
         search_entry = tk.Entry(search_container,
-                               textvariable=self.search_var,
-                               font=('Segoe UI', 11, 'normal'),
-                               bg=self.main_window.colors['surface'],
-                               fg=self.main_window.colors['text'],
-                               insertbackground=self.main_window.colors['text'],
-                               relief='solid',
-                               bd=1)
+                                textvariable=self.search_var,
+                                font=('Segoe UI', 11, 'normal'),
+                                bg=self.main_window.colors['surface'],
+                                fg=self.main_window.colors['text'],
+                                insertbackground=self.main_window.colors['text'],
+                                relief='solid',
+                                bd=1)
         search_entry.pack(side='left', fill='x', expand=True, padx=(0, 10))
 
         # Filter options
@@ -156,19 +156,19 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         filter_frame.pack(side='right')
 
         filter_label = tk.Label(filter_frame,
-                               text="Filter:",
-                               font=('Segoe UI', 11, 'normal'),
-                               fg=self.main_window.colors['text_secondary'],
-                               bg=self.main_window.colors['surface'])
+                                text="Filter:",
+                                font=('Segoe UI', 11, 'normal'),
+                                fg=self.main_window.colors['text_secondary'],
+                                bg=self.main_window.colors['surface'])
         filter_label.pack(side='left', padx=(0, 5))
 
         self.filter_var = tk.StringVar(master=self, value="all")
         filter_combo = ttk.Combobox(filter_frame,
-                                   textvariable=self.filter_var,
-                                   values=["all", "critical", "high", "medium", "low"],
-                                   state="readonly",
-                                   font=('Segoe UI', 10, 'normal'),
-                                   width=10)
+                                    textvariable=self.filter_var,
+                                    values=["all", "critical", "high", "medium", "low"],
+                                    state="readonly",
+                                    font=('Segoe UI', 10, 'normal'),
+                                    width=10)
         filter_combo.pack(side='left')
         filter_combo.bind('<<ComboboxSelected>>', self.on_filter_change)
 
@@ -185,8 +185,10 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
 
         self.news_frame.bind(
             "<Configure>",
-            lambda e: (self.news_canvas.configure(scrollregion=self.news_canvas.bbox("all")), self._update_scrollbar_visibility())
-        )
+            lambda e: (
+                self.news_canvas.configure(
+                    scrollregion=self.news_canvas.bbox("all")),
+                self._update_scrollbar_visibility()))
 
         self.news_canvas.create_window((0, 0), window=self.news_frame, anchor="nw")
         self.news_canvas.configure(yscrollcommand=self.news_scrollbar.set)
@@ -220,14 +222,17 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
                 self.main_window.root.after(0, lambda: self.display_filtered_news())
             except Exception as e:
                 logger.error(f"Failed to load news: {e}")
-                self.main_window.root.after(0, lambda: self.status_label.configure(text=f"Error loading news: {str(e)}"))
+                error_msg = str(e)
+                self.main_window.root.after(
+                    0, lambda: self.status_label.configure(
+                        text=f"Error loading news: {error_msg}"))
 
         self.status_label.configure(text=f"Loading news from {len(active_feeds)} feeds...")
-        
+
         # Use secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"news_load_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, load_thread, is_background=True)
         if thread is None:
@@ -238,7 +243,7 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         # Get filter criteria
         search_text = self.search_var.get().lower().strip()
         severity_filter = self.filter_var.get()
-        
+
         # Filter news items
         filtered_items = []
         for item in self.all_news_items:
@@ -252,15 +257,15 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
                 )
                 if search_text not in searchable_text:
                     continue
-            
+
             # Apply severity filter
             if severity_filter != 'all':
                 item_severity = self._determine_severity(item)
                 if item_severity.lower() != severity_filter.lower():
                     continue
-            
+
             filtered_items.append(item)
-        
+
         # Update status
         if self.all_news_items:
             status_text = f"Showing {len(filtered_items)} of {len(self.all_news_items)} news items"
@@ -269,7 +274,7 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
             if severity_filter != 'all':
                 status_text += f" ({severity_filter} severity)"
             self.status_label.configure(text=status_text)
-        
+
         # Display filtered items
         self.display_news(filtered_items)
 
@@ -278,26 +283,26 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         title = item.get('title', '').lower()
         description = item.get('description', '').lower()
         combined_text = title + ' ' + description
-        
+
         # Keywords for different severity levels
         critical_keywords = ['critical', 'urgent', 'emergency', 'vulnerability', 'exploit', 'zero-day', 'breach']
         high_keywords = ['important', 'security', 'update required', 'mandatory', 'breaking change']
         medium_keywords = ['update', 'change', 'deprecated', 'migration', 'upgrade']
-        low_keywords = ['announcement', 'release', 'available', 'feature']
-        
+        # low_keywords = ['announcement', 'release', 'available', 'feature']  # Reserved for future use
+
         # Check for severity keywords
         for keyword in critical_keywords:
             if keyword in combined_text:
                 return 'Critical'
-        
+
         for keyword in high_keywords:
             if keyword in combined_text:
                 return 'High'
-        
+
         for keyword in medium_keywords:
             if keyword in combined_text:
                 return 'Medium'
-        
+
         # Default to low
         return 'Low'
 
@@ -309,10 +314,10 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
 
         if not news_items:
             no_items_label = tk.Label(self.news_frame,
-                                     text="No news items found",
-                                     font=('Segoe UI', 12, 'normal'),
-                                     fg=self.main_window.colors['text_secondary'],
-                                     bg=self.main_window.colors['background'])
+                                      text="No news items found",
+                                      font=('Segoe UI', 12, 'normal'),
+                                      fg=self.main_window.colors['text_secondary'],
+                                      bg=self.main_window.colors['background'])
             no_items_label.pack(pady=50)
             return
 
@@ -341,12 +346,12 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         # Title
         title = item.get('title', 'Unknown Title')
         title_label = tk.Label(header_frame,
-                              text=title,
-                              font=('Segoe UI', 14, 'bold'),
-                              fg=self.main_window.colors['text'],
-                              bg=self.main_window.colors['surface'],
-                              wraplength=600,
-                              justify='left')
+                               text=title,
+                               font=('Segoe UI', 14, 'bold'),
+                               fg=self.main_window.colors['text'],
+                               bg=self.main_window.colors['surface'],
+                               wraplength=600,
+                               justify='left')
         title_label.pack(anchor='w')
 
         # Meta information
@@ -356,19 +361,19 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         # Date
         published = item.get('published', 'Unknown date')
         date_label = tk.Label(meta_frame,
-                             text=f"📅 {published}",
-                             font=('Segoe UI', 10, 'normal'),
-                             fg=self.main_window.colors['text_secondary'],
-                             bg=self.main_window.colors['surface'])
+                              text=f"📅 {published}",
+                              font=('Segoe UI', 10, 'normal'),
+                              fg=self.main_window.colors['text_secondary'],
+                              bg=self.main_window.colors['surface'])
         date_label.pack(side='left')
 
         # Feed source
         feed = item.get('feed', 'Unknown feed')
         feed_label = tk.Label(meta_frame,
-                             text=f"📡 {feed}",
-                             font=('Segoe UI', 10, 'normal'),
-                             fg=self.main_window.colors['text_secondary'],
-                             bg=self.main_window.colors['surface'])
+                              text=f"📡 {feed}",
+                              font=('Segoe UI', 10, 'normal'),
+                              fg=self.main_window.colors['text_secondary'],
+                              bg=self.main_window.colors['surface'])
         feed_label.pack(side='left', padx=(20, 0))
 
         # Severity indicator
@@ -380,23 +385,23 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
             'Low': self.main_window.colors['success']
         }
         severity_color = severity_colors.get(severity, self.main_window.colors['secondary'])
-        
+
         severity_label = tk.Label(meta_frame,
-                                 text=f"● {severity}",
-                                 font=('Segoe UI', 10, 'bold'),
-                                 fg=severity_color,
-                                 bg=self.main_window.colors['surface'])
+                                  text=f"● {severity}",
+                                  font=('Segoe UI', 10, 'bold'),
+                                  fg=severity_color,
+                                  bg=self.main_window.colors['surface'])
         severity_label.pack(side='left', padx=(20, 0))
 
         # Description
         description = item.get('description', 'No description available')
         desc_label = tk.Label(content_frame,
-                             text=description,
-                             font=('Segoe UI', 11, 'normal'),
-                             fg=self.main_window.colors['text'],
-                             bg=self.main_window.colors['surface'],
-                             wraplength=600,
-                             justify='left')
+                              text=description,
+                              font=('Segoe UI', 11, 'normal'),
+                              fg=self.main_window.colors['text'],
+                              bg=self.main_window.colors['surface'],
+                              wraplength=600,
+                              justify='left')
         desc_label.pack(anchor='w', pady=(0, 10))
 
         # Action buttons
@@ -407,9 +412,26 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
         link = item.get('link', '')
         if link:
             link_btn = tk.Button(actions_frame,
-                                text="🔗 Open Link",
+                                 text="🔗 Open Link",
+                                 font=('Segoe UI', 10, 'normal'),
+                                 fg=self.main_window.colors['primary'],
+                                 bg=self.main_window.colors['surface'],
+                                 activebackground=self.main_window.colors['border'],
+                                 bd=1,
+                                 relief='solid',
+                                 padx=12,
+                                 pady=4,
+                                 cursor='hand2',
+                                 command=lambda: self.open_link(link))
+            link_btn.pack(side='left')
+
+        # Package info button
+        packages = item.get('packages', [])
+        if packages:
+            pkg_btn = tk.Button(actions_frame,
+                                text=f"📦 {len(packages)} Packages",
                                 font=('Segoe UI', 10, 'normal'),
-                                fg=self.main_window.colors['primary'],
+                                fg=self.main_window.colors['success'],
                                 bg=self.main_window.colors['surface'],
                                 activebackground=self.main_window.colors['border'],
                                 bd=1,
@@ -417,24 +439,7 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
                                 padx=12,
                                 pady=4,
                                 cursor='hand2',
-                                command=lambda: self.open_link(link))
-            link_btn.pack(side='left')
-
-        # Package info button
-        packages = item.get('packages', [])
-        if packages:
-            pkg_btn = tk.Button(actions_frame,
-                               text=f"📦 {len(packages)} Packages",
-                               font=('Segoe UI', 10, 'normal'),
-                               fg=self.main_window.colors['success'],
-                               bg=self.main_window.colors['surface'],
-                               activebackground=self.main_window.colors['border'],
-                               bd=1,
-                               relief='solid',
-                               padx=12,
-                               pady=4,
-                               cursor='hand2',
-                               command=lambda: self.show_packages(packages))
+                                command=lambda: self.show_packages(packages))
             pkg_btn.pack(side='left', padx=(10, 0))
 
         return card
@@ -462,7 +467,6 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
 
     def open_link(self, url: str):
         """Open a news link in the default browser."""
-        import webbrowser
         try:
             webbrowser.open(url)
         except Exception as exc:
@@ -483,11 +487,11 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
 
         # Package list
         listbox = tk.Listbox(pkg_window,
-                            font=('Segoe UI', 11, 'normal'),
-                            bg=self.main_window.colors['surface'],
-                            fg=self.main_window.colors['text'],
-                            selectbackground=self.main_window.colors['primary'],
-                            selectforeground='white')
+                             font=('Segoe UI', 11, 'normal'),
+                             bg=self.main_window.colors['surface'],
+                             fg=self.main_window.colors['text'],
+                             selectbackground=self.main_window.colors['primary'],
+                             selectforeground='white')
         listbox.pack(fill='both', expand=True, padx=20, pady=20)
 
         for pkg in packages:

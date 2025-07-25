@@ -13,7 +13,7 @@ class WindowPositionMixin:
     """Mixin class providing window positioning functionality to GUI frames."""
 
     def position_window(self, window: tk.Toplevel, width: Optional[int] = None,
-                       height: Optional[int] = None, parent: Optional[tk.Widget] = None) -> None:
+                        height: Optional[int] = None, parent: Optional[tk.Widget] = None) -> None:
         """
         Position a window with persistence support.
 

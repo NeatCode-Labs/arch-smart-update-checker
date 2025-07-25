@@ -53,7 +53,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Keep autosave disabled; users must click Save explicitly
         self._autosave_enabled = False
-        
+
         # Register cleanup callback
         self.callback_manager.register_cleanup_callback(self._cleanup_settings_resources)
 
@@ -151,18 +151,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Title
         title_label = tk.Label(header_frame,
-                              text="🛠️ Settings",
-                              font=('Segoe UI', title_font_size, 'bold'),
-                              fg=self.colors['text'],
-                              bg=self.colors['background'])
+                               text="🛠️ Settings",
+                               font=('Segoe UI', title_font_size, 'bold'),
+                               fg=self.colors['text'],
+                               bg=self.colors['background'])
         title_label.pack(anchor='w', padx=20, pady=(20, 10))
 
         # Subtitle
         subtitle_label = tk.Label(header_frame,
-                                 text="Configure your Arch Smart Update Checker preferences",
-                                 font=('Segoe UI', subtitle_font_size, 'normal'),
-                                 fg=self.colors['text_secondary'],
-                                 bg=self.colors['background'])
+                                  text="Configure your Arch Smart Update Checker preferences",
+                                  font=('Segoe UI', subtitle_font_size, 'normal'),
+                                  fg=self.colors['text_secondary'],
+                                  bg=self.colors['background'])
         subtitle_label.pack(anchor='w', padx=20, pady=(0, 20))
 
     def create_general_settings(self):
@@ -172,10 +172,10 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Section header
         header_label = tk.Label(section_frame,
-                               text="General Settings",
-                               font=('Segoe UI', 16, 'bold'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'])
+                                text="General Settings",
+                                font=('Segoe UI', 16, 'bold'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'])
         header_label.pack(anchor='w', padx=20, pady=(20, 10))
 
         # Settings container
@@ -184,10 +184,10 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Update history settings
         history_label = tk.Label(settings_frame,
-                                text="Update History",
-                                font=('Segoe UI', 12, 'bold'),
-                                fg=self.colors['text'],
-                                bg=self.colors['surface'])
+                                 text="Update History",
+                                 font=('Segoe UI', 12, 'bold'),
+                                 fg=self.colors['text'],
+                                 bg=self.colors['surface'])
         history_label.pack(anchor='w', pady=(5, 10))
 
         # Enable update history
@@ -196,14 +196,14 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         self.history_enabled_var = tk.BooleanVar(value=False)
         history_check = tk.Checkbutton(history_frame,
-                                      text="Record update history",
-                                      variable=self.history_enabled_var,
-                                      font=('Segoe UI', 11, 'normal'),
-                                      fg=self.colors['text'],
-                                      bg=self.colors['surface'],
-                                      selectcolor=self.colors['surface'],
-                                      activebackground=self.colors['surface'],
-                                      activeforeground=self.colors['text'])
+                                       text="Record update history",
+                                       variable=self.history_enabled_var,
+                                       font=('Segoe UI', 11, 'normal'),
+                                       fg=self.colors['text'],
+                                       bg=self.colors['surface'],
+                                       selectcolor=self.colors['surface'],
+                                       activebackground=self.colors['surface'],
+                                       activeforeground=self.colors['text'])
         history_check.pack(anchor='w')
 
         # Retention days
@@ -211,26 +211,28 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         retention_frame.pack(fill='x', pady=5)
 
         retention_label = tk.Label(retention_frame,
-                                  text="Keep history for (days):",
-                                  font=('Segoe UI', 11, 'normal'),
-                                  fg=self.colors['text'],
-                                  bg=self.colors['surface'],
-                                  width=25,
-                                  anchor='w')
+                                   text="Keep history for (days):",
+                                   font=('Segoe UI', 11, 'normal'),
+                                   fg=self.colors['text'],
+                                   bg=self.colors['surface'],
+                                   width=25,
+                                   anchor='w')
         retention_label.pack(side='left')
 
         self.retention_var = tk.StringVar(value="365")
         retention_entry = tk.Entry(retention_frame,
-                                  textvariable=self.retention_var,
-                                  font=('Segoe UI', 11, 'normal'),
-                                  bg=self.colors['surface'],
-                                  fg=self.colors['text'],
-                                  insertbackground=self.colors['text'],
-                                  relief='solid',
-                                  bd=1,
-                                  width=10)
+                                   textvariable=self.retention_var,
+                                   font=('Segoe UI', 11, 'normal'),
+                                   bg=self.colors['surface'],
+                                   fg=self.colors['text'],
+                                   insertbackground=self.colors['text'],
+                                   relief='solid',
+                                   bd=1,
+                                   width=10)
         retention_entry.pack(side='left', padx=(10, 0))
-        self._add_tooltip(retention_entry, "How long to keep update history records\nValid range: 1-3650 days (10 years max)\nLarge values may impact performance")
+        self._add_tooltip(
+            retention_entry,
+            "How long to keep update history records\nValid range: 1-3650 days (10 years max)\nLarge values may impact performance")
 
     def create_feed_settings(self):
         """Create feed settings section, with dynamic area for inline edit form and correct option placement."""
@@ -238,23 +240,23 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         section_frame.pack(fill='x', padx=20, pady=10)
         # Section header
         header_label = tk.Label(section_frame,
-                               text="News Feed Settings",
-                               font=('Segoe UI', 16, 'bold'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'])
+                                text="News Feed Settings",
+                                font=('Segoe UI', 16, 'bold'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'])
         header_label.pack(anchor='w', padx=20, pady=(20, 10))
         # Auto-refresh checkbox (moved up)
         self.auto_refresh_var = tk.BooleanVar(value=True)
         auto_refresh_check = tk.Checkbutton(section_frame,
-                                           text="Auto-refresh feeds on startup",
-                                           variable=self.auto_refresh_var,
-                                           font=('Segoe UI', 11, 'normal'),
-                                           fg=self.colors['text'],
-                                           bg=self.colors['surface'],
-                                           selectcolor=self.colors['surface'],
-                                           activebackground=self.colors['surface'],
-                                           activeforeground=self.colors['text'],
-                                           command=lambda: None)
+                                            text="Auto-refresh feeds on startup",
+                                            variable=self.auto_refresh_var,
+                                            font=('Segoe UI', 11, 'normal'),
+                                            fg=self.colors['text'],
+                                            bg=self.colors['surface'],
+                                            selectcolor=self.colors['surface'],
+                                            activebackground=self.colors['surface'],
+                                            activeforeground=self.colors['text'],
+                                            command=lambda: None)
         auto_refresh_check.pack(anchor='w', padx=20, pady=(0, 10))
         # Settings container
         settings_frame = ttk.Frame(section_frame, style='Card.TFrame')
@@ -263,18 +265,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         feeds_frame = ttk.Frame(settings_frame, style='Card.TFrame')
         feeds_frame.pack(fill='x', pady=5)
         feeds_label = tk.Label(feeds_frame,
-                              text="Active RSS Feeds:",
-                              font=('Segoe UI', 11, 'bold'),
-                              fg=self.colors['text'],
-                              bg=self.colors['surface'])
+                               text="Active RSS Feeds:",
+                               font=('Segoe UI', 11, 'bold'),
+                               fg=self.colors['text'],
+                               bg=self.colors['surface'])
         feeds_label.pack(anchor='w', pady=(0, 10))
 
         # Create a simple frame for feed checkboxes with fixed height and scrollbar
         feed_container = tk.Frame(feeds_frame,
-                                 bg=self.colors['surface'],
-                                 relief='sunken',
-                                 bd=1,
-                                 height=150)
+                                  bg=self.colors['surface'],
+                                  relief='sunken',
+                                  bd=1,
+                                  height=150)
         feed_container.pack(fill='x', pady=(0, 10))
         feed_container.pack_propagate(False)  # Maintain fixed height
 
@@ -292,57 +294,57 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         feed_buttons_frame = ttk.Frame(feeds_frame, style='Card.TFrame')
         feed_buttons_frame.pack(fill='x')
         add_feed_btn = tk.Button(feed_buttons_frame,
-                                text="➕ Add Feed",
-                                font=('TkDefaultFont', 10, 'normal'),
-                                fg='white',
-                                bg=self.colors['success'],
-                                activebackground=self.colors['success'],
-                                activeforeground='white',
-                                bd=0,
-                                padx=12,
-                                pady=6,
-                                cursor='hand2',
-                                command=self.add_feed)
-        add_feed_btn.pack(side='left', padx=(0, 10))
-        remove_feed_btn = tk.Button(feed_buttons_frame,
-                                   text="➖ Remove Feed",
-                                   font=('TkDefaultFont', 10, 'normal'),
-                                   fg='white',
-                                   bg=self.colors['error'],
-                                   activebackground=self.colors['error'],
-                                   activeforeground='white',
-                                   bd=0,
-                                   padx=12,
-                                   pady=6,
-                                   cursor='hand2',
-                                   command=self.remove_feed)
-        remove_feed_btn.pack(side='left', padx=(0, 10))
-        edit_feed_btn = tk.Button(feed_buttons_frame,
-                                 text="✏️ Edit Feed",
+                                 text="➕ Add Feed",
                                  font=('TkDefaultFont', 10, 'normal'),
                                  fg='white',
-                                 bg=self.colors['primary'],
-                                 activebackground=self.colors['primary_hover'],
+                                 bg=self.colors['success'],
+                                 activebackground=self.colors['success'],
                                  activeforeground='white',
                                  bd=0,
                                  padx=12,
                                  pady=6,
                                  cursor='hand2',
-                                 command=self.edit_feed)
+                                 command=self.add_feed)
+        add_feed_btn.pack(side='left', padx=(0, 10))
+        remove_feed_btn = tk.Button(feed_buttons_frame,
+                                    text="➖ Remove Feed",
+                                    font=('TkDefaultFont', 10, 'normal'),
+                                    fg='white',
+                                    bg=self.colors['error'],
+                                    activebackground=self.colors['error'],
+                                    activeforeground='white',
+                                    bd=0,
+                                    padx=12,
+                                    pady=6,
+                                    cursor='hand2',
+                                    command=self.remove_feed)
+        remove_feed_btn.pack(side='left', padx=(0, 10))
+        edit_feed_btn = tk.Button(feed_buttons_frame,
+                                  text="✏️ Edit Feed",
+                                  font=('TkDefaultFont', 10, 'normal'),
+                                  fg='white',
+                                  bg=self.colors['primary'],
+                                  activebackground=self.colors['primary_hover'],
+                                  activeforeground='white',
+                                  bd=0,
+                                  padx=12,
+                                  pady=6,
+                                  cursor='hand2',
+                                  command=self.edit_feed)
         edit_feed_btn.pack(side='left', padx=(0, 10))
 
         test_feed_btn = tk.Button(feed_buttons_frame,
-                                text="🧪 Test Feed",
-                                font=('TkDefaultFont', 10, 'normal'),
-                                fg='white',
-                                bg=self.colors['secondary'],
-                                activebackground=self.colors['secondary'],
-                                activeforeground='white',
-                                bd=0,
-                                padx=12,
-                                pady=6,
-                                cursor='hand2',
-                                command=self.test_feed)
+                                  text="🧪 Test Feed",
+                                  font=('TkDefaultFont', 10, 'normal'),
+                                  fg='white',
+                                  bg=self.colors['secondary'],
+                                  activebackground=self.colors['secondary'],
+                                  activeforeground='white',
+                                  bd=0,
+                                  padx=12,
+                                  pady=6,
+                                  cursor='hand2',
+                                  command=self.test_feed)
         test_feed_btn.pack(side='left')
         # Dynamic edit panel (only present when editing)
         if getattr(self, '_editing_feed', False):
@@ -378,33 +380,37 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                    bd=1,
                                    width=10)
         freshness_entry.pack(side='left', padx=(10, 0))
-        self._add_tooltip(freshness_entry, "Maximum age of news items to display\nValid range: 1-365 days\nLarger values may cause performance issues")
+        self._add_tooltip(
+            freshness_entry,
+            "Maximum age of news items to display\nValid range: 1-365 days\nLarger values may cause performance issues")
 
         # Max news items setting
         max_items_frame = ttk.Frame(section_frame, style='Card.TFrame')
         max_items_frame.pack(fill='x', padx=20, pady=(5, 20))
 
         max_items_label = tk.Label(max_items_frame,
-                                  text="Max news items to show:",
-                                  font=('Segoe UI', 11, 'normal'),
-                                  fg=self.colors['text'],
-                                  bg=self.colors['surface'],
-                                  width=25,
-                                  anchor='w')
+                                   text="Max news items to show:",
+                                   font=('Segoe UI', 11, 'normal'),
+                                   fg=self.colors['text'],
+                                   bg=self.colors['surface'],
+                                   width=25,
+                                   anchor='w')
         max_items_label.pack(side='left')
 
         self.max_items_var = tk.StringVar(value=str(self.config.get_max_news_items()))
         max_items_entry = tk.Entry(max_items_frame,
-                                  textvariable=self.max_items_var,
-                                  font=('Segoe UI', 11, 'normal'),
-                                  bg=self.colors['surface'],
-                                  fg=self.colors['text'],
-                                  insertbackground=self.colors['text'],
-                                  relief='solid',
-                                  bd=1,
-                                  width=10)
+                                   textvariable=self.max_items_var,
+                                   font=('Segoe UI', 11, 'normal'),
+                                   bg=self.colors['surface'],
+                                   fg=self.colors['text'],
+                                   insertbackground=self.colors['text'],
+                                   relief='solid',
+                                   bd=1,
+                                   width=10)
         max_items_entry.pack(side='left', padx=(10, 0))
-        self._add_tooltip(max_items_entry, "Maximum number of news items to display\nValid range: 1-1000 items\nLarger values may freeze the interface")
+        self._add_tooltip(
+            max_items_entry,
+            "Maximum number of news items to display\nValid range: 1-1000 items\nLarger values may freeze the interface")
 
         # (Save button moved to the bottom of the page)
 
@@ -414,10 +420,10 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         section_frame.pack(fill='x', padx=20, pady=10)
         # Section header
         header_label = tk.Label(section_frame,
-                               text="Display Settings",
-                               font=('Segoe UI', 16, 'bold'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'])
+                                text="Display Settings",
+                                font=('Segoe UI', 16, 'bold'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'])
         header_label.pack(anchor='w', padx=20, pady=(20, 10))
         # Settings container
         settings_frame = ttk.Frame(section_frame, style='Card.TFrame')
@@ -426,20 +432,20 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         theme_frame = ttk.Frame(settings_frame, style='Card.TFrame')
         theme_frame.pack(fill='x', pady=5)
         theme_label = tk.Label(theme_frame,
-                              text="Theme:",
-                              font=('Segoe UI', 11, 'normal'),
-                              fg=self.colors['text'],
-                              bg=self.colors['surface'],
-                              width=15,
-                              anchor='w')
+                               text="Theme:",
+                               font=('Segoe UI', 11, 'normal'),
+                               fg=self.colors['text'],
+                               bg=self.colors['surface'],
+                               width=15,
+                               anchor='w')
         theme_label.pack(side='left')
         self.theme_var = tk.StringVar(value="light")
         theme_combo = ttk.Combobox(theme_frame,
-                                  textvariable=self.theme_var,
-                                  values=["light", "dark"],
-                                  state="readonly",
-                                  font=('Segoe UI', 10, 'normal'),
-                                  width=15)
+                                   textvariable=self.theme_var,
+                                   values=["light", "dark"],
+                                   state="readonly",
+                                   font=('Segoe UI', 10, 'normal'),
+                                   width=15)
         theme_combo.pack(side='left', padx=(10, 0))
         # Theme auto-apply removed - changes only applied via Save Settings button
 
@@ -452,7 +458,6 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         theme_combo.bind("<Button-4>", block_wheel)
         theme_combo.bind("<Button-5>", block_wheel)
 
-
     def create_advanced_settings(self):
         """Create advanced settings section."""
         section_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
@@ -460,10 +465,10 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Section header
         header_label = tk.Label(section_frame,
-                               text="Advanced Settings",
-                               font=('Segoe UI', 16, 'bold'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'])
+                                text="Advanced Settings",
+                                font=('Segoe UI', 16, 'bold'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'])
         header_label.pack(anchor='w', padx=20, pady=(20, 10))
 
         # Settings container
@@ -475,36 +480,36 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         config_frame.pack(fill='x', pady=5)
 
         config_label = tk.Label(config_frame,
-                               text="Config file:",
-                               font=('Segoe UI', 11, 'normal'),
-                               fg=self.colors['text'],
-                               bg=self.colors['surface'],
-                               anchor='w')
+                                text="Config file:",
+                                font=('Segoe UI', 11, 'normal'),
+                                fg=self.colors['text'],
+                                bg=self.colors['surface'],
+                                anchor='w')
         config_label.pack(side='left')
 
         self.config_path_var = tk.StringVar(value=self.config.config_file or "Default")
         config_path_entry = tk.Entry(config_frame,
-                                    textvariable=self.config_path_var,
-                                    font=('Segoe UI', 11, 'normal'),
-                                    bg=self.colors['surface'],
-                                    fg=self.colors['text'],
-                                    insertbackground=self.colors['text'],
-                                    relief='solid',
-                                    bd=1)
+                                     textvariable=self.config_path_var,
+                                     font=('Segoe UI', 11, 'normal'),
+                                     bg=self.colors['surface'],
+                                     fg=self.colors['text'],
+                                     insertbackground=self.colors['text'],
+                                     relief='solid',
+                                     bd=1)
         config_path_entry.pack(side='left', fill='x', expand=True, padx=(5, 10))
 
         browse_btn = tk.Button(config_frame,
-                              text="Browse",
-                              font=('Segoe UI', 10, 'normal'),
-                              fg='white',
-                              bg=self.colors['secondary'],
-                              activebackground=self.colors['secondary'],
-                              activeforeground='white',
-                              bd=0,
-                              padx=12,
-                              pady=4,
-                              cursor='hand2',
-                              command=self.browse_config)
+                               text="Browse",
+                               font=('Segoe UI', 10, 'normal'),
+                               fg='white',
+                               bg=self.colors['secondary'],
+                               activebackground=self.colors['secondary'],
+                               activeforeground='white',
+                               bd=0,
+                               padx=12,
+                               pady=4,
+                               cursor='hand2',
+                               command=self.browse_config)
         browse_btn.pack(side='right')
 
         # Debug mode
@@ -514,16 +519,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.debug_var = tk.BooleanVar(value=False)
         self.debug_var.trace_add('write', lambda *args: self._debounced_update_logs_button_visibility())
         debug_check = tk.Checkbutton(debug_frame,
-                                    text="Enable debug mode",
-                                    variable=self.debug_var,
-                                    font=('Segoe UI', 11, 'normal'),
-                                    fg=self.colors['text'],
-                                    bg=self.colors['surface'],
-                                    selectcolor=self.colors['surface'],
-                                    activebackground=self.colors['surface'],
-                                    activeforeground=self.colors['text'])
+                                     text="Enable debug mode",
+                                     variable=self.debug_var,
+                                     font=('Segoe UI', 11, 'normal'),
+                                     fg=self.colors['text'],
+                                     bg=self.colors['surface'],
+                                     selectcolor=self.colors['surface'],
+                                     activebackground=self.colors['surface'],
+                                     activeforeground=self.colors['text'])
         debug_check.pack(anchor='w')
-        self._add_tooltip(debug_check, "Show detailed technical information about all operations\nIncluding raw feed data, pattern matching details, and internal state")
+        self._add_tooltip(
+            debug_check,
+            "Show detailed technical information about all operations\nIncluding raw feed data, pattern matching details, and internal state")
 
         # Verbose logging with View Logs button inline
         verbose_frame = ttk.Frame(settings_frame, style='Card.TFrame')
@@ -532,16 +539,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.verbose_var = tk.BooleanVar(value=False)
         self.verbose_var.trace_add('write', lambda *args: self._debounced_update_logs_button_visibility())
         verbose_check = tk.Checkbutton(verbose_frame,
-                                      text="Verbose logging",
-                                      variable=self.verbose_var,
-                                      font=('Segoe UI', 11, 'normal'),
-                                      fg=self.colors['text'],
-                                      bg=self.colors['surface'],
-                                      selectcolor=self.colors['surface'],
-                                      activebackground=self.colors['surface'],
-                                      activeforeground=self.colors['text'])
+                                       text="Verbose logging",
+                                       variable=self.verbose_var,
+                                       font=('Segoe UI', 11, 'normal'),
+                                       fg=self.colors['text'],
+                                       bg=self.colors['surface'],
+                                       selectcolor=self.colors['surface'],
+                                       activebackground=self.colors['surface'],
+                                       activeforeground=self.colors['text'])
         verbose_check.pack(side='left', anchor='w')
-        self._add_tooltip(verbose_check, "Log detailed information about each step of the update process\nHelps troubleshoot connection issues, feed problems, and package matching")
+        self._add_tooltip(
+            verbose_check,
+            "Log detailed information about each step of the update process\nHelps troubleshoot connection issues, feed problems, and package matching")
 
         # Logs buttons container - inline with verbose logging (always packed to prevent layout shifts)
         logs_buttons_frame = ttk.Frame(verbose_frame, style='Card.TFrame')
@@ -549,32 +558,32 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # View latest log button
         self.view_logs_btn = tk.Button(logs_buttons_frame,
-                                     text="📋 View latest log",
-                                     font=('Segoe UI', 9, 'normal'),
-                                     fg='white',
-                                     bg=self.colors['secondary'],
-                                     activebackground=self.colors['secondary'],
-                                     activeforeground='white',
-                                     bd=0,
-                                     padx=12,
-                                     pady=4,
-                                     cursor='hand2',
-                                     command=self.view_logs)
+                                       text="📋 View latest log",
+                                       font=('Segoe UI', 9, 'normal'),
+                                       fg='white',
+                                       bg=self.colors['secondary'],
+                                       activebackground=self.colors['secondary'],
+                                       activeforeground='white',
+                                       bd=0,
+                                       padx=12,
+                                       pady=4,
+                                       cursor='hand2',
+                                       command=self.view_logs)
         self.view_logs_btn.pack(side='left', padx=(0, 5))
 
         # Open logs directory button
         self.open_logs_dir_btn = tk.Button(logs_buttons_frame,
-                                         text="📂 Open logs directory",
-                                         font=('Segoe UI', 9, 'normal'),
-                                         fg='white',
-                                         bg=self.colors['secondary'],
-                                         activebackground=self.colors['secondary'],
-                                         activeforeground='white',
-                                         bd=0,
-                                         padx=12,
-                                         pady=4,
-                                         cursor='hand2',
-                                         command=self.open_logs_directory)
+                                           text="📂 Open logs directory",
+                                           font=('Segoe UI', 9, 'normal'),
+                                           fg='white',
+                                           bg=self.colors['secondary'],
+                                           activebackground=self.colors['secondary'],
+                                           activeforeground='white',
+                                           bd=0,
+                                           padx=12,
+                                           pady=4,
+                                           cursor='hand2',
+                                           command=self.open_logs_directory)
         self.open_logs_dir_btn.pack(side='left')
 
         # Store reference to the verbose frame for visibility control
@@ -596,55 +605,55 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         import_export_frame.pack(fill='x', pady=(20, 5))
 
         import_export_label = tk.Label(import_export_frame,
-                                     text="Configuration Management:",
-                                     font=('Segoe UI', 11, 'bold'),
-                                     fg=self.colors['text'],
-                                     bg=self.colors['surface'])
+                                       text="Configuration Management:",
+                                       font=('Segoe UI', 11, 'bold'),
+                                       fg=self.colors['text'],
+                                       bg=self.colors['surface'])
         import_export_label.pack(anchor='w', pady=(0, 10))
 
         button_frame = ttk.Frame(import_export_frame, style='Card.TFrame')
         button_frame.pack(anchor='w')
 
         export_btn = tk.Button(button_frame,
-                             text="📤 Export Config",
-                             font=('Segoe UI', 10, 'normal'),
-                             fg='white',
-                             bg=self.colors['primary'],
-                             activebackground=self.colors['primary_hover'],
-                             activeforeground='white',
-                             bd=0,
-                             padx=15,
-                             pady=8,
-                             cursor='hand2',
-                             command=self.export_config)
+                               text="📤 Export Config",
+                               font=('Segoe UI', 10, 'normal'),
+                               fg='white',
+                               bg=self.colors['primary'],
+                               activebackground=self.colors['primary_hover'],
+                               activeforeground='white',
+                               bd=0,
+                               padx=15,
+                               pady=8,
+                               cursor='hand2',
+                               command=self.export_config)
         export_btn.pack(side='left', padx=(0, 10))
 
         import_btn = tk.Button(button_frame,
-                             text="📥 Import Config",
-                             font=('Segoe UI', 10, 'normal'),
-                             fg='white',
-                             bg=self.colors['primary'],
-                             activebackground=self.colors['primary_hover'],
-                             activeforeground='white',
-                             bd=0,
-                             padx=15,
-                             pady=8,
-                             cursor='hand2',
-                             command=self.import_config)
+                               text="📥 Import Config",
+                               font=('Segoe UI', 10, 'normal'),
+                               fg='white',
+                               bg=self.colors['primary'],
+                               activebackground=self.colors['primary_hover'],
+                               activeforeground='white',
+                               bd=0,
+                               padx=15,
+                               pady=8,
+                               cursor='hand2',
+                               command=self.import_config)
         import_btn.pack(side='left', padx=(0, 10))
 
         reset_btn = tk.Button(button_frame,
-                            text="🔄 Reset to Defaults",
-                            font=('Segoe UI', 10, 'normal'),
-                            fg='white',
-                            bg=self.colors['warning'],
-                            activebackground=self.colors['warning'],
-                            activeforeground='white',
-                            bd=0,
-                            padx=15,
-                            pady=8,
-                            cursor='hand2',
-                            command=self.reset_settings)
+                              text="🔄 Reset to Defaults",
+                              font=('Segoe UI', 10, 'normal'),
+                              fg='white',
+                              bg=self.colors['warning'],
+                              activebackground=self.colors['warning'],
+                              activeforeground='white',
+                              bd=0,
+                              padx=15,
+                              pady=8,
+                              cursor='hand2',
+                              command=self.reset_settings)
         reset_btn.pack(side='left', padx=(0, 10))
 
         # ------------------- Save Button (bottom of page) -------------------
@@ -667,10 +676,10 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.feedback_frame.pack(fill='x', pady=(10, 0))
 
         self.feedback_label = tk.Label(self.feedback_frame,
-                                     text="",
-                                     font=('Segoe UI', 11, 'normal'),
-                                     fg=self.colors['success'],
-                                     bg=self.colors['surface'])
+                                       text="",
+                                       font=('Segoe UI', 11, 'normal'),
+                                       fg=self.colors['success'],
+                                       bg=self.colors['surface'])
         self.feedback_label.pack()
 
     def load_settings(self):
@@ -697,8 +706,6 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 for widget in self.feed_checkbox_frame.winfo_children():
                     widget.destroy()
 
-
-
                 # Make sure feed_checkbox_frame has correct background
                 self.feed_checkbox_frame.configure(bg=self.colors['surface'])
 
@@ -713,7 +720,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     name = feed.get('name', 'Unknown')
                     url = feed.get('url', '')
                     enabled = feed.get('enabled', True)
-                    feed_type = feed.get('type', 'news')
+                    # feed_type = feed.get('type', 'news')  # Reserved for future use
 
                     # Find the original index in the full feeds list
                     original_index = feeds.index(feed)
@@ -729,22 +736,22 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
                     # Checkbox
                     cb = tk.Checkbutton(feed_item_frame,
-                                       text=f"{name}",  # Removed feed type from display
-                                       variable=var,
-                                       font=('Segoe UI', 10, 'normal'),
-                                       fg=self.colors['text'],
-                                       bg=self.colors['surface'],
-                                       activebackground=self.colors['surface'],
-                                       selectcolor=self.colors['surface'])
+                                        text=f"{name}",  # Removed feed type from display
+                                        variable=var,
+                                        font=('Segoe UI', 10, 'normal'),
+                                        fg=self.colors['text'],
+                                        bg=self.colors['surface'],
+                                        activebackground=self.colors['surface'],
+                                        selectcolor=self.colors['surface'])
                     cb.pack(side='left', anchor='w')
 
                     # URL label (truncated)
                     url_display = url if len(url) < 40 else url[:37] + "..."
                     url_label = tk.Label(feed_item_frame,
-                                       text=url_display,
-                                       font=('Segoe UI', 9, 'italic'),
-                                       fg=self.colors['text_secondary'],
-                                       bg=self.colors['surface'])
+                                         text=url_display,
+                                         font=('Segoe UI', 9, 'italic'),
+                                         fg=self.colors['text_secondary'],
+                                         bg=self.colors['surface'])
                     url_label.pack(side='left', padx=(10, 0), anchor='w')
 
                 # Update feed display
@@ -770,11 +777,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 if "too large" in str(e):
                     news_age_value = 365
                     if not silent:
-                        messagebox.showwarning("Warning", "News freshness cannot exceed 365 days (1 year).\nUsing maximum value of 365 days.")
+                        messagebox.showwarning(
+                            "Warning", "News freshness cannot exceed 365 days (1 year).\nUsing maximum value of 365 days.")
                 else:
                     news_age_value = 30
                     if not silent:
-                        messagebox.showwarning("Warning", "News freshness must be a positive number between 1-365 days.\nUsing default value of 30 days.")
+                        messagebox.showwarning(
+                            "Warning", "News freshness must be a positive number between 1-365 days.\nUsing default value of 30 days.")
             except Exception:
                 news_age_value = 30
                 if not silent:
@@ -791,11 +800,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 if "too large" in str(e):
                     max_items_value = 1000
                     if not silent:
-                        messagebox.showwarning("Warning", "Max news items cannot exceed 1000.\nUsing maximum value of 1000 items.")
+                        messagebox.showwarning(
+                            "Warning", "Max news items cannot exceed 1000.\nUsing maximum value of 1000 items.")
                 else:
                     max_items_value = 10
                     if not silent:
-                        messagebox.showwarning("Warning", "Max news items must be a positive number between 1-1000.\nUsing default value of 10 items.")
+                        messagebox.showwarning(
+                            "Warning", "Max news items must be a positive number between 1-1000.\nUsing default value of 10 items.")
             except Exception:
                 max_items_value = 10
                 if not silent:
@@ -812,15 +823,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 if "too large" in str(e):
                     retention_value = 3650
                     if not silent:
-                        messagebox.showwarning("Warning", "History retention cannot exceed 3650 days (10 years).\nUsing maximum value of 3650 days.")
+                        messagebox.showwarning(
+                            "Warning", "History retention cannot exceed 3650 days (10 years).\nUsing maximum value of 3650 days.")
                 else:
                     retention_value = 365
                     if not silent:
-                        messagebox.showwarning("Warning", "History retention must be a positive number between 1-3650 days.\nUsing default value of 365 days.")
+                        messagebox.showwarning(
+                            "Warning", "History retention must be a positive number between 1-3650 days.\nUsing default value of 365 days.")
             except Exception:
                 retention_value = 365
                 if not silent:
-                    messagebox.showwarning("Warning", "Invalid history retention value.\nUsing default value of 365 days.")
+                    messagebox.showwarning(
+                        "Warning", "Invalid history retention value.\nUsing default value of 365 days.")
 
             settings = {
                 'auto_refresh_feeds': self.auto_refresh_var.get(),
@@ -895,11 +909,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 self.main_window.apply_theme()
                 # Reload the feed section after theme change
                 self.load_settings()
-                
+
             # Sync update history panel if it exists
             if 'history' in self.main_window.frames:
                 history_frame = self.main_window.frames['history']
-                logger.debug(f"Settings: Syncing with Update History panel, update_history_enabled={settings['update_history_enabled']}")
+                logger.debug(
+                    f"Settings: Syncing with Update History panel, update_history_enabled={
+                        settings['update_history_enabled']}")
                 if hasattr(history_frame, '_update_toggle_button'):
                     history_frame._update_toggle_button()
                 else:
@@ -978,7 +994,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
                 # Apply theme immediately
                 self.main_window.apply_theme()
-                
+
                 # Refresh all frames to ensure consistent state
                 for frame_name, frame in self.main_window.frames.items():
                     if hasattr(frame, 'refresh'):
@@ -986,7 +1002,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                             frame.refresh()
                         except Exception:
                             pass
-                
+
                 # Reload the settings UI
                 self.load_settings()
 
@@ -1017,7 +1033,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
     def import_config(self):
         """Import configuration from file with security validation."""
         from ..utils.validators import validate_config_path
-        
+
         try:
             # Start in user's config directory for security
             try:
@@ -1025,7 +1041,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 initial_dir = str(get_config_dir())
             except Exception:
                 initial_dir = None
-            
+
             filename = filedialog.askopenfilename(
                 initialdir=initial_dir,
                 filetypes=[("JSON files", "*.json"), ("Config files", "*.conf"), ("All files", "*.*")],
@@ -1038,12 +1054,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     validate_config_path(filename)
                 except ValueError as e:
                     messagebox.showerror(
-                        "Invalid Path", 
+                        "Invalid Path",
                         f"The selected file path is not allowed for security reasons:\n\n{str(e)}\n\n"
                         f"Please select a file under your home directory."
                     )
                     return
-                
+
                 # Backup current config
                 backup = self.config.get_all_settings()
 
@@ -1053,12 +1069,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                         file_size = os.path.getsize(filename)
                         if file_size > 1024 * 1024:  # 1MB limit
                             raise ValueError(f"Config file too large: {file_size} bytes")
-                        
+
                         new_config = json.load(f)
 
                     # Validate and sanitize the configuration
                     from ..utils.validators import validate_config_json, sanitize_config_json
-                    
+
                     validate_config_json(new_config)
                     sanitized_config = sanitize_config_json(new_config)
 
@@ -1097,18 +1113,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.position_window(dialog, 500, 300, self.main_window.root)
 
         label = tk.Label(dialog,
-                        text="Select a feed to edit:",
-                        font=('Segoe UI', 12, 'normal'),
-                        fg=self.colors['text'],
-                        bg=self.colors['background'])
+                         text="Select a feed to edit:",
+                         font=('Segoe UI', 12, 'normal'),
+                         fg=self.colors['text'],
+                         bg=self.colors['background'])
         label.pack(padx=20, pady=10)
 
         listbox = tk.Listbox(dialog,
-                            font=('Segoe UI', 10, 'normal'),
-                            bg=self.colors['surface'],
-                            fg=self.colors['text'],
-                            selectbackground=self.colors['primary'],
-                            selectforeground='white')
+                             font=('Segoe UI', 10, 'normal'),
+                             bg=self.colors['surface'],
+                             fg=self.colors['text'],
+                             selectbackground=self.colors['primary'],
+                             selectforeground='white')
         listbox.pack(fill='both', expand=True, padx=20, pady=10)
 
         for feed in feeds:
@@ -1132,22 +1148,22 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         button_frame.pack(fill='x', padx=20, pady=10)
 
         tk.Button(button_frame,
-                 text="Edit",
-                 command=on_edit,
-                 bg=self.colors['primary'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Edit",
+                  command=on_edit,
+                  bg=self.colors['primary'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
         tk.Button(button_frame,
-                 text="Cancel",
-                 command=dialog.destroy,
-                 bg=self.colors['secondary'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Cancel",
+                  command=dialog.destroy,
+                  bg=self.colors['secondary'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
     def _show_edit_feed_dialog(self, feed, index):
         """Show the actual edit dialog for a feed."""
@@ -1161,30 +1177,30 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         # Feed name
         name_var = tk.StringVar(value=feed.get('name', ''))
         ttk.Label(popup, text="Feed Name:", background=self.colors['background'],
-                 foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(20,5))
+                  foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(20, 5))
         tk.Entry(popup, textvariable=name_var, bg=self.colors['surface'],
-                fg=self.colors['text'], font=('Segoe UI', 10)).pack(fill='x', padx=20)
+                 fg=self.colors['text'], font=('Segoe UI', 10)).pack(fill='x', padx=20)
 
         # Feed URL
         url_var = tk.StringVar(value=feed.get('url', ''))
         ttk.Label(popup, text="Feed URL:", background=self.colors['background'],
-                 foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10,5))
+                  foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10, 5))
         tk.Entry(popup, textvariable=url_var, bg=self.colors['surface'],
-                fg=self.colors['text'], font=('Segoe UI', 10)).pack(fill='x', padx=20)
+                 fg=self.colors['text'], font=('Segoe UI', 10)).pack(fill='x', padx=20)
 
         # Feed type
         type_var = tk.StringVar(value=feed.get('type', 'news'))
         ttk.Label(popup, text="Feed Type:", background=self.colors['background'],
-                 foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10,5))
+                  foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10, 5))
         type_combo = ttk.Combobox(popup, textvariable=type_var, values=["news", "package"],
-                                 state="readonly", font=('Segoe UI', 10))
+                                  state="readonly", font=('Segoe UI', 10))
         type_combo.pack(fill='x', padx=20)
 
         # Enabled checkbox
         enabled_var = tk.BooleanVar(value=feed.get('enabled', True))
         tk.Checkbutton(popup, text="Enabled", variable=enabled_var,
-                      font=('Segoe UI', 11), fg=self.colors['text'],
-                      bg=self.colors['background']).pack(anchor='w', padx=20, pady=10)
+                       font=('Segoe UI', 11), fg=self.colors['text'],
+                       bg=self.colors['background']).pack(anchor='w', padx=20, pady=10)
 
         # Buttons
         btn_frame = ttk.Frame(popup)
@@ -1197,7 +1213,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 messagebox.showwarning("Warning", "Please enter both name and URL")
                 return
             if not self._validate_feed_url(url):
-                messagebox.showwarning("Warning", "Invalid URL format or security risk. Please use HTTPS for non-localhost URLs.")
+                messagebox.showwarning(
+                    "Warning", "Invalid URL format or security risk. Please use HTTPS for non-localhost URLs.")
                 return
 
             try:
@@ -1223,11 +1240,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             popup.destroy()
 
         tk.Button(btn_frame, text="Save", command=save_changes,
-                 bg=self.colors['success'], fg='white',
-                 font=('Segoe UI', 10), padx=15, pady=5).pack(side='left', padx=5)
+                  bg=self.colors['success'], fg='white',
+                  font=('Segoe UI', 10), padx=15, pady=5).pack(side='left', padx=5)
         tk.Button(btn_frame, text="Cancel", command=cancel,
-                 bg=self.colors['secondary'], fg='white',
-                 font=('Segoe UI', 10), padx=15, pady=5).pack(side='left', padx=5)
+                  bg=self.colors['secondary'], fg='white',
+                  font=('Segoe UI', 10), padx=15, pady=5).pack(side='left', padx=5)
 
     def test_feed(self):
         """Test RSS feed accessibility."""
@@ -1251,18 +1268,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.position_window(dialog, 400, 300, self.main_window.root)
 
         label = tk.Label(dialog,
-                        text="Select a feed to test:",
-                        font=('Segoe UI', 12, 'normal'),
-                        fg=self.colors['text'],
-                        bg=self.colors['background'])
+                         text="Select a feed to test:",
+                         font=('Segoe UI', 12, 'normal'),
+                         fg=self.colors['text'],
+                         bg=self.colors['background'])
         label.pack(padx=20, pady=10)
 
         listbox = tk.Listbox(dialog,
-                            font=('Segoe UI', 10, 'normal'),
-                            bg=self.colors['surface'],
-                            fg=self.colors['text'],
-                            selectbackground=self.colors['primary'],
-                            selectforeground='white')
+                             font=('Segoe UI', 10, 'normal'),
+                             bg=self.colors['surface'],
+                             fg=self.colors['text'],
+                             selectbackground=self.colors['primary'],
+                             selectforeground='white')
         listbox.pack(fill='both', expand=True, padx=20, pady=10)
 
         for name in feed_names:
@@ -1280,22 +1297,22 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         button_frame.pack(fill='x', padx=20, pady=10)
 
         tk.Button(button_frame,
-                 text="Test",
-                 command=on_select,
-                 bg=self.colors['primary'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Test",
+                  command=on_select,
+                  bg=self.colors['primary'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
         tk.Button(button_frame,
-                 text="Cancel",
-                 command=dialog.destroy,
-                 bg=self.colors['secondary'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Cancel",
+                  command=dialog.destroy,
+                  bg=self.colors['secondary'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
     def _test_feed_url(self, feed_info):
         """Test a single RSS feed URL."""
@@ -1311,11 +1328,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.position_window(test_dialog, 400, 150, self.main_window.root)
 
         label = tk.Label(test_dialog,
-                        text=f"Testing: {name}\n{url}",
-                        font=('Segoe UI', 11, 'normal'),
-                        fg=self.colors['text'],
-                        bg=self.colors['background'],
-                        wraplength=350)
+                         text=f"Testing: {name}\n{url}",
+                         font=('Segoe UI', 11, 'normal'),
+                         fg=self.colors['text'],
+                         bg=self.colors['background'],
+                         wraplength=350)
         label.pack(padx=20, pady=20)
 
         progress = ttk.Progressbar(test_dialog, mode='indeterminate')
@@ -1408,12 +1425,39 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.position_window(popup, 350, 180, self.main_window.root)
         name_var = tk.StringVar()
         url_var = tk.StringVar()
-        ttk.Label(popup, text="Feed Name:", style='Card.TFrame', background=self.colors['background'], foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(20,5))
-        tk.Entry(popup, textvariable=name_var, bg=self.colors['surface'], fg=self.colors['text']).pack(fill='x', padx=20)
-        ttk.Label(popup, text="Feed URL:", style='Card.TFrame', background=self.colors['background'], foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10,5))
+        ttk.Label(
+            popup,
+            text="Feed Name:",
+            style='Card.TFrame',
+            background=self.colors['background'],
+            foreground=self.colors['text']).pack(
+            anchor='w',
+            padx=20,
+            pady=(
+                20,
+                5))
+        tk.Entry(
+            popup,
+            textvariable=name_var,
+            bg=self.colors['surface'],
+            fg=self.colors['text']).pack(
+            fill='x',
+            padx=20)
+        ttk.Label(
+            popup,
+            text="Feed URL:",
+            style='Card.TFrame',
+            background=self.colors['background'],
+            foreground=self.colors['text']).pack(
+            anchor='w',
+            padx=20,
+            pady=(
+                10,
+                5))
         tk.Entry(popup, textvariable=url_var, bg=self.colors['surface'], fg=self.colors['text']).pack(fill='x', padx=20)
         btn_frame = ttk.Frame(popup, style='Card.TFrame')
         btn_frame.pack(fill='x', padx=20, pady=20)
+
         def save_feed():
             name = name_var.get().strip()
             url = url_var.get().strip()
@@ -1421,7 +1465,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 messagebox.showwarning("Warning", "Please enter both name and URL")
                 return
             if not self._validate_feed_url(url):
-                messagebox.showwarning("Warning", "Invalid URL format or security risk. Please use HTTPS for non-localhost URLs.")
+                messagebox.showwarning(
+                    "Warning", "Invalid URL format or security risk. Please use HTTPS for non-localhost URLs.")
                 return
             try:
                 # Determine feed type based on URL
@@ -1432,15 +1477,32 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 popup.destroy()
             except Exception:
                 return
+
         def cancel():
             popup.destroy()
-        tk.Button(btn_frame, text="Save", command=save_feed, bg=self.colors['success'], fg='white').pack(side='left', padx=10, pady=5)
-        tk.Button(btn_frame, text="Cancel", command=cancel, bg=self.colors['secondary'], fg='white').pack(side='left', padx=10, pady=5)
+        tk.Button(
+            btn_frame,
+            text="Save",
+            command=save_feed,
+            bg=self.colors['success'],
+            fg='white').pack(
+            side='left',
+            padx=10,
+            pady=5)
+        tk.Button(
+            btn_frame,
+            text="Cancel",
+            command=cancel,
+            bg=self.colors['secondary'],
+            fg='white').pack(
+            side='left',
+            padx=10,
+            pady=5)
 
     def browse_config(self):
         """Browse for configuration file with security validation."""
         from ..utils.validators import validate_config_path
-        
+
         # Get the directory of the current config file
         current_config = self.config_path_var.get()
         initial_dir = None
@@ -1477,7 +1539,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 messagebox.showinfo("Success", "Configuration file path updated.")
             except ValueError as e:
                 messagebox.showerror(
-                    "Invalid Path", 
+                    "Invalid Path",
                     f"The selected file path is not allowed for security reasons:\n\n{str(e)}\n\n"
                     f"Please select a file under your home directory."
                 )
@@ -1578,18 +1640,18 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.position_window(dialog, 400, 300, self.main_window.root)
 
         label = tk.Label(dialog,
-                        text="Select a feed to remove:",
-                        font=('Segoe UI', 12, 'normal'),
-                        fg=self.colors['text'],
-                        bg=self.colors['background'])
+                         text="Select a feed to remove:",
+                         font=('Segoe UI', 12, 'normal'),
+                         fg=self.colors['text'],
+                         bg=self.colors['background'])
         label.pack(padx=20, pady=10)
 
         listbox = tk.Listbox(dialog,
-                            font=('Segoe UI', 10, 'normal'),
-                            bg=self.colors['surface'],
-                            fg=self.colors['text'],
-                            selectbackground=self.colors['primary'],
-                            selectforeground='white')
+                             font=('Segoe UI', 10, 'normal'),
+                             bg=self.colors['surface'],
+                             fg=self.colors['text'],
+                             selectbackground=self.colors['primary'],
+                             selectforeground='white')
         listbox.pack(fill='both', expand=True, padx=20, pady=10)
 
         for feed in feeds:
@@ -1623,28 +1685,26 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         button_frame.pack(fill='x', padx=20, pady=10)
 
         tk.Button(button_frame,
-                 text="Remove",
-                 command=on_remove,
-                 bg=self.colors['error'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Remove",
+                  command=on_remove,
+                  bg=self.colors['error'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
         tk.Button(button_frame,
-                 text="Cancel",
-                 command=dialog.destroy,
-                 bg=self.colors['secondary'],
-                 fg='white',
-                 font=('Segoe UI', 10, 'normal'),
-                 padx=20,
-                 pady=5).pack(side='left', padx=5)
+                  text="Cancel",
+                  command=dialog.destroy,
+                  bg=self.colors['secondary'],
+                  fg='white',
+                  font=('Segoe UI', 10, 'normal'),
+                  padx=20,
+                  pady=5).pack(side='left', padx=5)
 
     # ----------------------------
     # Internal helpers
     # ----------------------------
-
-
 
     def _apply_theme_preview(self):
         """Preview the selected theme without requiring explicit save."""
@@ -1703,17 +1763,17 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             if self._autosave_timer_id:
                 TimerResourceManager.cancel_timer(self._autosave_timer_id)
                 self._autosave_timer_id = None
-            
+
             # Clear sensitive data references
             if hasattr(self, 'config'):
                 self.config = None
-            
+
             # Clear main window reference
             if hasattr(self, 'main_window'):
                 self.main_window = None
-            
+
             logger.debug(f"Completed settings cleanup for {self._component_id}")
-            
+
         except Exception as e:
             logger.error(f"Error during settings cleanup: {e}")
 
@@ -1721,13 +1781,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         """Show temporary feedback message below save button."""
         if hasattr(self, 'feedback_label'):
             self.feedback_label.config(text=message)
-            
+
             # Create secure callback for hiding message
             secure_hide_callback = self.callback_manager.register_callback(
                 lambda: self.feedback_label.config(text="") if hasattr(self, 'feedback_label') else None,
                 auto_cleanup=False
             )
-            
+
             # Hide the message after 3 seconds using secure timer manager
             create_delayed_callback(
                 root=self.main_window.root,
@@ -1759,16 +1819,16 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             tooltip.wm_overrideredirect(True)
             tooltip.wm_geometry(f"+{x_root + 10}+{y_root + 10}")
             label = tk.Label(tooltip,
-                           text=text,
-                           background="#FFFACD",
-                           foreground="#000000",
-                           relief='solid',
-                           borderwidth=1,
-                           font=('Segoe UI', 9, 'normal'),
-                           wraplength=300,
-                           justify='left',
-                           padx=8,
-                           pady=5)
+                             text=text,
+                             background="#FFFACD",
+                             foreground="#000000",
+                             relief='solid',
+                             borderwidth=1,
+                             font=('Segoe UI', 9, 'normal'),
+                             wraplength=300,
+                             justify='left',
+                             padx=8,
+                             pady=5)
             label.pack()
             widget.tooltip = tooltip
         except Exception:
@@ -1789,36 +1849,35 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             from ..utils.logger import get_current_log_file
             from ..utils.validators import validate_log_path
             from ..utils.subprocess_wrapper import SecureSubprocess
-            import subprocess
 
             log_file = get_current_log_file()
             if not log_file or not os.path.exists(log_file):
                 # If no log file yet, check if logging is enabled
                 if not self.debug_var.get() and not self.verbose_var.get():
                     messagebox.showinfo("No Logs",
-                                      "Logging is not enabled.\n\n"
-                                      "Enable 'Debug mode' or 'Verbose logging' and save settings to start logging.")
+                                        "Logging is not enabled.\n\n"
+                                        "Enable 'Debug mode' or 'Verbose logging' and save settings to start logging.")
                 else:
                     messagebox.showinfo("No Logs",
-                                      "No log file found yet.\n\n"
-                                      "Logs will be created when you perform operations with logging enabled.")
+                                        "No log file found yet.\n\n"
+                                        "Logs will be created when you perform operations with logging enabled.")
                 return
 
             # Validate log file path for security
             try:
                 validate_log_path(log_file)
             except ValueError as e:
-                messagebox.showerror("Security Error", 
-                                   f"Cannot open log file for security reasons:\n\n{str(e)}")
+                messagebox.showerror("Security Error",
+                                     f"Cannot open log file for security reasons:\n\n{str(e)}")
                 return
 
             # Open with system default application (Linux only - this is Arch Smart Update Checker)
             if SecureSubprocess.check_command_exists('xdg-open'):
                 # Use popen to avoid blocking the GUI
-                SecureSubprocess.popen(['xdg-open', log_file], 
-                                     stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.DEVNULL, 
-                                     stderr=subprocess.DEVNULL)
+                SecureSubprocess.popen(['xdg-open', log_file],
+                                       stdin=subprocess.DEVNULL,
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL)
 
         except Exception as exc:
             logger.error(f"Failed to open log file: {exc}")
@@ -1830,7 +1889,6 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             from ..utils.logger import get_current_log_file
             from ..utils.validators import validate_log_path
             from ..utils.subprocess_wrapper import SecureSubprocess
-            import subprocess
 
             log_file = get_current_log_file()
             if log_file:
@@ -1839,14 +1897,14 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     validate_log_path(log_file)
                     logs_dir = os.path.dirname(log_file)
                 except ValueError as e:
-                    messagebox.showerror("Security Error", 
-                                       f"Cannot access logs directory for security reasons:\n\n{str(e)}")
+                    messagebox.showerror("Security Error",
+                                         f"Cannot access logs directory for security reasons:\n\n{str(e)}")
                     return
             else:
                 # Fallback to default logs directory
                 from ..constants import get_config_dir
                 logs_dir = str(get_config_dir() / 'logs')
-                
+
                 # Ensure logs directory exists
                 os.makedirs(logs_dir, exist_ok=True)
 
@@ -1855,21 +1913,21 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 from pathlib import Path
                 logs_path = Path(logs_dir).resolve()
                 home_dir = Path.home().resolve()
-                
+
                 # Ensure directory is under user's home
                 logs_path.relative_to(home_dir)
             except (ValueError, OSError) as e:
-                messagebox.showerror("Security Error", 
-                                   f"Cannot access logs directory for security reasons:\n\n{str(e)}")
+                messagebox.showerror("Security Error",
+                                     f"Cannot access logs directory for security reasons:\n\n{str(e)}")
                 return
 
             # Open directory with system default file manager (Linux only - this is Arch Smart Update Checker)
             if SecureSubprocess.check_command_exists('xdg-open'):
                 # Use popen to avoid blocking the GUI
                 SecureSubprocess.popen(['xdg-open', logs_dir],
-                                     stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.DEVNULL,
-                                     stderr=subprocess.DEVNULL)
+                                       stdin=subprocess.DEVNULL,
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL)
 
         except Exception as exc:
             logger.error(f"Failed to open logs directory: {exc}")
@@ -1883,7 +1941,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
     def _update_logs_button_visibility(self):
         """Update the visibility of the logs buttons based on logging settings."""
         try:
-            if hasattr(self, 'view_logs_btn') and hasattr(self, 'open_logs_dir_btn') and hasattr(self, 'debug_var') and hasattr(self, 'verbose_var') and hasattr(self, '_btn_colors'):
+            if hasattr(
+                self, 'view_logs_btn') and hasattr(
+                self, 'open_logs_dir_btn') and hasattr(
+                self, 'debug_var') and hasattr(
+                self, 'verbose_var') and hasattr(
+                    self, '_btn_colors'):
                 should_show = self.debug_var.get() or self.verbose_var.get()
 
                 # Update both buttons together
@@ -1934,10 +1997,6 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-
-
-
-
     def on_frame_shown(self):
         """Called when this frame becomes visible. Re-establish scroll bindings."""
         # Re-setup scroll bindings when frame is shown
@@ -1959,7 +2018,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         if hasattr(self, '_autosave_timer_id') and self._autosave_timer_id:
             TimerResourceManager.cancel_timer(self._autosave_timer_id)
             self._autosave_timer_id = None
-        
+
         # Cancel all timers for this component
         if hasattr(self, '_component_id'):
             cancelled = TimerResourceManager.cancel_component_timers(self._component_id)

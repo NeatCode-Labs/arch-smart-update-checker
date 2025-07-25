@@ -42,17 +42,17 @@ class InstanceAlreadyRunningError(InstanceLockError):
 class InstanceLock:
     """
     File-based instance lock to prevent multiple instances.
-    
+
     Uses fcntl for atomic, cross-process locking on Linux/Unix systems.
     Handles stale locks from crashed processes automatically.
     """
-    
-    def __init__(self, app_name: str = "arch-smart-update-checker", 
-                 mode: str = "gui", 
+
+    def __init__(self, app_name: str = "arch-smart-update-checker",
+                 mode: str = "gui",
                  lock_dir: Optional[str] = None):
         """
         Initialize instance lock.
-        
+
         Args:
             app_name: Application name for lock file
             mode: Application mode ('gui' or 'cli')
@@ -65,16 +65,16 @@ class InstanceLock:
         self.lock_fd = None
         self.locked = False
         self.pid = os.getpid()
-        
+
         logger.debug(f"Initialized instance lock for {app_name} ({mode}) at {self.lock_file_path}")
-    
+
     def _get_lock_file_path(self, lock_dir: Optional[str] = None) -> Path:
         """
         Get the lock file path with proper permissions.
-        
+
         Args:
             lock_dir: Directory for lock files
-            
+
         Returns:
             Path to lock file
         """
@@ -87,36 +87,36 @@ class InstanceLock:
                 lock_dir = Path("/tmp")
         else:
             lock_dir = Path(lock_dir)
-        
+
         # Create directory if it doesn't exist
         try:
             lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
         except Exception as e:
             logger.debug(f"Could not create lock directory {lock_dir}: {e}")
             lock_dir = Path("/tmp")
-        
+
         # Lock file name includes app name and mode
         lock_file_name = f".{self.app_name}-{self.mode}.lock"
         return lock_dir / lock_file_name
-    
+
     def acquire(self, timeout: float = 0.0, check_stale: bool = True) -> bool:
         """
         Acquire the instance lock.
-        
+
         Args:
             timeout: Maximum time to wait for lock (0 = non-blocking)
             check_stale: Whether to check for and clean stale locks
-            
+
         Returns:
             True if lock acquired, False otherwise
-            
+
         Raises:
             InstanceAlreadyRunningError: If another instance is running
             InstanceLockError: If lock operation fails
         """
         if self.locked:
             return True
-        
+
         try:
             # Try atomic file creation with secure permissions
             try:
@@ -132,13 +132,13 @@ class InstanceLock:
                 self.lock_file = open(self.lock_file_path, 'r+')
                 self.lock_fd = self.lock_file.fileno()
                 newly_created = False
-                
+
                 # Ensure permissions are correct even for existing file
                 try:
                     os.chmod(self.lock_file_path, 0o600)
-                except:
+                except BaseException:
                     pass
-            
+
             # Try to acquire exclusive lock
             start_time = time.time()
             while True:
@@ -152,7 +152,7 @@ class InstanceLock:
                             # Stale lock was cleaned, retry
                             self._close_lock_file()
                             return self.acquire(timeout=timeout, check_stale=False)
-                        
+
                         self._close_lock_file()
                         existing_pid = self._get_existing_pid()
                         raise InstanceAlreadyRunningError(
@@ -160,7 +160,7 @@ class InstanceLock:
                             f"(PID: {existing_pid or 'unknown'})"
                         )
                     time.sleep(0.1)
-            
+
             # Write lock data with integrity check
             lock_data = {
                 'pid': self.pid,
@@ -170,42 +170,42 @@ class InstanceLock:
                 'mode': self.mode,
                 'checksum': self._calculate_checksum()
             }
-            
+
             self.lock_file.seek(0)
             self.lock_file.truncate()
             json.dump(lock_data, self.lock_file)
             self.lock_file.flush()
             os.fsync(self.lock_fd)
-            
+
             self.locked = True
             logger.info(f"Acquired instance lock for {self.app_name} ({self.mode}) - PID: {self.pid}")
-            
+
             # Set up signal handlers for cleanup
             self._setup_signal_handlers()
-            
+
             return True
-            
+
         except Exception as e:
             self._close_lock_file()
             if isinstance(e, InstanceAlreadyRunningError):
                 raise
             raise InstanceLockError(f"Failed to acquire instance lock: {e}")
-    
+
     def release(self) -> None:
         """Release the instance lock."""
         if not self.locked:
             return
-        
+
         try:
             if self.lock_fd is not None:
                 # Release the lock
                 try:
                     fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-                except:
+                except BaseException:
                     pass
-                
+
             self._close_lock_file()
-            
+
             # Remove lock file
             try:
                 self.lock_file_path.unlink()
@@ -213,32 +213,32 @@ class InstanceLock:
                 pass
             except Exception as e:
                 logger.debug(f"Could not remove lock file: {e}")
-            
+
             self.locked = False
             logger.info(f"Released instance lock for {self.app_name} ({self.mode})")
-            
+
         except Exception as e:
             logger.error(f"Error releasing instance lock: {e}")
-    
+
     def _close_lock_file(self) -> None:
         """Close the lock file handle."""
         if self.lock_file:
             try:
                 self.lock_file.close()
-            except:
+            except BaseException:
                 pass
             self.lock_file = None
             self.lock_fd = None
-    
+
     def _calculate_checksum(self) -> str:
         """Calculate a checksum for lock integrity."""
         data = f"{self.pid}{self.app_name}{self.mode}{os.getuid()}"
         return hashlib.sha256(data.encode()).hexdigest()[:16]
-    
+
     def _get_lock_data(self) -> Optional[Dict[str, Any]]:
         """
         Get lock data from existing lock file.
-        
+
         Returns:
             Lock data dict if valid, None otherwise
         """
@@ -249,14 +249,14 @@ class InstanceLock:
                     # Validate data structure
                     if isinstance(data, dict) and 'pid' in data:
                         return data
-        except:
+        except BaseException:
             pass
         return None
-    
+
     def _get_existing_pid(self) -> Optional[int]:
         """
         Get PID of existing instance from lock file.
-        
+
         Returns:
             PID if found and valid, None otherwise
         """
@@ -264,22 +264,22 @@ class InstanceLock:
         if data and isinstance(data.get('pid'), int):
             return data['pid']
         return None
-    
+
     def _check_and_clean_stale_lock(self) -> bool:
         """
         Check if lock is stale and clean it up.
-        
+
         Returns:
             True if stale lock was cleaned, False otherwise
         """
         lock_data = self._get_lock_data()
         if not lock_data:
             return False
-            
+
         existing_pid = lock_data.get('pid')
         if existing_pid is None:
             return False
-        
+
         # Check lock age
         lock_timestamp = lock_data.get('timestamp', 0)
         if time.time() - lock_timestamp > MAX_LOCK_AGE_SECONDS:
@@ -287,7 +287,7 @@ class InstanceLock:
             try:
                 # Try to release the lock properly first
                 fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-            except:
+            except BaseException:
                 pass
             try:
                 self.lock_file_path.unlink()
@@ -295,7 +295,7 @@ class InstanceLock:
             except Exception as e:
                 logger.debug(f"Could not remove stale lock: {e}")
                 return False
-        
+
         # Check if process is still running
         try:
             if not psutil.pid_exists(existing_pid):
@@ -311,11 +311,11 @@ class InstanceLock:
                 try:
                     proc = psutil.Process(existing_pid)
                     cmdline = ' '.join(proc.cmdline())
-                    
+
                     # More thorough check
-                    if (self.app_name not in cmdline and 
+                    if (self.app_name not in cmdline and
                         'asuc' not in cmdline and
-                        lock_data.get('app_name') != self.app_name):
+                            lock_data.get('app_name') != self.app_name):
                         logger.warning(f"Lock held by different process (PID {existing_pid}), cleaning up")
                         self.lock_file_path.unlink()
                         return True
@@ -324,13 +324,13 @@ class InstanceLock:
                     try:
                         self.lock_file_path.unlink()
                         return True
-                    except:
+                    except BaseException:
                         pass
         except Exception as e:
             logger.debug(f"Error checking process {existing_pid}: {e}")
-        
+
         return False
-    
+
     def _setup_signal_handlers(self) -> None:
         """Set up signal handlers for cleanup on termination."""
         def cleanup_handler(signum, frame):
@@ -339,23 +339,23 @@ class InstanceLock:
             # Re-raise to allow normal signal handling
             signal.signal(signum, signal.SIG_DFL)
             os.kill(os.getpid(), signum)
-        
+
         # Handle common termination signals
         for sig in [signal.SIGTERM, signal.SIGINT]:
             try:
                 signal.signal(sig, cleanup_handler)
-            except:
+            except BaseException:
                 pass  # Some signals may not be available on all platforms
-    
+
     def __enter__(self):
         """Context manager entry."""
         self.acquire()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.release()
-    
+
     def __del__(self):
         """Cleanup on object destruction."""
         self.release()
@@ -363,19 +363,19 @@ class InstanceLock:
 
 @contextmanager
 def ensure_single_instance(app_name: str = "arch-smart-update-checker",
-                          mode: str = "gui",
-                          timeout: float = 0.0):
+                           mode: str = "gui",
+                           timeout: float = 0.0):
     """
     Context manager to ensure single instance execution.
-    
+
     Args:
         app_name: Application name
         mode: Application mode ('gui' or 'cli')
         timeout: Maximum time to wait for lock
-        
+
     Yields:
         InstanceLock object
-        
+
     Raises:
         InstanceAlreadyRunningError: If another instance is running
     """
@@ -388,14 +388,14 @@ def ensure_single_instance(app_name: str = "arch-smart-update-checker",
 
 
 def check_single_instance(app_name: str = "arch-smart-update-checker",
-                         mode: str = "gui") -> Optional[int]:
+                          mode: str = "gui") -> Optional[int]:
     """
     Check if another instance is running without acquiring lock.
-    
+
     Args:
         app_name: Application name
         mode: Application mode
-        
+
     Returns:
         PID of running instance, or None if no instance is running
     """
@@ -408,4 +408,4 @@ def check_single_instance(app_name: str = "arch-smart-update-checker",
         return None
     except InstanceAlreadyRunningError:
         # Another instance is running
-        return lock._get_existing_pid() 
+        return lock._get_existing_pid()

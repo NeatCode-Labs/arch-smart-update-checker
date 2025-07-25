@@ -31,7 +31,16 @@ class OutputFormatter:
         Returns:
             Formatted header
         """
-        return f"\n{Colors.header('=' * self.width)}\n{Colors.header(title.center(self.width))}\n{Colors.header('=' * self.width)}"
+        return f"\n{
+            Colors.header(
+                '=' *
+                self.width)}\n{
+            Colors.header(
+                title.center(
+                    self.width))}\n{
+                        Colors.header(
+                            '=' *
+                            self.width)}"
 
     def format_subheader(self, title: str) -> str:
         """
@@ -180,7 +189,7 @@ class OutputFormatter:
         prompt = f"\n{Colors.info('❓')} {Colors.info(message)}"
 
         if options:
-            option_lines = [f"  {i+1}. {option}" for i, option in enumerate(options)]
+            option_lines = [f"  {i + 1}. {option}" for i, option in enumerate(options)]
             prompt += "\n" + "\n".join(option_lines)
 
         prompt += f"\n{Colors.info('Enter your choice:')} "

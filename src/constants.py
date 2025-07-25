@@ -80,17 +80,22 @@ GENERIC_PACKAGE_NAMES = {
 }
 
 # Paths
+
+
 def get_config_dir() -> Path:
     """Get the configuration directory path."""
     return Path.home() / ".config" / "arch-smart-update-checker"
+
 
 def get_cache_dir() -> Path:
     """Get the cache directory path."""
     return Path.home() / ".cache" / "arch-smart-update-checker"
 
+
 def get_default_config_path() -> Path:
     """Get the default configuration file path."""
     return get_config_dir() / "config.json"
+
 
 def get_default_log_path() -> Path:
     """Get the default log file path."""

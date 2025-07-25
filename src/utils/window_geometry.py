@@ -98,8 +98,8 @@ class WindowGeometryManager:
         return None
 
     def validate_position(self, x: int, y: int, width: int, height: int,
-                         screen_width: int, screen_height: int,
-                         min_width: int = 1200, min_height: int = 800) -> Tuple[int, int]:
+                          screen_width: int, screen_height: int,
+                          min_width: int = 1200, min_height: int = 800) -> Tuple[int, int]:
         """
         Validate and adjust window position to ensure it's visible and user-friendly.
 
@@ -125,7 +125,8 @@ class WindowGeometryManager:
             height = min_height
 
         # Define comfortable margins from screen edges
-        margin = 20  # Minimum distance from screen edges - reduced from 100 to allow more flexibility [[memory:2371890]]
+        # Minimum distance from screen edges - reduced from 100 to allow more flexibility [[memory:2371890]]
+        margin = 20
         min_visible = 100  # Minimum pixels that must be visible - increased to ensure window is grabbable
 
         # Check if window would be too close to bottom-right corner
@@ -163,6 +164,7 @@ class WindowGeometryManager:
 
 # Global instance
 _geometry_manager = None
+
 
 def get_geometry_manager() -> WindowGeometryManager:
     """Get the global geometry manager instance."""

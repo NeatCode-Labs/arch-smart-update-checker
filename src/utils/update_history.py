@@ -86,7 +86,7 @@ class UpdateHistoryManager:
     def shutdown(self, wait: bool = True):
         """
         Shutdown the thread pool executor.
-        
+
         Args:
             wait: Whether to wait for running tasks to complete
         """
@@ -134,7 +134,8 @@ class UpdateHistoryManager:
                     entries.append(entry)
                     self._save_entries(entries)
                     self._cached_entries = entries
-                    logger.info(f"Added update history entry: {len(entry.packages)} packages, exit code: {entry.exit_code}")
+                    logger.info(
+                        f"Added update history entry: {len(entry.packages)} packages, exit code: {entry.exit_code}")
                 except Exception as e:
                     logger.error(f"Failed to add update history entry: {e}")
                     raise
@@ -157,12 +158,12 @@ class UpdateHistoryManager:
             except Exception as e2:
                 logger.error(f"Failed to add history entry synchronously: {e2}")
 
-    def add_entry(self, packages: List[str], succeeded: bool, output: str = "", 
-                  duration_seconds: float = 0.0, exit_code: int = 0, 
+    def add_entry(self, packages: List[str], succeeded: bool, output: str = "",
+                  duration_seconds: float = 0.0, exit_code: int = 0,
                   version_info: Optional[dict] = None) -> None:
         """
         Helper method to add an update history entry with individual parameters.
-        
+
         Args:
             packages: List of package names
             succeeded: Whether the update succeeded
@@ -180,7 +181,7 @@ class UpdateHistoryManager:
             version_info=version_info
         )
         self.add(entry)
-        
+
     def clear(self) -> None:
         """Clear all update history entries."""
         with self._lock:

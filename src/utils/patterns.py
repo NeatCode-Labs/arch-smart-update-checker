@@ -23,33 +23,33 @@ class RegexTimeoutError(Exception):
 
 class ThreadSafeRegexManager:
     """Thread-safe regex manager to replace signal-based timeout."""
-    
+
     def __init__(self, max_workers: int = 2):
         """Initialize with thread pool for regex operations."""
         self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="RegexWorker")
         self._local = threading.local()
         logger.debug(f"Initialized thread-safe regex manager with {max_workers} workers")
-    
+
     def safe_regex_finditer(self, pattern: str, text: str, flags: int = 0, timeout: int = 2) -> Iterator:
         """
         Thread-safe regex finditer with timeout protection.
-        
+
         Args:
             pattern: Regex pattern
             text: Text to search
-            flags: Regex flags  
+            flags: Regex flags
             timeout: Timeout in seconds
-            
+
         Returns:
             Iterator of regex matches
-            
+
         Raises:
             RegexTimeoutError: If operation times out
         """
         try:
             # Submit regex operation to thread pool
             future = self._executor.submit(self._execute_regex, pattern, text, flags)
-            
+
             # Wait for result with timeout
             try:
                 return future.result(timeout=timeout)
@@ -58,11 +58,11 @@ class ThreadSafeRegexManager:
                 # Cancel the future if possible
                 future.cancel()
                 return iter([])
-                
+
         except Exception as e:
             logger.error(f"Error in regex operation: {e}")
             return iter([])
-    
+
     @staticmethod
     def _execute_regex(pattern: str, text: str, flags: int = 0) -> Iterator:
         """Execute regex operation in thread pool."""
@@ -72,7 +72,7 @@ class ThreadSafeRegexManager:
         except re.error as e:
             logger.error(f"Regex compilation error: {e}")
             return iter([])
-    
+
     def __del__(self):
         """Cleanup thread pool on destruction."""
         try:
@@ -90,10 +90,10 @@ def regex_timeout(seconds: int = 2):
     """
     DEPRECATED: Context manager for backward compatibility.
     New code should use safe_regex_finditer directly.
-    
+
     Args:
         seconds: Timeout in seconds (ignored, maintained for compatibility)
-        
+
     Raises:
         RegexTimeoutError: If regex operation times out
     """
@@ -104,16 +104,16 @@ def regex_timeout(seconds: int = 2):
 def safe_regex_finditer(pattern: str, text: str, flags: int = 0, timeout: int = 2) -> Iterator:
     """
     Safely execute regex finditer with thread-safe timeout protection.
-    
+
     Args:
         pattern: Regex pattern
         text: Text to search
         flags: Regex flags
         timeout: Timeout in seconds
-        
+
     Returns:
         Iterator of regex matches
-        
+
     Raises:
         RegexTimeoutError: If operation times out
     """
@@ -121,7 +121,7 @@ def safe_regex_finditer(pattern: str, text: str, flags: int = 0, timeout: int = 
     if len(text) > 100000:  # 100KB limit
         logger.warning(f"Text too long for regex processing: {len(text)} chars")
         return iter([])
-    
+
     # Use thread-safe regex manager
     return _regex_manager.safe_regex_finditer(pattern, text, flags, timeout)
 
@@ -158,19 +158,19 @@ class PackagePatternMatcher:
                 if len(pattern) > 200:
                     logger.warning(f"Pattern too long, skipping: {len(pattern)} chars")
                     continue
-                
+
                 # Test compile with timeout
                 with regex_timeout(1):
                     re.compile(pattern)
-                
+
                 self.custom_patterns.append(pattern)
                 logger.debug(f"Added custom pattern: {pattern}")
             except (re.error, RegexTimeoutError) as e:
                 logger.warning(f"Invalid or unsafe regex pattern '{pattern}': {e}")
 
     def extract_package_names(self, text: str,
-                            installed_packages: Set[str],
-                            extra_patterns: Optional[List[str]] = None) -> Set[str]:
+                              installed_packages: Set[str],
+                              extra_patterns: Optional[List[str]] = None) -> Set[str]:
         """
         Extract package names from text with security protections.
 
@@ -197,7 +197,7 @@ class PackagePatternMatcher:
         for package in installed_packages:
             if len(package) > 100:  # Skip extremely long package names
                 continue
-                
+
             # Use word boundary matching with length limit
             try:
                 pattern = r'\b' + re.escape(package) + r'\b'
@@ -239,7 +239,7 @@ class PackagePatternMatcher:
 
                     # Clean up the candidate
                     candidate = candidate.strip().lower()
-                    
+
                     # Length validation
                     if len(candidate) > 100:
                         continue
@@ -279,7 +279,7 @@ class PackagePatternMatcher:
         return found_packages
 
     def find_affected_packages(self, text: str,
-                             installed_packages: Set[str]) -> Set[str]:
+                               installed_packages: Set[str]) -> Set[str]:
         """
         Find packages affected by a news item or advisory.
 
@@ -307,7 +307,7 @@ class PackagePatternMatcher:
         """
         if not text or not package_name:
             return False
-        
+
         # Input validation
         if len(text) > 50000 or len(package_name) > 100:
             logger.warning("Input too long for package mention check")
@@ -318,7 +318,7 @@ class PackagePatternMatcher:
 
         # Look for whole word matches with timeout protection
         pattern = r'\b' + escaped_name + r'\b'
-        
+
         try:
             with regex_timeout(1):
                 return bool(re.search(pattern, text, re.IGNORECASE))
@@ -338,12 +338,12 @@ class PackagePatternMatcher:
         """
         if not text:
             return []
-            
+
         # Input validation
         if len(text) > 50000:
             logger.warning("Text too long for version extraction")
             return []
-        
+
         version_info = []
 
         # Simplified pattern for package with version (no nested quantifiers)
@@ -357,16 +357,16 @@ class PackagePatternMatcher:
                 version = match.group(3)
 
                 # Skip generic names and validate lengths
-                if (package not in GENERIC_PACKAGE_NAMES and 
-                    len(package) <= 50 and len(version) <= 20):
+                if (package not in GENERIC_PACKAGE_NAMES and
+                        len(package) <= 50 and len(version) <= 20):
                     version_info.append((package, f"{operator}{version}"))
                     logger.debug(f"Found version info: {package} {operator} {version}")
-                    
+
                 # Limit results to prevent resource exhaustion
                 if len(version_info) >= 100:
                     logger.warning("Version info extraction reached limit (100)")
                     break
-                    
+
         except Exception as e:
             logger.error(f"Error extracting versions: {e}")
 

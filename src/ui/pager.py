@@ -21,8 +21,6 @@ class Pager:
         """
         self.page_size = page_size or self._get_terminal_height()
 
-
-
     def _get_terminal_height(self) -> int:
         """
         Get terminal height for pagination.
@@ -80,7 +78,7 @@ class Pager:
             # Show prompt and get user input
             try:
                 user_input = input(f"\n{prompt}").strip().lower()
-                
+
                 if user_input in ["q", "quit"]:
                     return False
                 elif user_input in ["n", "next", "", " "]:  # Empty string (Enter) or space = next

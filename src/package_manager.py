@@ -78,7 +78,7 @@ class PackageManager:
 
             packages = []
             current_package = {}
-            
+
             # Parse the output
             for line in result.stdout.split('\n'):
                 if not line.strip():
@@ -87,14 +87,14 @@ class PackageManager:
                         packages.append(current_package)
                         current_package = {}
                     continue
-                
+
                 if ':' in line and not line.startswith(' '):
                     # Split only on first colon to handle field names with spaces
                     parts = line.split(':', 1)
                     if len(parts) == 2:
                         key = parts[0].strip()
                         value = parts[1].strip()
-                        
+
                         if key == 'Name':
                             current_package['name'] = value
                         elif key == 'Version':
@@ -107,11 +107,11 @@ class PackageManager:
                             current_package['repository'] = value if value != 'None' else 'local'
                         elif key == 'Description':
                             current_package['description'] = value
-            
+
             # Don't forget the last package
             if current_package and 'name' in current_package:
                 packages.append(current_package)
-            
+
             # Ensure all packages have required fields
             for pkg in packages:
                 pkg.setdefault('size', 'Unknown')
@@ -129,7 +129,7 @@ class PackageManager:
         except Exception as e:
             logger.error(f"Error getting installed packages: {e}")
             raise PackageManagerError(f"Failed to get installed packages: {e}")
-    
+
     def _get_package_details(self, package_name: str) -> Optional[Dict[str, str]]:
         """Get detailed information for a single package."""
         try:
@@ -140,10 +140,10 @@ class PackageManager:
                 check=False,
                 timeout=5
             )
-            
+
             if result.returncode != 0:
                 return None
-            
+
             # Parse the output
             info = {
                 'name': package_name,
@@ -153,7 +153,7 @@ class PackageManager:
                 'install_date': 'Unknown',
                 'description': ''
             }
-            
+
             for line in result.stdout.split('\n'):
                 if line.startswith('Version'):
                     info['version'] = line.split(':', 1)[1].strip()
@@ -167,9 +167,9 @@ class PackageManager:
                         info['repository'] = repo
                 elif line.startswith('Description'):
                     info['description'] = line.split(':', 1)[1].strip()
-            
+
             return info
-            
+
         except Exception:
             return None
 
@@ -178,7 +178,10 @@ class PackageManager:
         logger.info("CACHE CLEARING: clear_cache() called!")  # Changed to INFO level
         self._installed_packages_cache = None
         self._installed_names_cache = None
-        logger.info(f"CACHE CLEARED: installed_packages={self._installed_packages_cache}, names={self._installed_names_cache}")
+        logger.info(
+            f"CACHE CLEARED: installed_packages={
+                self._installed_packages_cache}, names={
+                self._installed_names_cache}")
 
     def get_package_dependencies(self, package_name: str) -> List[str]:
         """
@@ -334,11 +337,11 @@ class PackageManager:
                                 ))
 
             logger.info(f"Found {len(updates)} package updates")
-            
+
             # Fetch size information for updates
             if updates:
                 self._populate_update_sizes(updates)
-            
+
             return updates
 
         except subprocess.CalledProcessError as e:
@@ -351,7 +354,7 @@ class PackageManager:
     def _populate_update_sizes(self, updates: List[PackageUpdate]) -> None:
         """
         Populate size information for package updates.
-        
+
         Args:
             updates: List of package updates to populate sizes for
         """
@@ -360,15 +363,15 @@ class PackageManager:
             # Process in batches to avoid timeouts
             batch_size = 20
             total_fetched = 0
-            
+
             for i in range(0, len(updates), batch_size):
                 batch = updates[i:i + batch_size]
                 package_names = [u.name for u in batch]
-                
+
                 # Query pacman for download sizes
                 cmd = ['pacman', '-Si'] + package_names
-                logger.debug(f"Fetching sizes for batch {i//batch_size + 1} ({len(package_names)} packages)")
-                
+                logger.debug(f"Fetching sizes for batch {i // batch_size + 1} ({len(package_names)} packages)")
+
                 try:
                     result = SecureSubprocess.run(
                         cmd,
@@ -377,12 +380,12 @@ class PackageManager:
                         check=False,
                         timeout=10  # Shorter timeout per batch
                     )
-                    
+
                     if result.returncode == 0:
                         lines = result.stdout.strip().split('\n')
                         current_package = None
                         current_download_size = None
-                        
+
                         for line in lines:
                             if line.startswith('Name'):
                                 # If we have a previous package, save it
@@ -392,27 +395,27 @@ class PackageManager:
                                             update.size = current_download_size
                                             total_fetched += 1
                                             break
-                                
+
                                 # Extract new package name
                                 current_package = line.split(':', 1)[1].strip()
                                 current_download_size = None
-                                
+
                             elif line.startswith('Download Size') and current_package:
                                 # Extract download size
                                 size_str = line.split(':', 1)[1].strip()
                                 current_download_size = self._parse_size_string(size_str)
-                                
+
                             elif line.startswith('Installed Size') and current_package:
                                 # Extract installed size
                                 size_str = line.split(':', 1)[1].strip()
                                 installed_size = self._parse_size_string(size_str)
-                                
+
                                 # Find and update the corresponding update
                                 for update in batch:
                                     if update.name == current_package:
                                         update.installed_size = installed_size
                                         break
-                        
+
                         # Don't forget the last package
                         if current_package and current_download_size is not None:
                             for update in batch:
@@ -420,26 +423,26 @@ class PackageManager:
                                     update.size = current_download_size
                                     total_fetched += 1
                                     break
-                                    
+
                     else:
-                        logger.debug(f"Batch {i//batch_size + 1} failed: {result.stderr}")
-                        
+                        logger.debug(f"Batch {i // batch_size + 1} failed: {result.stderr}")
+
                 except Exception as e:
-                    logger.debug(f"Error processing batch {i//batch_size + 1}: {e}")
+                    logger.debug(f"Error processing batch {i // batch_size + 1}: {e}")
                     continue
-                    
+
             logger.info(f"Successfully fetched size information for {total_fetched} packages")
-                
+
         except Exception as e:
             logger.warning(f"Error fetching package sizes: {e}")
 
     def _parse_size_string(self, size_str: str) -> Optional[int]:
         """
         Parse pacman size string to bytes.
-        
+
         Args:
             size_str: Size string like "1.5 MiB" or "256.0 KiB" or "1,5 MiB"
-            
+
         Returns:
             Size in bytes or None if parsing fails
         """
@@ -448,15 +451,15 @@ class PackageManager:
             parts = size_str.strip().split()
             if len(parts) < 2:
                 return None
-                
+
             number_str = parts[0]
             unit = parts[1]
-            
+
             # Handle comma as decimal separator (European locale)
             number_str = number_str.replace(',', '.')
-            
+
             number = float(number_str)
-            
+
             # Convert to bytes based on unit
             unit = unit.upper()
             if unit in ['B', 'BYTES']:
@@ -470,7 +473,7 @@ class PackageManager:
             else:
                 logger.warning(f"Unknown size unit: {unit}")
                 return None
-                
+
         except (ValueError, IndexError) as e:
             logger.warning(f"Could not parse size string '{size_str}': {e}")
             return None

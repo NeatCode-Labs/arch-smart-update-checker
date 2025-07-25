@@ -48,7 +48,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Sort state tracking
         self.sort_column = None
         self.sort_reverse = False
-        
+
         # Timer management
         self._component_id = f"package_manager_{id(self)}"
         self._loading_in_progress = False
@@ -62,7 +62,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
     def colors(self):
         """Get current colors from main window."""
         return self.main_window.colors
-    
+
     def _safe_load_packages(self):
         """Safely load packages with proper checks."""
         if not self._loading_in_progress:
@@ -94,18 +94,18 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Title
         title_label = tk.Label(header_frame,
-                              text="🔧 Package Manager",
-                              font=self.dims.font('Segoe UI', size_name='xlarge', style='bold'),
-                              fg=self.colors['text'],
-                              bg=self.colors['background'])
+                               text="🔧 Package Manager",
+                               font=self.dims.font('Segoe UI', size_name='xlarge', style='bold'),
+                               fg=self.colors['text'],
+                               bg=self.colors['background'])
         title_label.pack(anchor='w', padx=self.dims.pad_large, pady=(self.dims.pad_large, self.dims.pad_medium))
 
         # Subtitle
         subtitle_label = tk.Label(header_frame,
-                                 text="Monitor critical packages and system updates",
-                                 font=self.dims.font('Segoe UI', size_name='medium'),
-                                 fg=self.colors['text_secondary'],
-                                 bg=self.colors['background'])
+                                  text="Monitor critical packages and system updates",
+                                  font=self.dims.font('Segoe UI', size_name='medium'),
+                                  fg=self.colors['text_secondary'],
+                                  bg=self.colors['background'])
         subtitle_label.pack(anchor='w', padx=self.dims.pad_large, pady=(0, self.dims.pad_large))
 
     def create_search_bar(self, parent):
@@ -119,57 +119,57 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Search label and entry
         search_label = tk.Label(search_container,
-                               text="Search packages:",
-                               font=self.dims.font('Segoe UI', 'normal'),
-                               fg=self.colors['text'],
-                               bg=self.colors['background'])
+                                text="Search packages:",
+                                font=self.dims.font('Segoe UI', 'normal'),
+                                fg=self.colors['text'],
+                                bg=self.colors['background'])
         search_label.pack(side='left', padx=(0, self.dims.pad_medium))
 
         self.search_var = tk.StringVar(master=parent)
         self.search_var.trace('w', lambda *args: self.filter_packages())
 
         search_entry = tk.Entry(search_container,
-                               textvariable=self.search_var,
-                               font=self.dims.font('Segoe UI', 'normal'),
-                               bg=self.colors['background'],
-                               fg=self.colors['text'],
-                               insertbackground=self.colors['text'],
-                               relief='solid',
-                               bd=1,
-                               width=self.dims.entry_width)
+                                textvariable=self.search_var,
+                                font=self.dims.font('Segoe UI', 'normal'),
+                                bg=self.colors['background'],
+                                fg=self.colors['text'],
+                                insertbackground=self.colors['text'],
+                                relief='solid',
+                                bd=1,
+                                width=self.dims.entry_width)
         search_entry.pack(side='left', padx=(0, self.dims.pad_large))
 
         # Filter dropdown
         filter_label = tk.Label(search_container,
-                               text="Filter:",
-                               font=('Segoe UI', 11, 'normal'),
-                               fg=self.colors['text'],
-                               bg=self.colors['background'])
+                                text="Filter:",
+                                font=('Segoe UI', 11, 'normal'),
+                                fg=self.colors['text'],
+                                bg=self.colors['background'])
         filter_label.pack(side='left', padx=(0, 10))
 
         self.filter_var = tk.StringVar(master=parent, value="All")
         filter_combo = ttk.Combobox(search_container,
-                                   textvariable=self.filter_var,
-                                   values=["All", "Critical", "Normal", "Updates Available"],
-                                   state="readonly",
-                                   font=('Segoe UI', 10, 'normal'),
-                                   width=15)
+                                    textvariable=self.filter_var,
+                                    values=["All", "Critical", "Normal", "Updates Available"],
+                                    state="readonly",
+                                    font=('Segoe UI', 10, 'normal'),
+                                    width=15)
         filter_combo.pack(side='left')
         filter_combo.bind('<<ComboboxSelected>>', lambda e: self.filter_packages())
 
         # Refresh button
         refresh_btn = tk.Button(search_container,
-                               text="🔄 Refresh",
-                               font=('Segoe UI', 10, 'normal'),
-                               fg='white',
-                               bg=self.colors['info'],
-                               activebackground=self.colors['info'],
-                               activeforeground='white',
-                               bd=0,
-                               padx=15,
-                               pady=5,
-                               cursor='hand2',
-                               command=self.refresh_packages)
+                                text="🔄 Refresh",
+                                font=('Segoe UI', 10, 'normal'),
+                                fg='white',
+                                bg=self.colors['info'],
+                                activebackground=self.colors['info'],
+                                activeforeground='white',
+                                bd=0,
+                                padx=15,
+                                pady=5,
+                                cursor='hand2',
+                                command=self.refresh_packages)
         refresh_btn.pack(side='right')
         self._add_tooltip(refresh_btn, "Refresh package list (F5)")
 
@@ -213,9 +213,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Treeview for package list
         columns = ('version', 'repository', 'size', 'install_date', 'status')
         self.package_tree = ttk.Treeview(package_container,
-                                        columns=columns,
-                                        show='tree headings',
-                                        style='PackageManager.Treeview')
+                                         columns=columns,
+                                         show='tree headings',
+                                         style='PackageManager.Treeview')
 
         # Configure columns
         self.package_tree.heading('#0', text='Package Name', anchor='c')  # Center
@@ -241,8 +241,8 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Create scrollbar
         scrollbar = ttk.Scrollbar(package_container,
-                                 orient='vertical',
-                                 command=self.package_tree.yview)
+                                  orient='vertical',
+                                  command=self.package_tree.yview)
         self.package_tree.configure(yscrollcommand=scrollbar.set)
 
         # Pack components
@@ -267,10 +267,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Stats label
         self.stats_label = tk.Label(package_frame,
-                                   text="Loading packages...",
-                                   font=('Segoe UI', 10, 'italic'),
-                                   fg=self.colors['text_secondary'],
-                                   bg=self.colors['background'])
+                                    text="Loading packages...",
+                                    font=('Segoe UI', 10, 'italic'),
+                                    fg=self.colors['text_secondary'],
+                                    bg=self.colors['background'])
         self.stats_label.pack(anchor='w', pady=(10, 0))
 
     def create_action_buttons(self, parent):
@@ -283,49 +283,49 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Mark as critical button
         mark_critical_btn = tk.Button(button_container,
-                                     text="⚠️ Mark Critical",
-                                     font=self.dims.font('Segoe UI', 'small'),
-                                     fg='white',
-                                     bg=self.colors['warning'],
-                                     activebackground=self.colors['warning'],
-                                     activeforeground='white',
-                                     bd=0,
-                                     padx=self.dims.button_padx,
-                                     pady=self.dims.button_pady,
-                                     cursor='hand2',
-                                     command=self.mark_package_critical)
+                                      text="⚠️ Mark Critical",
+                                      font=self.dims.font('Segoe UI', 'small'),
+                                      fg='white',
+                                      bg=self.colors['warning'],
+                                      activebackground=self.colors['warning'],
+                                      activeforeground='white',
+                                      bd=0,
+                                      padx=self.dims.button_padx,
+                                      pady=self.dims.button_pady,
+                                      cursor='hand2',
+                                      command=self.mark_package_critical)
         mark_critical_btn.pack(side='left', padx=(0, 10))
         self._add_tooltip(mark_critical_btn, "Mark selected packages as critical (Ctrl+C)")
 
         # Remove from critical button
         remove_critical_btn = tk.Button(button_container,
-                                       text="✓ Remove Critical",
-                                       font=self.dims.font('Segoe UI', 'small'),
-                                       fg='white',
-                                       bg=self.colors['success'],
-                                       activebackground=self.colors['success'],
-                                       activeforeground='white',
-                                       bd=0,
-                                       padx=self.dims.button_padx,
-                                       pady=self.dims.button_pady,
-                                       cursor='hand2',
-                                       command=self.remove_package_critical)
+                                        text="✓ Remove Critical",
+                                        font=self.dims.font('Segoe UI', 'small'),
+                                        fg='white',
+                                        bg=self.colors['success'],
+                                        activebackground=self.colors['success'],
+                                        activeforeground='white',
+                                        bd=0,
+                                        padx=self.dims.button_padx,
+                                        pady=self.dims.button_pady,
+                                        cursor='hand2',
+                                        command=self.remove_package_critical)
         remove_critical_btn.pack(side='left', padx=(0, 10))
         self._add_tooltip(remove_critical_btn, "Remove selected packages from critical list (Ctrl+R)")
 
         # View details button
         view_details_btn = tk.Button(button_container,
-                                   text="🔍 View Details",
-                                   font=self.dims.font('Segoe UI', 'small'),
-                                   fg='white',
-                                   bg=self.colors['secondary'],
-                                   activebackground=self.colors['secondary'],
-                                   activeforeground='white',
-                                   bd=0,
-                                   padx=self.dims.button_padx,
-                                   pady=self.dims.button_pady,
-                                   cursor='hand2',
-                                   command=self.view_package_details)
+                                     text="🔍 View Details",
+                                     font=self.dims.font('Segoe UI', 'small'),
+                                     fg='white',
+                                     bg=self.colors['secondary'],
+                                     activebackground=self.colors['secondary'],
+                                     activeforeground='white',
+                                     bd=0,
+                                     padx=self.dims.button_padx,
+                                     pady=self.dims.button_pady,
+                                     cursor='hand2',
+                                     command=self.view_package_details)
         view_details_btn.pack(side='left')
         self._add_tooltip(view_details_btn, "View detailed package information (Ctrl+I or double-click)")
 
@@ -335,33 +335,33 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Remove package button
         remove_btn = tk.Button(button_container,
-                              text="🗑️ Remove Package",
-                              font=self.dims.font('Segoe UI', 'small'),
-                              fg='white',
-                              bg=self.colors['error'],
-                              activebackground='#DC2626',  # Darker red on hover
-                              activeforeground='white',
-                              bd=0,
-                              padx=self.dims.button_padx,
-                              pady=self.dims.button_pady,
-                              cursor='hand2',
-                              command=self.remove_selected)
+                               text="🗑️ Remove Package",
+                               font=self.dims.font('Segoe UI', 'small'),
+                               fg='white',
+                               bg=self.colors['error'],
+                               activebackground='#DC2626',  # Darker red on hover
+                               activeforeground='white',
+                               bd=0,
+                               padx=self.dims.button_padx,
+                               pady=self.dims.button_pady,
+                               cursor='hand2',
+                               command=self.remove_selected)
         remove_btn.pack(side='left', padx=(0, 10))
         self._add_tooltip(remove_btn, "Remove selected packages from the system (requires confirmation)")
 
         # Clean orphans button
         clean_orphans_btn = tk.Button(button_container,
-                                     text="🧹 Clean Orphans",
-                                     font=self.dims.font('Segoe UI', 'small'),
-                                     fg='white',
-                                     bg=self.colors['primary'],
-                                     activebackground=self.colors['primary'],
-                                     activeforeground='white',
-                                     bd=0,
-                                     padx=self.dims.button_padx,
-                                     pady=self.dims.button_pady,
-                                     cursor='hand2',
-                                     command=self.clean_orphans)
+                                      text="🧹 Clean Orphans",
+                                      font=self.dims.font('Segoe UI', 'small'),
+                                      fg='white',
+                                      bg=self.colors['primary'],
+                                      activebackground=self.colors['primary'],
+                                      activeforeground='white',
+                                      bd=0,
+                                      padx=self.dims.button_padx,
+                                      pady=self.dims.button_pady,
+                                      cursor='hand2',
+                                      command=self.clean_orphans)
         clean_orphans_btn.pack(side='left', padx=(0, 10))
         self._add_tooltip(clean_orphans_btn, "Remove orphaned packages that are not needed by any other package")
 
@@ -383,7 +383,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             try:
                 # Get installed packages
                 self.main_window.root.after(50,
-                    lambda: self.stats_label.config(text="🔄 Fetching package list..."))
+                                            lambda: self.stats_label.config(text="🔄 Fetching package list..."))
                 packages = self.package_manager.get_installed_packages()
 
                 # Get critical packages
@@ -394,21 +394,24 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
             except subprocess.CalledProcessError as e:
                 logger.error(f"Pacman command failed: {e}")
-                self.main_window.root.after(0,
-                    lambda: self._handle_load_error("Pacman command failed",
-                                                   "Failed to retrieve package list.\n\n"
-                                                   "Please ensure pacman is properly installed and accessible."))
+                self.main_window.root.after(
+                    0, lambda: self._handle_load_error(
+                        "Pacman command failed", "Failed to retrieve package list.\n\n"
+                        "Please ensure pacman is properly installed and accessible."))
             except PermissionError as e:
                 logger.error(f"Permission denied: {e}")
                 self.main_window.root.after(0,
-                    lambda: self._handle_load_error("Permission Denied",
-                                                   "Cannot access package database.\n\n"
-                                                   "Please check your system permissions."))
+                                            lambda: self._handle_load_error("Permission Denied",
+                                                                            "Cannot access package database.\n\n"
+                                                                            "Please check your system permissions."))
             except Exception as e:
                 logger.error(f"Error loading packages: {e}")
-                self.main_window.root.after(0,
-                    lambda: self._handle_load_error("Error Loading Packages",
-                                                   f"An unexpected error occurred:\n\n{str(e)}"))
+                error_msg = str(e)
+                self.main_window.root.after(
+                    0,
+                    lambda: self._handle_load_error(
+                        "Error Loading Packages",
+                        f"An unexpected error occurred:\n\n{error_msg}"))
             finally:
                 # Reset loading flag
                 self._loading_in_progress = False
@@ -416,12 +419,12 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Start loading in background using secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"pkg_load_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, load_thread, is_background=True)
         if thread is None:
-            self._handle_load_error("Thread Error", 
-                                  "Unable to start package loading: thread limit reached")
+            self._handle_load_error("Thread Error",
+                                    "Unable to start package loading: thread limit reached")
         else:
             # Start the thread
             thread.start()
@@ -463,13 +466,13 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
             # Insert into tree
             self.package_tree.insert('', 'end',
-                                   text=name,
-                                   values=(version, repository, size, install_date, status),
-                                   tags=(status.lower(),))
+                                     text=name,
+                                     values=(version, repository, size, install_date, status),
+                                     tags=(status.lower(),))
 
         # Configure tags
         self.package_tree.tag_configure('critical',
-                                      foreground=self.colors['error'])
+                                        foreground=self.colors['error'])
 
         # Update stats
         total = len(packages)
@@ -535,13 +538,13 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             install_date = self._format_install_date(pkg.get('install_date', 'Unknown'))
 
             self.package_tree.insert('', 'end',
-                                   text=name,
-                                   values=(pkg.get('version'),
-                                          pkg.get('repository'),
-                                          pkg.get('size'),
-                                          install_date,
-                                          status),
-                                   tags=(status.lower(),))
+                                     text=name,
+                                     values=(pkg.get('version'),
+                                             pkg.get('repository'),
+                                             pkg.get('size'),
+                                             install_date,
+                                             status),
+                                     tags=(status.lower(),))
             displayed += 1
             if is_critical:
                 critical_count += 1
@@ -608,7 +611,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         else:
             # Text-based sorting for other columns
             items.sort(key=lambda x: x[0].lower() if isinstance(x[0], str) else str(x[0]),
-                      reverse=self.sort_reverse)
+                       reverse=self.sort_reverse)
 
         # Re-insert items in sorted order
         for index, (_, item) in enumerate(items):
@@ -657,8 +660,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Show feedback
         if marked_count > 0 and not already_critical:
-            messagebox.showinfo("Success",
-                               f"Successfully marked {marked_count} package{'s' if marked_count > 1 else ''} as critical.")
+            messagebox.showinfo(
+                "Success", f"Successfully marked {marked_count} package{
+                    's' if marked_count > 1 else ''} as critical.")
         elif marked_count > 0 and already_critical:
             msg = f"Marked {marked_count} package{'s' if marked_count > 1 else ''} as critical.\n\n"
             msg += f"The following package{'s were' if len(already_critical) > 1 else ' was'} already critical:\n"
@@ -698,8 +702,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Show feedback
         if removed_count > 0 and not not_critical:
-            messagebox.showinfo("Success",
-                               f"Successfully removed {removed_count} package{'s' if removed_count > 1 else ''} from critical list.")
+            messagebox.showinfo(
+                "Success", f"Successfully removed {removed_count} package{
+                    's' if removed_count > 1 else ''} from critical list.")
         elif removed_count > 0 and not_critical:
             msg = f"Removed {removed_count} package{'s' if removed_count > 1 else ''} from critical list.\n\n"
             msg += f"The following package{'s were' if len(not_critical) > 1 else ' was'} not critical:\n"
@@ -736,8 +741,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 self.main_window.root.after(0, lambda: self.show_package_info(package_name, info))
             except Exception as e:
                 logger.error(f"Error getting package info: {e}")
+                error_msg = str(e)
                 self.main_window.root.after(0,
-                    lambda: messagebox.showerror("Error", f"Failed to get package info: {e}"))
+                                            lambda: messagebox.showerror("Error", f"Failed to get package info: {error_msg}"))
 
         # Use secure thread management for package info retrieval
         import uuid
@@ -751,7 +757,8 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             thread.start()
         else:
             logger.warning("Could not create thread for package info - thread limit reached")
-            messagebox.showwarning("Thread Limit", "Cannot retrieve package info - thread limit reached. Please try again.")
+            messagebox.showwarning("Thread Limit",
+                                   "Cannot retrieve package info - thread limit reached. Please try again.")
 
     def show_package_info(self, package_name: str, info: Optional[str]):
         """Show package information in a dialog."""
@@ -774,10 +781,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         header_frame.pack_propagate(False)
 
         header_label = tk.Label(header_frame,
-                               text=f"📦 {package_name}",
-                               font=('Segoe UI', 16, 'bold'),
-                               fg='white',
-                               bg=self.colors['primary'])
+                                text=f"📦 {package_name}",
+                                font=('Segoe UI', 16, 'bold'),
+                                fg='white',
+                                bg=self.colors['primary'])
         header_label.pack(expand=True)
 
         # Content frame
@@ -789,14 +796,14 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         text_frame.pack(fill='both', expand=True)
 
         text_widget = tk.Text(text_frame,
-                            font=('Consolas', 10, 'normal'),
-                            bg=self.colors['surface'],
-                            fg=self.colors['text'],
-                            wrap='word',
-                            padx=15,
-                            pady=15,
-                            borderwidth=1,
-                            relief='solid')
+                              font=('Consolas', 10, 'normal'),
+                              bg=self.colors['surface'],
+                              fg=self.colors['text'],
+                              wrap='word',
+                              padx=15,
+                              pady=15,
+                              borderwidth=1,
+                              relief='solid')
 
         scrollbar = ttk.Scrollbar(text_frame, orient='vertical', command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -809,10 +816,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         lines = info.split('\n')
         for line in lines:
             if line.startswith(('Name', 'Version', 'Description', 'Architecture',
-                              'URL', 'Licenses', 'Groups', 'Provides', 'Depends On',
-                              'Optional Deps', 'Required By', 'Optional For', 'Conflicts With',
-                              'Replaces', 'Installed Size', 'Packager', 'Build Date',
-                              'Install Date', 'Install Reason', 'Install Script', 'Validated By')):
+                                'URL', 'Licenses', 'Groups', 'Provides', 'Depends On',
+                                'Optional Deps', 'Required By', 'Optional For', 'Conflicts With',
+                                'Replaces', 'Installed Size', 'Packager', 'Build Date',
+                                'Install Date', 'Install Reason', 'Install Script', 'Validated By')):
                 # Bold headers
                 parts = line.split(':', 1)
                 if len(parts) == 2:
@@ -838,32 +845,32 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             messagebox.showinfo("Copied", "Package information copied to clipboard", parent=info_window)
 
         copy_btn = tk.Button(button_frame,
-                           text="📋 Copy Info",
-                           font=('Segoe UI', 10, 'normal'),
-                           fg='white',
-                           bg=self.colors['primary'],
-                           activebackground=self.colors['primary_hover'],
-                           activeforeground='white',
-                           bd=0,
-                           padx=15,
-                           pady=8,
-                           cursor='hand2',
-                           command=copy_info)
+                             text="📋 Copy Info",
+                             font=('Segoe UI', 10, 'normal'),
+                             fg='white',
+                             bg=self.colors['primary'],
+                             activebackground=self.colors['primary_hover'],
+                             activeforeground='white',
+                             bd=0,
+                             padx=15,
+                             pady=8,
+                             cursor='hand2',
+                             command=copy_info)
         copy_btn.pack(side='left', padx=(0, 10))
 
         # Close button
         close_btn = tk.Button(button_frame,
-                            text="Close",
-                            font=('Segoe UI', 10, 'normal'),
-                            fg='white',
-                            bg=self.colors['secondary'],
-                            activebackground=self.colors['secondary'],
-                            activeforeground='white',
-                            bd=0,
-                            padx=20,
-                            pady=8,
-                            cursor='hand2',
-                            command=info_window.destroy)
+                              text="Close",
+                              font=('Segoe UI', 10, 'normal'),
+                              fg='white',
+                              bg=self.colors['secondary'],
+                              activebackground=self.colors['secondary'],
+                              activeforeground='white',
+                              bd=0,
+                              padx=20,
+                              pady=8,
+                              cursor='hand2',
+                              command=info_window.destroy)
         close_btn.pack(side='right')
 
         # Bind Escape key to close
@@ -874,8 +881,6 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         """Handle double-click on package."""
         self.view_package_details()
 
-
-
     def run_pacman_update(self):
         """Run pacman system update with proper security."""
         def update_thread():
@@ -883,63 +888,62 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 # Create secure command using array format to prevent injection
                 # No shell interpretation, direct execution
                 pacman_cmd = ["pkexec", "pacman", "-Syu", "--noconfirm"]
-                
+
                 # Create a progress dialog
                 progress_dialog = tk.Toplevel(self.main_window.root)
                 progress_dialog.title("System Update")
                 progress_dialog.geometry("700x500")
                 progress_dialog.transient(self.main_window.root)
-                
+
                 # Center the dialog
                 progress_dialog.update_idletasks()
                 x = (progress_dialog.winfo_screenwidth() // 2) - (350)
                 y = (progress_dialog.winfo_screenheight() // 2) - (250)
                 progress_dialog.geometry(f"+{x}+{y}")
-                
+
                 # Create UI elements
-                info_label = ttk.Label(progress_dialog, 
-                    text="Running full system update with system privileges...",
-                    font=('Arial', 12))
+                info_label = ttk.Label(progress_dialog,
+                                       text="Running full system update with system privileges...",
+                                       font=('Arial', 12))
                 info_label.pack(pady=10)
-                
+
                 # Note about full system update
-                note_label = ttk.Label(progress_dialog, 
-                    text="Note: This will update ALL packages on your system",
-                    font=('Arial', 10, 'italic'))
+                note_label = ttk.Label(progress_dialog,
+                                       text="Note: This will update ALL packages on your system",
+                                       font=('Arial', 10, 'italic'))
                 note_label.pack()
-                
+
                 # Progress text
                 progress_text = tk.Text(progress_dialog, height=20, width=80, wrap='word')
                 progress_text.pack(fill='both', expand=True, padx=20, pady=10)
-                
+
                 # Scrollbar for progress text
                 scrollbar = ttk.Scrollbar(progress_text)
                 scrollbar.pack(side='right', fill='y')
                 progress_text.config(yscrollcommand=scrollbar.set)
                 scrollbar.config(command=progress_text.yview)
-                
+
                 # Status label
                 status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
                 status_label.pack(pady=5)
-                
+
                 # Close button (disabled initially)
-                close_btn = ttk.Button(progress_dialog, text="Close", 
-                    command=progress_dialog.destroy, state='disabled')
+                close_btn = ttk.Button(progress_dialog, text="Close",
+                                       command=progress_dialog.destroy, state='disabled')
                 close_btn.pack(pady=10)
-                
+
                 # Function to update progress
                 def update_progress(line):
                     progress_text.insert('end', line + '\n')
                     progress_text.see('end')
                     progress_dialog.update()
-                
+
                 # Run the command with real-time output
                 success = False
                 try:
                     import subprocess
-                    import time
                     start_time = time.time()  # Track update duration
-                    
+
                     # Get pre-update versions for all installed packages that have updates
                     pre_update_versions = {}
                     logger.info("Collecting pre-update versions...")
@@ -961,10 +965,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                         }
                     except Exception as e:
                         logger.warning(f"Failed to collect pre-update versions: {e}")
-                    
+
                     # Capture output for history
                     full_output = []
-                    
+
                     process = subprocess.Popen(
                         pacman_cmd,
                         stdout=subprocess.PIPE,
@@ -973,68 +977,71 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                         bufsize=1,
                         universal_newlines=True
                     )
-                    
+
                     status_label.config(text="Running system update...")
-                    
+
                     # Read output line by line
                     while True:
                         line = process.stdout.readline()
                         if not line and process.poll() is not None:
-                                break
+                            break
                         if line:
                             # Update progress dialog
-                            self.main_window.root.after(0, lambda l=line.strip(): update_progress(l))
+                            self.main_window.root.after(0, lambda line_text=line.strip(): update_progress(line_text))
                             # Capture output for history
                             full_output.append(line)
-                    
+
                     # Get exit code
                     exit_code = process.poll()
                     success = (exit_code == 0)
-                    
+
                     # Calculate duration
                     duration = time.time() - start_time
-                    
+
                     # Update UI based on result
                     if success:
                         status_label.config(text="✅ System update completed successfully!", foreground='green')
-                        self.main_window.root.after(0, lambda: self.main_window.update_status("✅ System update completed", "success"))
+                        self.main_window.root.after(
+                            0, lambda: self.main_window.update_status(
+                                "✅ System update completed", "success"))
                         # Refresh package list after update
                         self.main_window.root.after(1000, self.refresh_packages)
-                        
+
                         # Record update history if enabled
                         if self.main_window.config.get('update_history_enabled', False):
-                            logger.info(f"Update history is enabled, recording update (exit_code={exit_code}, success={success})")
+                            logger.info(
+                                f"Update history is enabled, recording update (exit_code={exit_code}, success={success})")
                             from ..utils.update_history import UpdateHistoryManager, UpdateHistoryEntry
                             from datetime import datetime
-                            
+
                             # For full system update, we don't know specific packages
                             # So we'll record it as "System Update"
                             history_mgr = UpdateHistoryManager()
-                            
+
                             # Extract updated package names from output if possible
                             updated_packages = []
                             output_text = ''.join(full_output)
-                            
+
                             # Look for package update lines in output
                             import re
                             # Pattern matches lines like "upgrading package-name..."
                             upgrade_pattern = re.compile(r'upgrading\s+(\S+)\.\.\.', re.IGNORECASE)
                             matches = upgrade_pattern.findall(output_text)
-                            
+
                             # Also try to extract version info from output
                             # Pattern for lines like "upgrading package (1.2.3-1 -> 1.2.4-1)..."
                             version_pattern = re.compile(r'upgrading\s+(\S+)\s*\((\S+)\s*->\s*(\S+)\)', re.IGNORECASE)
                             version_matches = version_pattern.findall(output_text)
-                            
+
                             # Build version info dict
                             version_info = {}
-                            
+
                             # First use pre-collected versions
                             if pre_update_versions:
                                 for pkg_name in matches:
                                     if pkg_name in pre_update_versions:
                                         version_info[pkg_name] = pre_update_versions[pkg_name]
-                            
+
                             # Then try to extract from output for any missing
                             for pkg_name, old_ver, new_ver in version_matches:
                                 if pkg_name not in version_info:
@@ -1042,32 +1049,36 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                 # Also add to matches if not already there
                                 if pkg_name not in matches:
                                     matches.append(pkg_name)
-                            
+
                             # Check for reinstalls and exclude them
                             reinstall_pattern = re.compile(r'reinstalling\s+(\S+)\.\.\.', re.IGNORECASE)
                             reinstalled = reinstall_pattern.findall(output_text)
-                            
+
                             # Also check for "up to date -- reinstalling" pattern
-                            reinstall_pattern2 = re.compile(r'warning:\s+(\S+)-\S+\s+is up to date\s*--\s*reinstalling', re.IGNORECASE)
+                            reinstall_pattern2 = re.compile(
+                                r'warning:\s+(\S+)-\S+\s+is up to date\s*--\s*reinstalling', re.IGNORECASE)
                             for match in reinstall_pattern2.finditer(output_text):
                                 pkg_name = match.group(1)
                                 if pkg_name not in reinstalled:
                                     reinstalled.append(pkg_name)
-                            
+
                             # Filter out reinstalled packages
                             if matches:
                                 updated_packages = [pkg for pkg in matches if pkg not in reinstalled]
-                                logger.info(f"Found {len(updated_packages)} actual updates (excluded {len(reinstalled)} reinstalls)")
+                                logger.info(
+                                    f"Found {
+                                        len(updated_packages)} actual updates (excluded {
+                                        len(reinstalled)} reinstalls)")
                             else:
                                 # If we can't parse specific packages, use a generic entry
                                 updated_packages = ["Full System Update"]
-                            
+
                             # Only record if there were actual updates
                             if updated_packages:
                                 # Filter version info to exclude reinstalls
-                                filtered_version_info = {k: v for k, v in version_info.items() 
-                                                       if k not in reinstalled}
-                                
+                                filtered_version_info = {k: v for k, v in version_info.items()
+                                                         if k not in reinstalled}
+
                                 entry = UpdateHistoryEntry(
                                     timestamp=datetime.now(),
                                     packages=updated_packages,
@@ -1076,10 +1087,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                     duration_sec=duration,
                                     version_info=filtered_version_info if filtered_version_info else None
                                 )
-                                
+
                                 history_mgr.add(entry)
                                 logger.info(f"Recorded system update to history: {len(updated_packages)} packages")
-                                
+
                                 # Refresh update history panel if it exists
                                 if 'history' in self.main_window.frames:
                                     history_frame = self.main_window.frames['history']
@@ -1088,47 +1099,53 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                     logger.info("Scheduled refresh of update history panel")
                             else:
                                 logger.info("No update history recorded - all packages were reinstalls")
-                    
+
                     else:
                         if exit_code == 126 or exit_code == 127:
-                            status_label.config(text="❌ Authentication cancelled or pkexec not available", foreground='red')
-                            self.main_window.root.after(0, lambda: self.main_window.update_status("Update cancelled", "warning"))
+                            status_label.config(
+                                text="❌ Authentication cancelled or pkexec not available", foreground='red')
+                            self.main_window.root.after(
+                                0, lambda: self.main_window.update_status(
+                                    "Update cancelled", "warning"))
                         else:
                             status_label.config(text="❌ System update failed", foreground='red')
-                            self.main_window.root.after(0, lambda: self.main_window.update_status(f"❌ Update failed with exit code {exit_code}", "error"))
-                    
+                            self.main_window.root.after(
+                                0, lambda: self.main_window.update_status(
+                                    f"❌ Update failed with exit code {exit_code}", "error"))
+
                 except subprocess.TimeoutExpired:
                     status_label.config(text="❌ Update timed out", foreground='red')
                     try:
                         process.kill()
-                    except:
+                    except BaseException:
                         pass
                 except Exception as e:
                     logger.error(f"Error during pkexec update: {e}")
                     status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
-                
+
                 # Enable close button
                 close_btn.config(state='normal')
-                
+
                 # Don't auto-close - let users read the output and close manually
 
             except Exception as e:
                 logger.error(f"Error starting system update: {e}")
+                error_msg = str(e)
                 self.main_window.root.after(0, lambda: messagebox.showerror(
                     "Error",
-                    f"Failed to start system update: {str(e)}\n\n"
+                    f"Failed to start system update: {error_msg}\n\n"
                     "Make sure pkexec is installed (polkit package)"
                 ))
 
         # Use secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"pkg_update_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, update_thread, is_background=True)
         if thread is None:
-            messagebox.showerror("Thread Error", 
-                               "Unable to start system update: thread limit reached")
+            messagebox.showerror("Thread Error",
+                                 "Unable to start system update: thread limit reached")
         else:
             # Start the thread!
             thread.start()
@@ -1144,50 +1161,50 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         if not selection:
             messagebox.showwarning("No Selection", "Please select packages to remove")
             return
-        
+
         # Get package names
         packages = []
         for item in selection:
             values = self.package_tree.item(item)['values']
             if values:
                 packages.append(values[0])
-        
+
         if not packages:
             return
-        
+
         # Confirm removal
         msg = f"Remove {len(packages)} package(s)?\n\n"
         msg += "\n".join(packages[:10])
         if len(packages) > 10:
             msg += f"\n... and {len(packages) - 10} more"
-        
+
         if not messagebox.askyesno("Confirm Removal", msg):
-                return
-        
+            return
+
         # Run removal with pkexec
         def remove_thread():
             try:
                 # Build secure pacman command
                 remove_cmd = ["pkexec", "pacman", "-R"] + packages
-                
+
                 # Create a progress dialog
                 progress_dialog = tk.Toplevel(self.main_window.root)
                 progress_dialog.title("Removing Packages")
                 progress_dialog.geometry("600x400")
                 progress_dialog.transient(self.main_window.root)
-                
+
                 # Center the dialog
                 progress_dialog.update_idletasks()
                 x = (progress_dialog.winfo_screenwidth() // 2) - (300)
                 y = (progress_dialog.winfo_screenheight() // 2) - (200)
                 progress_dialog.geometry(f"+{x}+{y}")
-                
+
                 # Create UI elements
-                info_label = ttk.Label(progress_dialog, 
-                    text=f"Removing {len(packages)} package(s) with system privileges...",
-                    font=('Arial', 12))
+                info_label = ttk.Label(progress_dialog,
+                                       text=f"Removing {len(packages)} package(s) with system privileges...",
+                                       font=('Arial', 12))
                 info_label.pack(pady=10)
-                
+
                 # Package list
                 pkg_frame = ttk.Frame(progress_dialog)
                 pkg_frame.pack(fill='x', padx=20, pady=5)
@@ -1196,28 +1213,27 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                     ttk.Label(pkg_frame, text=f"  • {pkg}").pack(anchor='w')
                 if len(packages) > 10:
                     ttk.Label(pkg_frame, text=f"  ... and {len(packages) - 10} more").pack(anchor='w')
-                
+
                 # Progress text
                 progress_text = tk.Text(progress_dialog, height=10, width=70, wrap='word')
                 progress_text.pack(fill='both', expand=True, padx=20, pady=10)
-                
+
                 # Status label
                 status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
                 status_label.pack(pady=5)
-                
+
                 # Close button (disabled initially)
-                close_btn = ttk.Button(progress_dialog, text="Close", 
-                    command=progress_dialog.destroy, state='disabled')
+                close_btn = ttk.Button(progress_dialog, text="Close",
+                                       command=progress_dialog.destroy, state='disabled')
                 close_btn.pack(pady=10)
-                
+
                 # Function to update progress
                 def update_progress(line):
                     progress_text.insert('end', line + '\n')
                     progress_text.see('end')
                     progress_dialog.update()
-                
+
                 # Run the command with real-time output
-                    success = False
                 try:
                     import subprocess
                     process = subprocess.Popen(
@@ -1228,9 +1244,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                         bufsize=1,
                         universal_newlines=True
                     )
-                    
+
                     status_label.config(text="Removing packages...")
-                    
+
                     # Read output line by line
                     while True:
                         line = process.stdout.readline()
@@ -1238,57 +1254,63 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                             break
                         if line:
                             # Update progress dialog
-                            self.main_window.root.after(0, lambda l=line.strip(): update_progress(l))
-                    
+                            self.main_window.root.after(0, lambda line_text=line.strip(): update_progress(line_text))
+
                     # Get exit code
                     exit_code = process.poll()
                     success = (exit_code == 0)
-                    
+
                     # Update UI based on result
                     if success:
                         status_label.config(text="✅ Package removal completed successfully!", foreground='green')
-                        self.main_window.root.after(0, lambda: messagebox.showinfo("Success", f"Successfully removed {len(packages)} package(s)"))
+                        self.main_window.root.after(
+                            0, lambda: messagebox.showinfo(
+                                "Success", f"Successfully removed {
+                                    len(packages)} package(s)"))
                         # Refresh package list
                         self.main_window.root.after(1000, self.refresh_packages)
                     else:
                         if exit_code == 126 or exit_code == 127:
-                            status_label.config(text="❌ Authentication cancelled or pkexec not available", foreground='red')
+                            status_label.config(
+                                text="❌ Authentication cancelled or pkexec not available", foreground='red')
                         else:
                             status_label.config(text="❌ Package removal failed", foreground='red')
-                            self.main_window.root.after(0, lambda: messagebox.showerror("Error", f"Package removal failed with exit code {exit_code}"))
-                    
+                            self.main_window.root.after(0, lambda: messagebox.showerror(
+                                "Error", f"Package removal failed with exit code {exit_code}"))
+
                 except subprocess.TimeoutExpired:
                     status_label.config(text="❌ Removal timed out", foreground='red')
                     try:
                         process.kill()
-                    except:
+                    except BaseException:
                         pass
                 except Exception as e:
                     logger.error(f"Error during package removal: {e}")
                     status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
-                
+
                 # Enable close button
                 close_btn.config(state='normal')
-                
+
                 # Don't auto-close - let users read the output and close manually
-                    
+
             except Exception as e:
                 logger.error(f"Failed to remove packages: {e}")
+                error_msg = str(e)
                 self.main_window.root.after(0, lambda: messagebox.showerror(
-                    "Error", 
-                    f"Failed to remove packages: {str(e)}\n\n"
+                    "Error",
+                    f"Failed to remove packages: {error_msg}\n\n"
                     "Make sure pkexec is installed (polkit package)"
                 ))
-        
+
         # Use secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"pkg_remove_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, remove_thread, is_background=True)
         if thread is None:
-            messagebox.showerror("Thread Error", 
-                               "Unable to start package removal: thread limit reached")
+            messagebox.showerror("Thread Error",
+                                 "Unable to start package removal: thread limit reached")
 
     def clean_orphans(self):
         """Clean orphaned packages."""
@@ -1301,10 +1323,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                     text=True,
                     check=False
                 )
-                
+
                 if result.returncode != 0 or not result.stdout.strip():
                     self.main_window.root.after(0, lambda: messagebox.showinfo(
-                        "No Orphans", 
+                        "No Orphans",
                         "No orphaned packages found on your system."
                     ))
                     return
@@ -1312,63 +1334,63 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 # Parse orphan list
                 orphans = result.stdout.strip().split('\n')
                 orphan_count = len(orphans)
-                
+
                 # Show confirmation
                 msg = f"Found {orphan_count} orphaned package(s):\n\n"
                 msg += "\n".join(orphans[:10])
                 if orphan_count > 10:
                     msg += f"\n... and {orphan_count - 10} more"
                 msg += "\n\nRemove all orphaned packages?"
-                
+
                 if not messagebox.askyesno("Confirm Orphan Removal", msg):
-                        return
-                
+                    return
+
                 # Build removal command with pkexec and --noconfirm flag
                 remove_cmd = ["pkexec", "pacman", "-Rns", "--noconfirm"] + orphans
-                
+
                 # Create a progress dialog
                 progress_dialog = tk.Toplevel(self.main_window.root)
                 progress_dialog.title("Cleaning Orphans")
                 progress_dialog.geometry("700x500")
                 progress_dialog.transient(self.main_window.root)
-                
+
                 # Center the dialog
                 progress_dialog.update_idletasks()
                 x = (progress_dialog.winfo_screenwidth() // 2) - (350)
                 y = (progress_dialog.winfo_screenheight() // 2) - (250)
                 progress_dialog.geometry(f"+{x}+{y}")
-                
+
                 # Create UI elements
-                info_label = ttk.Label(progress_dialog, 
-                    text=f"Removing {orphan_count} orphaned package(s)...",
-                    font=('Arial', 12))
+                info_label = ttk.Label(progress_dialog,
+                                       text=f"Removing {orphan_count} orphaned package(s)...",
+                                       font=('Arial', 12))
                 info_label.pack(pady=10)
-                
+
                 # Progress text
                 progress_text = tk.Text(progress_dialog, height=20, width=80, wrap='word')
                 progress_text.pack(fill='both', expand=True, padx=20, pady=10)
-                
+
                 # Scrollbar for progress text
                 scrollbar = ttk.Scrollbar(progress_text)
                 scrollbar.pack(side='right', fill='y')
                 progress_text.config(yscrollcommand=scrollbar.set)
                 scrollbar.config(command=progress_text.yview)
-                
+
                 # Status label
                 status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
                 status_label.pack(pady=5)
-                
+
                 # Close button (disabled initially)
-                close_btn = ttk.Button(progress_dialog, text="Close", 
-                    command=progress_dialog.destroy, state='disabled')
+                close_btn = ttk.Button(progress_dialog, text="Close",
+                                       command=progress_dialog.destroy, state='disabled')
                 close_btn.pack(pady=10)
-                
+
                 # Function to update progress
                 def update_progress(line):
                     progress_text.insert('end', line + '\n')
                     progress_text.see('end')
                     progress_dialog.update()
-                
+
                 # Run the command with real-time output
                 success = False
                 try:
@@ -1381,66 +1403,72 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                         bufsize=1,
                         universal_newlines=True
                     )
-                    
+
                     status_label.config(text="Removing orphaned packages...")
-                    
+
                     # Read output line by line
                     while True:
                         line = process.stdout.readline()
                         if not line and process.poll() is not None:
-                                break
+                            break
                         if line:
                             # Update progress dialog
-                            self.main_window.root.after(0, lambda l=line.strip(): update_progress(l))
-                    
+                            self.main_window.root.after(0, lambda line_text=line.strip(): update_progress(line_text))
+
                     # Get exit code
                     exit_code = process.poll()
                     success = (exit_code == 0)
-                    
+
                     # Update UI based on result
                     if success:
-                        status_label.config(text=f"✅ Successfully removed {orphan_count} orphaned package(s)!", foreground='green')
-                        self.main_window.root.after(0, lambda: messagebox.showinfo("Success", f"Successfully removed {orphan_count} orphaned package(s)"))
+                        status_label.config(
+                            text=f"✅ Successfully removed {orphan_count} orphaned package(s)!",
+                            foreground='green')
+                        self.main_window.root.after(0, lambda: messagebox.showinfo(
+                            "Success", f"Successfully removed {orphan_count} orphaned package(s)"))
                         # Refresh package list
                         self.main_window.root.after(1000, self.refresh_packages)
                     else:
                         if exit_code == 126 or exit_code == 127:
-                            status_label.config(text="❌ Authentication cancelled or pkexec not available", foreground='red')
+                            status_label.config(
+                                text="❌ Authentication cancelled or pkexec not available", foreground='red')
                         else:
                             status_label.config(text="❌ Orphan removal failed", foreground='red')
-                            self.main_window.root.after(0, lambda: messagebox.showerror("Error", f"Orphan removal failed with exit code {exit_code}"))
-                    
+                            self.main_window.root.after(0, lambda: messagebox.showerror(
+                                "Error", f"Orphan removal failed with exit code {exit_code}"))
+
                 except subprocess.TimeoutExpired:
                     status_label.config(text="❌ Removal timed out", foreground='red')
                     try:
                         process.kill()
-                    except:
+                    except BaseException:
                         pass
                 except Exception as e:
                     logger.error(f"Error during orphan cleanup: {e}")
                     status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
-                
+
                 # Enable close button
                 close_btn.config(state='normal')
-                
+
                 # Don't auto-close - let users read the output and close manually
-                    
+
             except Exception as e:
                 logger.error(f"Error in orphan cleanup: {e}")
+                error_msg = str(e)
                 self.main_window.root.after(0, lambda: messagebox.showerror(
-                    "Error", 
-                    f"Failed to check/clean orphans: {str(e)}"
+                    "Error",
+                    f"Failed to check/clean orphans: {error_msg}"
                 ))
 
         # Use secure thread management
         from ..utils.thread_manager import create_managed_thread
         import uuid
-        
+
         thread_id = f"orphan_cleanup_{uuid.uuid4().hex[:8]}"
         thread = create_managed_thread(thread_id, cleanup_thread, is_background=True)
         if thread is None:
-            messagebox.showerror("Thread Error", 
-                               "Unable to start orphan cleanup: thread limit reached")
+            messagebox.showerror("Thread Error",
+                                 "Unable to start orphan cleanup: thread limit reached")
         else:
             # Start the thread!
             thread.start()
@@ -1456,11 +1484,9 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         elif filter_type == "installed":
             return packages  # All are installed
         elif filter_type == "updates":
-    
+
             return []
         return packages
-
-
 
     def _show_orphan_confirmation_dialog(self, orphan_packages):
         """Show a custom dialog to confirm orphan package removal."""
@@ -1479,10 +1505,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         header_frame.pack_propagate(False)
 
         header_label = tk.Label(header_frame,
-                               text=f"Found {len(orphan_packages)} truly orphaned package(s)",
-                               font=('Segoe UI', 14, 'bold'),
-                               fg='white',
-                               bg=self.colors['primary'])
+                                text=f"Found {len(orphan_packages)} truly orphaned package(s)",
+                                font=('Segoe UI', 14, 'bold'),
+                                fg='white',
+                                bg=self.colors['primary'])
         header_label.pack(expand=True)
 
         # Content frame
@@ -1491,10 +1517,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Info label
         info_label = tk.Label(content_frame,
-                             text="The following packages will be removed:",
-                             font=('Segoe UI', 11, 'normal'),
-                             fg=self.colors['text'],
-                             bg=self.colors['background'])
+                              text="The following packages will be removed:",
+                              font=('Segoe UI', 11, 'normal'),
+                              fg=self.colors['text'],
+                              bg=self.colors['background'])
         info_label.pack(anchor='w', pady=(0, 10))
 
         # Package list frame with scrollbar
@@ -1503,14 +1529,14 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Create listbox with scrollbar
         listbox = tk.Listbox(list_frame,
-                            font=('Consolas', 10, 'normal'),
-                            bg=self.colors['surface'],
-                            fg=self.colors['text'],
-                            selectbackground=self.colors['primary'],
-                            selectforeground='white',
-                            borderwidth=1,
-                            relief='solid',
-                            activestyle='none')
+                             font=('Consolas', 10, 'normal'),
+                             bg=self.colors['surface'],
+                             fg=self.colors['text'],
+                             selectbackground=self.colors['primary'],
+                             selectforeground='white',
+                             borderwidth=1,
+                             relief='solid',
+                             activestyle='none')
 
         scrollbar = ttk.Scrollbar(list_frame, orient='vertical', command=listbox.yview)
         listbox.configure(yscrollcommand=scrollbar.set)
@@ -1525,10 +1551,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Warning label
         warning_label = tk.Label(content_frame,
-                               text="Note: This will run 'sudo pacman -Rns' on these packages.",
-                               font=('Segoe UI', 10, 'italic'),
-                               fg=self.colors['warning'],
-                               bg=self.colors['background'])
+                                 text="Note: This will run 'sudo pacman -Rns' on these packages.",
+                                 font=('Segoe UI', 10, 'italic'),
+                                 fg=self.colors['warning'],
+                                 bg=self.colors['background'])
         warning_label.pack(anchor='w', pady=(0, 15))
 
         # Button frame
@@ -1548,31 +1574,31 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Buttons
         cancel_btn = tk.Button(button_frame,
-                              text="Cancel",
-                              font=('Segoe UI', 11, 'normal'),
-                              fg='white',
-                              bg=self.colors['secondary'],
-                              activebackground=self.colors['secondary'],
-                              activeforeground='white',
-                              bd=0,
-                              padx=20,
-                              pady=8,
-                              cursor='hand2',
-                              command=cancel)
-        cancel_btn.pack(side='right', padx=(10, 0))
-
-        confirm_btn = tk.Button(button_frame,
-                               text=f"Remove {len(orphan_packages)} packages",
+                               text="Cancel",
                                font=('Segoe UI', 11, 'normal'),
                                fg='white',
-                               bg=self.colors['error'],
-                               activebackground=self.colors['error'],
+                               bg=self.colors['secondary'],
+                               activebackground=self.colors['secondary'],
                                activeforeground='white',
                                bd=0,
                                padx=20,
                                pady=8,
                                cursor='hand2',
-                               command=confirm)
+                               command=cancel)
+        cancel_btn.pack(side='right', padx=(10, 0))
+
+        confirm_btn = tk.Button(button_frame,
+                                text=f"Remove {len(orphan_packages)} packages",
+                                font=('Segoe UI', 11, 'normal'),
+                                fg='white',
+                                bg=self.colors['error'],
+                                activebackground=self.colors['error'],
+                                activeforeground='white',
+                                bd=0,
+                                padx=20,
+                                pady=8,
+                                cursor='hand2',
+                                command=confirm)
         confirm_btn.pack(side='right')
 
         # Bind Enter and Escape keys
@@ -1593,7 +1619,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         for widget in self.winfo_children():
             widget.destroy()
         self.setup_ui()
-        
+
         # Reload packages after theme refresh
         self._loading_in_progress = False  # Reset the flag since UI was rebuilt
         self.after(500, self._safe_load_packages)
@@ -1609,14 +1635,14 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             tooltip.wm_overrideredirect(True)
             tooltip.wm_geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
             label = tk.Label(tooltip,
-                           text=text,
-                           font=('Segoe UI', 9, 'normal'),
-                           bg=self.colors['surface'],
-                           fg=self.colors['text'],
-                           borderwidth=1,
-                           relief='solid',
-                           padx=5,
-                           pady=3)
+                             text=text,
+                             font=('Segoe UI', 9, 'normal'),
+                             bg=self.colors['surface'],
+                             fg=self.colors['text'],
+                             borderwidth=1,
+                             relief='solid',
+                             padx=5,
+                             pady=3)
             label.pack()
             widget.tooltip = tooltip
 
@@ -1647,7 +1673,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
             # Remove timezone suffix as it often causes parsing issues
             date_no_tz = install_date
-            tz_patterns = [' CEST', ' CET', ' UTC', ' GMT', ' EDT', ' EST', ' PDT', ' PST', 
+            tz_patterns = [' CEST', ' CET', ' UTC', ' GMT', ' EDT', ' EST', ' PDT', ' PST',
                            ' AEST', ' AEDT', ' JST', ' CST', ' BST', ' IST']
             for tz in tz_patterns:
                 date_no_tz = date_no_tz.replace(tz, '')
@@ -1671,7 +1697,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
             # Fallback: try to extract components using regex
             # This handles edge cases and non-standard formats
-            
+
             # Extract year (4 digits starting with 19 or 20)
             year_match = re.search(r'\b(19\d{2}|20\d{2})\b', install_date)
             # Extract time (HH:MM:SS or HH:MM)
@@ -1684,14 +1710,14 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
                 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
             }
-            
+
             month = None
             # First try to find month name
             for month_name, month_num in month_names.items():
                 if month_name in install_date.lower():
                     month = month_num
                     break
-            
+
             # If no month name found, look for numeric month
             if not month:
                 # Look for patterns like DD.MM or MM/DD
@@ -1747,13 +1773,11 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Apply fixed column widths
         for col_id, config in column_config.items():
-            self.package_tree.column(col_id, width=config['width'], 
-                                   minwidth=config['min'], stretch=True)
+            self.package_tree.column(col_id, width=config['width'],
+                                     minwidth=config['min'], stretch=True)
 
         # Show all columns for fixed layout
         self.package_tree['displaycolumns'] = self.package_tree['columns']
-
-
 
     def cleanup_timers(self):
         """Clean up all managed timers for this component."""
@@ -1761,17 +1785,20 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             cancelled = TimerResourceManager.cancel_component_timers(self._component_id)
             if cancelled > 0:
                 logger.debug(f"Cancelled {cancelled} timers for package manager component")
-    
+
     def destroy(self):
-        """Override destroy to cancel pending operations."""
+        """Override destroy to cancel pending operations and ensure proper cleanup."""
         # Cancel any pending load timer
         if hasattr(self, '_load_timer_id') and self._load_timer_id:
             self.after_cancel(self._load_timer_id)
             self._load_timer_id = None
-        
+
         # Clean up timers
         self.cleanup_timers()
         
+        # Clear sensitive data
+        self.clear_sensitive_data()
+
         # Call parent destroy
         super().destroy()
 
@@ -1786,28 +1813,22 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                     if isinstance(value, (list, dict, set)):
                         value.clear()
                     setattr(self, attr, None)
-            
+
             # Clear any cached package data
             if hasattr(self, 'package_tree') and self.package_tree:
                 try:
                     # Clear the treeview data
                     for item in self.package_tree.get_children():
                         self.package_tree.delete(item)
-                except:
+                except BaseException:
                     pass
-            
+
             # Force memory cleanup
             force_memory_cleanup()
             logger.debug("Cleared sensitive package data from memory")
-            
+
         except Exception as e:
             logger.debug(f"Error clearing sensitive package data: {e}")
-
-    def destroy(self):
-        """Override destroy to ensure proper cleanup."""
-        self.cleanup_timers()
-        self.clear_sensitive_data()
-        super().destroy()
 
     def __del__(self):
         """Destructor to ensure cleanup even if destroy isn't called."""

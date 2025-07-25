@@ -40,35 +40,35 @@ class AsucCLI:
     def _get_single_key(self) -> str:
         """
         Get a single keystroke without requiring Enter.
-        
+
         Returns:
             Single character pressed by user
         """
         try:
             import termios
             import tty
-            
+
             # Save current terminal settings
             fd = sys.stdin.fileno()
             old_settings = termios.tcgetattr(fd)
-            
+
             try:
                 # Set terminal to raw mode
                 tty.setraw(fd)
                 # Read single character
                 char = sys.stdin.read(1)
-                
+
                 # Handle special characters
                 if ord(char) == 3:  # Ctrl+C
                     raise KeyboardInterrupt
                 elif ord(char) == 4:  # Ctrl+D
                     raise EOFError
-                    
+
                 return char
             finally:
                 # Restore terminal settings
                 termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-                
+
         except (ImportError, termios.error):
             # Fallback for non-Unix systems or when raw mode fails
             response = input().strip()
@@ -77,23 +77,23 @@ class AsucCLI:
     def _display_with_pager(self, content: str) -> None:
         """
         Display content with pagination similar to v1.0 implementation.
-        
+
         Args:
             content: Content to display
         """
         import textwrap
-        
+
         # Process lines with proper wrapping
         raw_lines = content.split('\n')
         lines = []
-        
+
         # Get terminal width for wrapping
         try:
             import shutil
             terminal_width = shutil.get_terminal_size().columns - 2
-        except:
+        except BaseException:
             terminal_width = 78
-            
+
         # Wrap long lines
         wrapper = textwrap.TextWrapper(width=terminal_width)
         for line in raw_lines:
@@ -111,15 +111,14 @@ class AsucCLI:
                         lines.append('')
             else:
                 lines.append('')
-        
+
         # Get terminal height for pagination
         try:
             import shutil
-            import os
             import subprocess
-            
+
             terminal_height = None
-            
+
             # First check if user has manually set page size
             env_page_size = os.environ.get('ASUC_PAGE_SIZE', '').strip()
             if env_page_size.isdigit():
@@ -130,71 +129,71 @@ class AsucCLI:
                     result = subprocess.run(['tput', 'lines'], capture_output=True, text=True)
                     if result.returncode == 0 and result.stdout.strip().isdigit():
                         terminal_height = int(result.stdout.strip())
-                except:
+                except BaseException:
                     pass
-                
+
                 # Fallback to shutil method
                 if not terminal_height or terminal_height < 10:
                     size = shutil.get_terminal_size()
                     terminal_height = size.lines
-                
+
                 # If we still get unrealistic values, try environment variables
                 if terminal_height < 10:
                     # Try LINES environment variable
                     env_lines = os.environ.get('LINES', '').strip()
                     if env_lines.isdigit():
                         terminal_height = int(env_lines)
-                
+
                 # If still too small, use a reasonable default
                 if terminal_height < 10:
                     terminal_height = 24  # Standard terminal height
-                
+
                 # Reserve lines for prompt (3 lines)
                 terminal_height = terminal_height - 3
-            
+
             # Ensure minimum reasonable height
             terminal_height = max(terminal_height, 10)
-            
-        except Exception as e:
+
+        except Exception:
             # Fallback to reasonable default
             terminal_height = 20
-        
+
         # If content fits on screen, just print it
         if len(lines) <= terminal_height:
             print(content)
             return
-        
+
         # Paginate the content
         current_line = 0
         total_lines = len(lines)
-        
+
         while current_line < total_lines:
             # Clear screen for cleaner pagination
             os.system('clear' if os.name != 'nt' else 'cls')
-            
+
             # Calculate line range for current display
             end_line = min(current_line + terminal_height, total_lines)
-            
+
             # Show current page content
             for i in range(current_line, end_line):
                 print(lines[i])
-            
+
             # Check if we've reached the end
             if end_line >= total_lines:
-                print(f"\n(END) Press any key to continue...")
+                print("\n(END) Press any key to continue...")
                 try:
                     self._get_single_key()
                 except (EOFError, KeyboardInterrupt):
                     pass
                 break
-            
+
             # Show progress and navigation prompt
             progress = f"Lines {current_line + 1}-{end_line} of {total_lines}"
             print(f"\n{progress} -- Press SPACE for next, 'p' for previous, 'q' to quit")
-            
+
             try:
                 response = self._get_single_key().lower()
-                
+
                 if response == ' ':  # Space = next
                     current_line = end_line
                 elif response == 'p':  # Previous page
@@ -206,7 +205,7 @@ class AsucCLI:
                 # Any other key = next page (like standard pagers)
                 else:
                     current_line = end_line
-                    
+
             except (EOFError, KeyboardInterrupt):
                 print()  # Clean line before exit
                 break
@@ -279,20 +278,20 @@ class AsucCLI:
                 # Prepare all content first to determine if pagination is needed
                 has_updates = result.update_count > 0
                 has_news = result.news_count > 0
-                
+
                 # Build complete output
                 output_lines = []
-                
+
                 # Add initial status message
                 if not args.quiet:
                     output_lines.append("Checking for updates and relevant news...")
                     output_lines.append("")
-                
+
                 # Add news section if present
                 if has_news:
                     output_lines.append(f"Relevant news items: {result.news_count}")
                     output_lines.append("─" * (len(f"Relevant news items: {result.news_count}")))
-                    
+
                     news_dict = [
                         {
                             'title': n.title,
@@ -304,18 +303,18 @@ class AsucCLI:
                     ]
                     news_formatted = self.formatter.format_news_items(news_dict)
                     output_lines.extend(news_formatted.split('\n'))
-                    
+
                     if has_updates:
                         output_lines.append("")  # Add spacing
                 elif not args.quiet and has_updates:
                     output_lines.append("No relevant news items")
                     output_lines.append("")
-                
+
                 # Add updates section if present
                 if has_updates:
                     output_lines.append(f"Available updates: {result.update_count}")
                     output_lines.append("─" * (len(f"Available updates: {result.update_count}")))
-                    
+
                     updates_dict = [
                         {
                             'name': u.name,
@@ -326,23 +325,24 @@ class AsucCLI:
                     ]
                     updates_formatted = self.formatter.format_updates_table(updates_dict)
                     output_lines.extend(updates_formatted.split('\n'))
-                    
+
                     # Add update summary information
                     output_lines.append("")
                     output_lines.append("Update Summary")
                     output_lines.append("─" * 14)
-                    
+
                     # Calculate totals
                     total_packages = len(result.updates)
                     packages_with_size = [u for u in result.updates if u.size is not None]
                     total_download_size = sum(u.size for u in packages_with_size) if packages_with_size else None
-                    
+
                     # Get packages with installed size info
                     packages_with_installed_size = [u for u in result.updates if u.installed_size is not None]
-                    total_installed_size = sum(u.installed_size for u in packages_with_installed_size) if packages_with_installed_size else None
-                    
+                    total_installed_size = sum(
+                        u.installed_size for u in packages_with_installed_size) if packages_with_installed_size else None
+
                     output_lines.append(f"  Total packages: {total_packages}")
-                    
+
                     # Helper function to format size
                     def format_size(size_bytes):
                         if size_bytes < 1024:
@@ -353,17 +353,19 @@ class AsucCLI:
                             return f"{size_bytes / (1024 * 1024):.1f} MB"
                         else:
                             return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
-                    
+
                     if total_download_size is not None and total_download_size > 0:
                         output_lines.append(f"  Download size: {format_size(total_download_size)}")
-                        
+
                         # Use actual installed size if available
                         if total_installed_size is not None and total_installed_size > 0:
                             output_lines.append(f"  Disk space required: {format_size(total_installed_size)}")
-                            
+
                             # Show coverage if not complete
                             if len(packages_with_installed_size) < total_packages:
-                                output_lines.append(f"  (Size data available for {len(packages_with_installed_size)}/{total_packages} packages)")
+                                output_lines.append(
+                                    f"  (Size data available for {
+                                        len(packages_with_installed_size)}/{total_packages} packages)")
                         else:
                             # Fallback to estimate only if no installed size data
                             estimated_installed = int(total_download_size * 2.5)
@@ -372,35 +374,35 @@ class AsucCLI:
                     else:
                         output_lines.append("  Download size: Calculating...")
                         output_lines.append("  Note: Run with --verbose to see size calculation progress")
-                    
+
                     # Add repository breakdown
                     repos = {}
                     for update in result.updates:
                         repo = update.repository or "unknown"
                         repos[repo] = repos.get(repo, 0) + 1
-                    
+
                     if len(repos) > 1 or "unknown" not in repos:
                         output_lines.append("")
                         output_lines.append("  By repository:")
                         for repo, count in sorted(repos.items()):
                             if repo != "unknown":
                                 output_lines.append(f"    {repo}: {count} packages")
-                    
+
                     # Add upgrade command hint
                     output_lines.append("")
                     output_lines.append("  Use 'sudo pacman -Syu' to apply these updates")
                     output_lines.append("  Or answer 'y' when prompted after viewing this list")
-                    
+
                 elif not has_news and not args.quiet:
                     output_lines.append("System is up to date")
-                
+
                 # Combine all content
                 complete_output = '\n'.join(output_lines)
-                
+
                 # Determine if pagination is needed
                 total_lines = len(output_lines)
                 needs_pagination = (has_updates and result.update_count > 20) or total_lines > 30
-                
+
                 if needs_pagination and not args.quiet:
                     # Use pager for all content
                     self._display_with_pager(complete_output)
@@ -416,19 +418,17 @@ class AsucCLI:
                     if response.lower() in ['y', 'yes']:
                         # Get list of packages to update
                         packages = [u.name for u in result.updates]
-                        
+
                         # Run the upgrade
-                        from ..utils.pacman_runner import PacmanRunner
-                        
                         print()
                         self.formatter.info("Starting system upgrade...")
                         exit_code, duration, output = PacmanRunner.run_update_interactive(packages)
-                        
+
                         # Record history if enabled
                         if self.config.get('update_history_enabled', False):
                             entry = PacmanRunner.create_history_entry(packages, exit_code, duration)
                             self.update_history.add(entry)
-                        
+
                         if exit_code == 0:
                             self.formatter.success("Upgrade completed successfully")
                             return 0
@@ -452,7 +452,7 @@ class AsucCLI:
         """Handle 'updates' command - list available package updates only."""
         if not args.quiet and not args.json:
             self.formatter.info("Checking for package updates only...")
-            
+
         try:
             updates = self.package_manager.check_for_updates()
 
@@ -477,14 +477,14 @@ class AsucCLI:
                         }
                         for u in updates
                     ]
-                    
+
                     # Use pagination for large lists
                     if len(updates) > 20:
                         formatted_output = self.formatter.format_updates_table(updates_dict)
                         self._display_with_pager(formatted_output)
                     else:
                         print(self.formatter.format_updates_table(updates_dict))
-                        
+
                     if not args.quiet:
                         self.formatter.info("Note: Use 'asuc-cli check' to also see relevant news items")
                 else:
@@ -658,14 +658,14 @@ class AsucCLI:
             elif args.action == 'edit':
                 from ..utils.subprocess_wrapper import SecureSubprocess
                 from ..utils.validators import validate_config_path, validate_editor_command, get_safe_environment_variable
-                
+
                 # Validate config file path first
                 try:
                     validate_config_path(self.config.config_file)
                 except ValueError as e:
                     self.formatter.error(f"Config file path not allowed: {e}")
                     return 1
-                
+
                 # Get and validate editor from environment with enhanced security
                 try:
                     editor_env = get_safe_environment_variable('EDITOR', 'nano', 'command')
@@ -673,7 +673,7 @@ class AsucCLI:
                 except ValueError as e:
                     self.formatter.error(f"Editor validation failed: {e}")
                     return 1
-                
+
                 try:
                     SecureSubprocess.run([editor_name, self.config.config_file])
                 except ValueError as e:
@@ -709,7 +709,7 @@ class AsucCLI:
             # Clear pacman cache (requires sudo)
             if not args.json:
                 self.formatter.info("Clearing pacman cache...")
-            
+
             from ..utils.subprocess_wrapper import SecureSubprocess
             try:
                 result = SecureSubprocess.run(
@@ -717,14 +717,14 @@ class AsucCLI:
                     capture_output=True,
                     text=True
                 )
-                
+
                 if result.returncode == 0:
                     self.formatter.success("Pacman cache cleared")
                 else:
                     self.formatter.warning("Failed to clear pacman cache (paccache may not be installed)")
             except (ValueError, subprocess.CalledProcessError) as e:
                 self.formatter.warning(f"Failed to clear pacman cache: {e}")
-            
+
             return 0
 
         except Exception as e:
@@ -771,13 +771,13 @@ def create_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # updates command
-    updates_parser = subparsers.add_parser(
-        'updates', 
+    subparsers.add_parser(
+        'updates',
         help='List available package updates only (no news)'
     )
 
     # news command
-    news_parser = subparsers.add_parser('news', help='Show relevant news items')
+    subparsers.add_parser('news', help='Show relevant news items')
 
     # history command
     history_parser = subparsers.add_parser('history', help='Display update history')
@@ -805,14 +805,14 @@ def create_parser() -> argparse.ArgumentParser:
 
     # config command
     config_parser = subparsers.add_parser(
-        'config', 
+        'config',
         help='View/modify configuration',
         description='Manage configuration settings. Examples:\n'
-                   '  asuc-cli config get                 # Show all settings\n'
-                   '  asuc-cli config get cache_ttl_hours # Show specific setting\n'
-                   '  asuc-cli config set cache_ttl_hours 2  # Set a value\n'
-                   '  asuc-cli config path               # Show config file location\n'
-                   '  asuc-cli config edit               # Edit config file',
+        '  asuc-cli config get                 # Show all settings\n'
+        '  asuc-cli config get cache_ttl_hours # Show specific setting\n'
+        '  asuc-cli config set cache_ttl_hours 2  # Set a value\n'
+        '  asuc-cli config path               # Show config file location\n'
+        '  asuc-cli config edit               # Edit config file',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     config_parser.add_argument(
@@ -832,7 +832,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     # clear-cache command
-    cache_parser = subparsers.add_parser('clear-cache', help='Clear feed & pacman caches')
+    subparsers.add_parser('clear-cache', help='Clear feed & pacman caches')
 
     return parser
 

@@ -43,7 +43,7 @@ class NewsFetcher:
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": APP_USER_AGENT})
         self.session.timeout = DEFAULT_REQUEST_TIMEOUT
-        
+
         # Configure secure session settings
         self._configure_secure_session()
 
@@ -52,7 +52,7 @@ class NewsFetcher:
 
         # Default freshness window (in days)
         self.max_news_age_days = 30
-        
+
         # Configure secure XML parsing to prevent XXE attacks
         self._configure_secure_xml_parsing()
 
@@ -65,30 +65,39 @@ class NewsFetcher:
         try:
             # Configure feedparser to use secure XML parsing
             import xml.etree.ElementTree as ET
-            
+
             # Set up secure XML parser
             try:
                 # Try to configure the XML parser to disable external entities
                 import xml.sax.saxutils
-                
+
                 # Monkey patch feedparser's XML parser to be more secure
                 original_parse = feedparser.parse
-                
+
                 def secure_parse(data_or_url, etag=None, modified=None, agent=None, referrer=None, handlers=None):
                     """Secure wrapper for feedparser.parse that limits XML features."""
                     logger.debug(f"secure_parse called with data type: {type(data_or_url)}")
-                    
+
                     # If it's a URL, let the regular flow handle it (we validate URLs separately)
-                    if isinstance(data_or_url, str) and (data_or_url.startswith('http://') or data_or_url.startswith('https://')):
+                    if isinstance(data_or_url, str) and (data_or_url.startswith(
+                            'http://') or data_or_url.startswith('https://')):
                         logger.debug("Parsing URL directly")
-                        return original_parse(data_or_url, etag=etag, modified=modified, agent=agent, referrer=referrer, handlers=handlers)
-                    
+                        return original_parse(
+                            data_or_url,
+                            etag=etag,
+                            modified=modified,
+                            agent=agent,
+                            referrer=referrer,
+                            handlers=handlers)
+
                     # For raw data parsing, apply additional security
                     try:
                         # Pre-scan the content for suspicious patterns
                         if isinstance(data_or_url, (str, bytes)):
-                            content = data_or_url if isinstance(data_or_url, str) else data_or_url.decode('utf-8', errors='ignore')
-                            
+                            content = data_or_url if isinstance(
+                                data_or_url, str) else data_or_url.decode(
+                                'utf-8', errors='ignore')
+
                             # Check for XXE attack patterns (avoid false positives with standard entities)
                             xxe_patterns = [
                                 # Only check for actual file/http references in ENTITY declarations
@@ -106,7 +115,7 @@ class NewsFetcher:
                                 r'<!DOCTYPE[^>]*\[[\s\S]*<!ENTITY[^>]*SYSTEM[^>]*file:',
                                 r'<!DOCTYPE[^>]*\[[\s\S]*<!ENTITY[^>]*SYSTEM[^>]*http[s]?:'
                             ]
-                            
+
                             for pattern in xxe_patterns:
                                 if re.search(pattern, content, re.IGNORECASE):
                                     logger.warning(f"Suspicious XML pattern detected: {pattern}, rejecting feed")
@@ -116,23 +125,29 @@ class NewsFetcher:
                                     empty_feed.bozo_exception = Exception("Potentially malicious XML content detected")
                                     empty_feed.entries = []
                                     return empty_feed
-                    
+
                             logger.debug("XML content passed security checks")
-                    
+
                     except Exception as e:
                         logger.warning(f"Error scanning XML content: {e}")
-                    
+
                     logger.debug("Calling original parse function")
-                    result = original_parse(data_or_url, etag=etag, modified=modified, agent=agent, referrer=referrer, handlers=handlers)
+                    result = original_parse(
+                        data_or_url,
+                        etag=etag,
+                        modified=modified,
+                        agent=agent,
+                        referrer=referrer,
+                        handlers=handlers)
                     logger.debug(f"Parse result: {len(getattr(result, 'entries', []))} entries")
                     return result
-                
+
                 # Replace feedparser's parse function with our secure version
                 feedparser.parse = secure_parse
-                
+
             except Exception as e:
                 logger.warning(f"Could not configure XML parser security: {e}")
-                
+
         except Exception as e:
             logger.warning(f"Failed to configure secure XML parsing: {e}")
 
@@ -143,7 +158,7 @@ class NewsFetcher:
         try:
             # Enable SSL verification (should be default, but make it explicit)
             self.session.verify = True
-            
+
             # Configure secure headers with additional security measures
             self.session.headers.update({
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html',
@@ -155,20 +170,20 @@ class NewsFetcher:
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Charset': 'utf-8',
             })
-            
+
             # Configure adapters with enhanced retry and security settings
             from requests.adapters import HTTPAdapter
             from urllib3.util.retry import Retry
             import urllib3
-            
+
             # Disable SSL warnings for our controlled environment
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            
+
             # Configure aggressive retry strategy with backoff
             retry_strategy = Retry(
                 total=2,  # Reduced from 3 for faster failure
                 connect=2,  # Connection retries
-                read=1,     # Read retries  
+                read=1,     # Read retries
                 status=1,   # Status retries
                 status_forcelist=[429, 500, 502, 503, 504, 520, 521, 522, 523, 524],
                 backoff_factor=0.5,  # Faster backoff
@@ -176,7 +191,7 @@ class NewsFetcher:
                 raise_on_status=False,  # Don't raise on HTTP errors in retry
                 respect_retry_after_header=True,
             )
-            
+
             # Create adapter with strict resource limits
             adapter = HTTPAdapter(
                 max_retries=retry_strategy,
@@ -184,32 +199,32 @@ class NewsFetcher:
                 pool_maxsize=5,      # Reduced max connections
                 pool_block=False,    # Don't block on pool exhaustion
             )
-            
+
             # Mount adapter for both HTTP and HTTPS
             self.session.mount("http://", adapter)
             self.session.mount("https://", adapter)
-            
+
             # Set comprehensive security parameters
             self.session.max_redirects = 3  # Further reduced redirect limit
-            
+
             # Configure timeout defaults
             self.session.timeout = (5, 15)  # (connect_timeout, read_timeout)
-            
+
             # Configure stream limits
             self.session.stream = False  # Never stream responses for security
-            
+
             # Add request hooks for monitoring
             self.session.hooks['response'].append(self._response_security_hook)
-            
+
             logger.debug("Configured enhanced secure session settings")
-            
+
         except Exception as e:
             logger.warning(f"Failed to configure secure session: {e}")
 
     def _response_security_hook(self, response, *args, **kwargs):
         """
         Security hook to validate responses and enforce limits.
-        
+
         Args:
             response: HTTP response object
         """
@@ -226,61 +241,61 @@ class NewsFetcher:
                         return response
                 except (ValueError, TypeError):
                     pass
-            
+
             # Check content type for validity
             content_type = response.headers.get('content-type', '').lower()
             allowed_types = [
-                'application/rss+xml', 'application/atom+xml', 'application/xml', 
+                'application/rss+xml', 'application/atom+xml', 'application/xml',
                 'text/xml', 'text/html', 'text/plain'
             ]
-            
+
             if content_type and not any(allowed in content_type for allowed in allowed_types):
                 logger.warning(f"Unexpected content type: {content_type}")
-            
+
             # Log response metrics for monitoring
             response_size = len(response.content) if hasattr(response, 'content') else 0
             logger.debug(f"Response received: {response.status_code}, size: {response_size} bytes")
-            
+
         except Exception as e:
             logger.debug(f"Response security hook error: {e}")
-        
+
         return response
 
     def _validate_request_parameters(self, url: str, timeout: int = None) -> tuple:
         """
         Validate and normalize request parameters for security.
-        
+
         Args:
             url: URL to validate
             timeout: Timeout value to validate
-            
+
         Returns:
             Tuple of (validated_url, validated_timeout)
-            
+
         Raises:
             NetworkError: If parameters are invalid
         """
         # URL validation
         if not url or len(url) > 2048:
             raise NetworkError("Invalid URL length")
-        
+
         # Parse and validate URL components
         try:
             from urllib.parse import urlparse
             parsed = urlparse(url)
-            
+
             # Check scheme
             if parsed.scheme not in ['http', 'https']:
                 raise NetworkError(f"Invalid URL scheme: {parsed.scheme}")
-            
+
             # Check for suspicious characters
             if any(char in url for char in ['<', '>', '"', "'", '\\', '\x00', '\x01', '\x02']):
                 raise NetworkError("URL contains suspicious characters")
-            
+
             # Validate hostname
             if not parsed.hostname:
                 raise NetworkError("URL missing hostname")
-            
+
             # Check for private IP addresses (basic SSRF protection)
             try:
                 import ipaddress
@@ -290,7 +305,7 @@ class NewsFetcher:
             except (ipaddress.AddressValueError, ValueError):
                 # Not an IP address, continue
                 pass
-            
+
             # Port validation
             if parsed.port:
                 if not (1 <= parsed.port <= 65535):
@@ -299,47 +314,47 @@ class NewsFetcher:
                 blocked_ports = {22, 23, 25, 53, 135, 139, 445, 1433, 1521, 3306, 3389, 5432, 6379}
                 if parsed.port in blocked_ports:
                     raise NetworkError(f"Blocked port: {parsed.port}")
-            
+
         except NetworkError:
             raise
         except Exception as e:
             raise NetworkError(f"URL parsing failed: {e}")
-        
+
         # Timeout validation and normalization
         if timeout is None:
             timeout = FEED_FETCH_TIMEOUT
-        
+
         # Enforce timeout limits
         min_timeout = 1   # Minimum 1 second
         max_timeout = 60  # Maximum 1 minute
-        
+
         if timeout < min_timeout:
             logger.warning(f"Timeout too small ({timeout}s), using minimum ({min_timeout}s)")
             timeout = min_timeout
         elif timeout > max_timeout:
             logger.warning(f"Timeout too large ({timeout}s), using maximum ({max_timeout}s)")
             timeout = max_timeout
-        
+
         return url, timeout
 
     def _make_secure_request(self, url: str, timeout: int = None, **kwargs) -> 'requests.Response':
         """
         Make a secure HTTP request with comprehensive controls.
-        
+
         Args:
             url: URL to request
             timeout: Request timeout
             **kwargs: Additional request parameters
-            
+
         Returns:
             Response object
-            
+
         Raises:
             NetworkError: If request fails or is unsafe
         """
         # Validate parameters
         url, timeout = self._validate_request_parameters(url, timeout)
-        
+
         # Set up security parameters
         request_params = {
             'timeout': (min(5, timeout // 3), timeout),  # (connect, read) timeout
@@ -347,12 +362,12 @@ class NewsFetcher:
             'stream': False,  # Never stream for security
             'verify': True,   # Always verify SSL
         }
-        
+
         # Override with any provided kwargs (but maintain security)
-        safe_kwargs = {k: v for k, v in kwargs.items() 
-                      if k in ['headers', 'params', 'auth', 'cookies']}
+        safe_kwargs = {k: v for k, v in kwargs.items()
+                       if k in ['headers', 'params', 'auth', 'cookies']}
         request_params.update(safe_kwargs)
-        
+
         # Rate limiting (basic implementation)
         import time
         current_time = time.time()
@@ -361,21 +376,21 @@ class NewsFetcher:
             min_interval = 0.1  # 100ms minimum between requests
             if time_since_last < min_interval:
                 time.sleep(min_interval - time_since_last)
-        
+
         self._last_request_time = time.time()
-        
+
         try:
             with self._session_lock:
                 logger.debug(f"Making secure request to: {url[:100]}...")
-                
+
                 # Make the request with enhanced error handling
                 response = self.session.get(url, **request_params)
-                
+
                 # Validate response
                 self._validate_response(response, url)
-                
+
                 return response
-                
+
         except requests.exceptions.Timeout as e:
             raise NetworkError(f"Request timed out after {timeout}s: {e}")
         except requests.exceptions.ConnectionError as e:
@@ -392,11 +407,11 @@ class NewsFetcher:
     def _validate_response(self, response: 'requests.Response', original_url: str) -> None:
         """
         Validate HTTP response for security and content requirements.
-        
+
         Args:
             response: HTTP response to validate
             original_url: Original requested URL
-            
+
         Raises:
             NetworkError: If response is invalid or unsafe
         """
@@ -422,39 +437,39 @@ class NewsFetcher:
                 raise NetworkError(f"Server error: {response.status_code}")
             else:
                 raise NetworkError(f"Unexpected status code: {response.status_code}")
-            
+
             # Validate content length
             actual_size = len(response.content)
             max_content_size = 50 * 1024 * 1024  # 50MB
-            
+
             if actual_size > max_content_size:
                 raise NetworkError(f"Response too large: {actual_size} bytes")
-            
+
             if actual_size == 0:
                 raise NetworkError("Empty response received")
-            
+
             # Check content type
             content_type = response.headers.get('content-type', '').lower()
             expected_types = ['xml', 'rss', 'atom', 'html']
-            
+
             if content_type and not any(expected in content_type for expected in expected_types):
                 logger.warning(f"Unexpected content type: {content_type}")
-            
+
             # Check for suspicious content patterns
             content_preview = response.content[:1000].decode('utf-8', errors='ignore').lower()
-            
+
             # Check for basic XML/RSS structure
             if not any(tag in content_preview for tag in ['<rss', '<feed', '<xml', '<?xml', '<html']):
                 logger.warning("Response does not appear to be valid RSS/XML content")
-            
+
             # Check for suspicious content
             suspicious_patterns = ['<script', 'javascript:', 'vbscript:', 'data:']
             for pattern in suspicious_patterns:
                 if pattern in content_preview:
                     logger.warning(f"Suspicious content pattern detected: {pattern}")
-            
+
             logger.debug(f"Response validated: {actual_size} bytes, type: {content_type}")
-            
+
         except NetworkError:
             raise
         except Exception as e:
@@ -463,43 +478,43 @@ class NewsFetcher:
     def _rate_limit_check(self, url: str) -> None:
         """
         Check if request should be rate limited.
-        
+
         Args:
             url: URL being requested
-            
+
         Raises:
             NetworkError: If rate limit is exceeded
         """
         from urllib.parse import urlparse
-        
+
         try:
             hostname = urlparse(url).hostname
             if not hostname:
                 return
-            
+
             # Simple per-host rate limiting
             import time
             current_time = time.time()
-            
+
             if not hasattr(self, '_host_request_times'):
                 self._host_request_times = {}
-            
+
             if hostname not in self._host_request_times:
                 self._host_request_times[hostname] = []
-            
+
             # Clean old entries (older than 1 minute)
             cutoff_time = current_time - 60
             self._host_request_times[hostname] = [
                 t for t in self._host_request_times[hostname] if t > cutoff_time
             ]
-            
+
             # Check rate limit (max 10 requests per minute per host)
             if len(self._host_request_times[hostname]) >= 10:
                 raise NetworkError(f"Rate limit exceeded for {hostname}")
-            
+
             # Record this request
             self._host_request_times[hostname].append(current_time)
-            
+
         except NetworkError:
             raise
         except Exception as e:
@@ -578,7 +593,7 @@ class NewsFetcher:
         # Validate URL
         if not validate_feed_url(url, require_https=True):
             raise FeedParsingError(
-                f"Invalid or insecure feed URL",
+                "Invalid or insecure feed URL",
                 feed_name=feed_name,
                 feed_url=url
             )
@@ -586,7 +601,7 @@ class NewsFetcher:
         # Check domain
         if not self._validate_feed_domain(url):
             raise FeedParsingError(
-                f"Untrusted feed domain",
+                "Untrusted feed domain",
                 feed_name=feed_name,
                 feed_url=url
             )
@@ -608,7 +623,7 @@ class NewsFetcher:
                     if parsed_url.hostname and parsed_url.hostname.lower() in ['localhost', '127.0.0.1', '0.0.0.0']:
                         if not url.startswith('https://localhost') and not url.startswith('http://localhost'):
                             raise NetworkError(f"Local network access not allowed: {url}")
-                    
+
                     # Check for private IP ranges (basic protection against SSRF)
                     import ipaddress
                     try:
@@ -619,40 +634,45 @@ class NewsFetcher:
                     except (ipaddress.AddressValueError, ValueError):
                         # Not an IP address, continue with hostname
                         pass
-                    
+
                     response = self.session.get(
-                        url, 
+                        url,
                         timeout=FEED_FETCH_TIMEOUT,
                         allow_redirects=True,
                         stream=False  # Don't stream to enable content length checks
                     )
-                    
+
                 response.raise_for_status()
-                
+
                 # Security checks on response
                 content_length = len(response.content)
                 if content_length > 10 * 1024 * 1024:  # 10MB limit
                     raise NetworkError(f"Feed content too large: {content_length} bytes")
-                
+
                 if content_length == 0:
                     raise NetworkError(f"Empty response from feed: {url}")
-                
+
                 # Check content type
                 content_type = response.headers.get('content-type', '').lower()
-                allowed_types = ['application/rss+xml', 'application/atom+xml', 'application/xml', 'text/xml', 'text/html']
+                allowed_types = [
+                    'application/rss+xml',
+                    'application/atom+xml',
+                    'application/xml',
+                    'text/xml',
+                    'text/html']
                 if content_type and not any(allowed_type in content_type for allowed_type in allowed_types):
                     logger.warning(f"Unexpected content type for feed {feed_name}: {content_type}")
-                
+
                 # Check for suspicious redirects
                 if response.history:
                     final_url = response.url
                     if len(response.history) > 3:
                         logger.warning(f"Feed {feed_name} had {len(response.history)} redirects")
-                    
+
                     # Ensure final URL is still valid
                     if not validate_feed_url(final_url, require_https=True):
                         raise NetworkError(f"Redirected to invalid URL: {final_url}")
-                
+
             except requests.exceptions.SSLError as e:
                 raise NetworkError(f"SSL verification failed for {url}: {e}")
             except requests.exceptions.Timeout:
@@ -726,7 +746,8 @@ class NewsFetcher:
 
                     # Security check: prevent excessive items from single feed
                     if len(news_items) >= max_items_per_feed:
-                        logger.warning(f"Feed {feed_name} reached max items limit ({max_items_per_feed}), stopping processing")
+                        logger.warning(
+                            f"Feed {feed_name} reached max items limit ({max_items_per_feed}), stopping processing")
                         break
 
                 except Exception as e:
@@ -776,7 +797,7 @@ class NewsFetcher:
 
         # Use secure ThreadPoolExecutor for parallel fetching
         from .utils.thread_manager import SecureThreadPoolExecutor
-        
+
         max_workers = min(len(active_feeds), 5)  # Limit concurrent connections
         executor = SecureThreadPoolExecutor.get_executor(max_workers)
 
@@ -866,15 +887,15 @@ class NewsFetcher:
                             return result
                     except (ipaddress.AddressValueError, ValueError):
                         pass  # Not an IP address
-                
+
                 response = self.session.get(
-                    url, 
+                    url,
                     timeout=10,
                     allow_redirects=True,
                     stream=False
                 )
             response.raise_for_status()
-            
+
             # Check response size
             if len(response.content) > 10 * 1024 * 1024:  # 10MB limit
                 result["error"] = "Feed content too large"

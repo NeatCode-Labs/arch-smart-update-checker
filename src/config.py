@@ -35,9 +35,9 @@ class Config:
             config_file: Path to configuration file
         """
         from .utils.validators import validate_config_path
-        
+
         self._batch_mode = False  # Prevent saves during batch updates
-        
+
         if config_file:
             try:
                 validate_config_path(config_file)
@@ -48,7 +48,7 @@ class Config:
                 self.config_file = str(get_default_config_path())
         else:
             self.config_file = str(get_default_config_path())
-            
+
         self.distribution_detector = DistributionDetector()
         self._app_config = self._load_config()
         # Keep the old dict interface for backward compatibility
@@ -77,12 +77,12 @@ class Config:
                     file_size = os.path.getsize(self.config_file)
                     if file_size > 1024 * 1024:  # 1MB limit
                         raise ValueError(f"Config file too large: {file_size} bytes")
-                    
+
                     data = json.load(f)
-                    
+
                     # Validate and sanitize the configuration
                     from .utils.validators import validate_config_json, sanitize_config_json
-                    
+
                     try:
                         validate_config_json(data)
                         sanitized_data = sanitize_config_json(data)
@@ -92,7 +92,7 @@ class Config:
                         logger.error(f"Invalid configuration structure: {e}")
                         logger.info("Using default configuration due to validation failure")
                         return self._get_default_app_config()
-                        
+
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON in config file {self.config_file}: {e}")
         except PermissionError as e:
@@ -171,7 +171,7 @@ class Config:
         # Skip saving if in batch mode
         if getattr(self, '_batch_mode', False):
             return
-            
+
         try:
             config_dir = Path(self.config_file).parent
             config_dir.mkdir(parents=True, exist_ok=True)
@@ -342,7 +342,7 @@ class Config:
     def batch_update(self):
         """Context manager for batch updates without intermediate saves."""
         from contextlib import contextmanager
-        
+
         @contextmanager
         def _batch_context():
             self._batch_mode = True
@@ -352,9 +352,9 @@ class Config:
                 self._batch_mode = False
                 # Save once at the end
                 self.save_config()
-                
+
         return _batch_context()
-            
+
     def set_feeds(self, feeds: List[Dict[str, Any]]) -> None:
         """
         Set the entire feeds list.
@@ -401,11 +401,11 @@ class Config:
                                 for k in list(value.keys()):
                                     value[k] = None
                                 value.clear()
-                
+
                 # Force memory cleanup
                 force_memory_cleanup()
                 logger.debug("Cleared sensitive configuration data from memory")
-                
+
         except Exception as e:
             logger.debug(f"Error clearing sensitive config data: {e}")
 

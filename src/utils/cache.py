@@ -52,10 +52,10 @@ class CacheManager:
             raise CacheError(f"Cannot create cache directory: {e}")
 
         self.ttl_hours = ttl_hours
-        
+
         # Initialize cryptographic salt for secure cache key generation
         self._cache_salt = secrets.token_hex(16)
-        
+
         logger.debug(f"Initialized cache manager with TTL={ttl_hours} hours and secure key generation")
 
     def _ensure_cache_dir(self) -> None:
@@ -146,7 +146,7 @@ class CacheManager:
                     data_str = json.dumps(cached_data, default=self._json_encoder, sort_keys=True, ensure_ascii=False)
                     computed_hash = hashlib.sha256(data_str.encode('utf-8')).hexdigest()
                     stored_hash = data.get("integrity_hash")
-                    
+
                     if computed_hash != stored_hash:
                         logger.warning(f"Cache integrity check failed for key: {key}")
                         # Remove corrupted file

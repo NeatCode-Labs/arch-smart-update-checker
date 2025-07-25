@@ -5,13 +5,12 @@ Main entry point for the Arch Smart Update Checker GUI application.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from .main_window import MainWindow
 import sys
 import os
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from .main_window import MainWindow
 
 
 def main():

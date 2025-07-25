@@ -101,7 +101,14 @@ class OutputFormatter:
             new = update.get('new_version', 'unknown')
 
             if self.use_color:
-                row = f"  {self.white}{name:<{max_name}}{self.reset}  {current:<{max_current}}  {self.green}{new:<{max_new}}{self.reset}"
+                row = f"  {
+                    self.white}{
+                    name:<{max_name}}{
+                    self.reset}  {
+                    current:<{max_current}}  {
+                    self.green}{
+                        new:<{max_new}}{
+                            self.reset}"
             else:
                 row = f"  {name:<{max_name}}  {current:<{max_current}}  {new:<{max_new}}"
 
@@ -184,7 +191,7 @@ class OutputFormatter:
                 try:
                     dt = datetime.fromisoformat(timestamp)
                     date_str = dt.strftime('%Y-%m-%d %H:%M:%S')
-                except:
+                except BaseException:
                     date_str = timestamp[:19]  # First 19 chars
             else:
                 date_str = 'unknown'

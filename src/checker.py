@@ -107,7 +107,7 @@ class UpdateChecker:
         return result
 
     def _filter_relevant_news(self, all_news: List[NewsItem],
-                            installed_packages: Set[str]) -> List[NewsItem]:
+                              installed_packages: Set[str]) -> List[NewsItem]:
         """
         Filter news items based on relevance to installed packages.
 
@@ -142,8 +142,8 @@ class UpdateChecker:
         return relevant_news
 
     def _is_news_relevant(self, news_item: NewsItem,
-                         installed_packages: Set[str],
-                         critical_packages: Set[str]) -> bool:
+                          installed_packages: Set[str],
+                          critical_packages: Set[str]) -> bool:
         """
         Check if a news item is relevant.
 
@@ -253,49 +253,49 @@ class UpdateChecker:
     def check_news_only(self) -> UpdateCheckResult:
         """
         Check for news items only (no package updates).
-        
+
         Returns:
             UpdateCheckResult with only news items
         """
         logger.info("Checking for news only...")
         result = UpdateCheckResult(status=UpdateStatus.CHECKING)
-        
+
         try:
             # Get installed packages for matching
             logger.debug("Getting installed packages...")
             installed_packages = self.package_manager.get_installed_package_names()
-            
+
             # Fetch news
             logger.debug("Fetching news feeds...")
             feed_configs = [FeedConfig.from_dict(f) for f in self.config.get_feeds()]
             all_news = self.news_fetcher.fetch_all_feeds(feed_configs)
-            
+
             # Filter relevant news
             logger.debug("Filtering relevant news...")
             relevant_news = self._filter_relevant_news(all_news, installed_packages)
-            
+
             # Limit to max items
             max_items = self.config.get_max_news_items()
             safe_max_items = min(max_items, 1000)
             result.news_items = relevant_news[:safe_max_items]
-            
+
             # No updates in news-only mode
             result.updates = []
-            
+
             # Update status
             result.status = UpdateStatus.SUCCESS
-            
+
             # Store results for GUI access
             self.last_news_items = result.news_items
             self.last_update_result = result
-            
+
             logger.info(f"News check complete: {result.news_count} news items")
-            
+
         except Exception as e:
             logger.error(f"Error during news check: {e}")
             result.status = UpdateStatus.ERROR
             result.error_message = str(e)
-            
+
         return result
 
     def has_critical_news(self) -> bool:
