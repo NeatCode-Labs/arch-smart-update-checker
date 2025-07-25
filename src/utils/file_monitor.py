@@ -288,7 +288,7 @@ class SecureFileMonitor:
             elapsed = current_time - start_time
 
             # Check if file is gone
-            if not file_path.exists():
+            if not file_path_obj.exists():
                 logger.debug(f"File {file_path} deleted after {elapsed:.2f}s ({check_count} checks)")
                 if callback:
                     callback(True)

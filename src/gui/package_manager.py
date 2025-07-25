@@ -774,7 +774,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         info_window.resizable(True, True)
 
         # Use proper positioning
-        self.position_window(info_window, 700, 500, self.main_window.root) # type: ignore[arg-type]
+        self.position_window(info_window, 700, 500, self.main_window.root)  # type: ignore[arg-type]
 
         # Header
         header_frame = tk.Frame(info_window, bg=self.colors['primary'], height=60)
@@ -1495,7 +1495,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         dialog.resizable(True, True)
 
         # Use proper positioning
-        self.position_window(dialog, 500, 400, self.main_window.root) # type: ignore[arg-type]
+        self.position_window(dialog, 500, 400, self.main_window.root)  # type: ignore[arg-type]
 
         # Header
         header_frame = tk.Frame(dialog, bg=self.colors['primary'], height=60)
@@ -1771,7 +1771,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
         # Apply fixed column widths
         for col_id, config in column_config.items():
-            self.package_tree.column(col_id, width=config['width'], # type: ignore[call-overload]
+            self.package_tree.column(col_id, width=config['width'],  # type: ignore[call-overload]
                                      minwidth=config['min'], stretch=True)
 
         # Show all columns for fixed layout
