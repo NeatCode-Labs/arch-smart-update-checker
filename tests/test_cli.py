@@ -111,6 +111,8 @@ class TestAsucCLI:
         """Test CLI initialization."""
         with patch('src.cli.main.Config') as mock_config_class:
             mock_config = Mock()
+            # Mock the get method to return proper values
+            mock_config.get.return_value = 365  # Return int for retention days
             mock_config_class.return_value = mock_config
             
             cli = AsucCLI()

@@ -84,6 +84,11 @@ class TestMainWindow(unittest.TestCase):
                 'verbose_logging': False,
                 'theme': 'light'
             }
+            self.mock_config.get.return_value = None  # Default get return value
+            
+            # Add batch_update context manager support
+            self.mock_config.batch_update.return_value.__enter__ = Mock(return_value=None)
+            self.mock_config.batch_update.return_value.__exit__ = Mock(return_value=None)
             
             # Configure mock checker with required attributes
             self.mock_checker.last_news_items = []

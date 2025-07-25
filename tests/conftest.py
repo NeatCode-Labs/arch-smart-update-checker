@@ -12,7 +12,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from concurrent.futures import ThreadPoolExecutor, Future
 
 # Silence tkinter/asyncio deprecation warnings
@@ -110,6 +110,35 @@ def pytest_configure(config):
         patch.object(src.utils.thread_manager, 'ThreadPoolExecutor', MockThreadPoolExecutor).start()
     except (ImportError, AttributeError):
         pass  # Module might not be imported yet
+    
+    # Mock SecureSubprocess for tests that don't have pacman
+    def mock_secure_subprocess_run(cmd, *args, **kwargs):
+        """Mock SecureSubprocess.run for testing."""
+        from subprocess import CompletedProcess
+        
+        # Handle different commands
+        cmd_str = ' '.join(cmd) if isinstance(cmd, list) else cmd
+        
+        if 'pacman --version' in cmd_str:
+            return CompletedProcess(cmd, 0, 'pacman v6.0.0\n', '')
+        elif 'checkupdates' in cmd_str:
+            return CompletedProcess(cmd, 0, '', '')
+        elif 'pacman -Qu' in cmd_str:
+            return CompletedProcess(cmd, 0, '', '')
+        elif 'pacman -Si' in cmd_str:
+            return CompletedProcess(cmd, 0, '', '')
+        elif 'pacman -Qi' in cmd_str:
+            return CompletedProcess(cmd, 0, '', '')
+        elif 'pacman -Q' in cmd_str:
+            return CompletedProcess(cmd, 0, '', '')
+        else:
+            # Default mock response
+            return CompletedProcess(cmd, 0, '', '')
+    
+    # Apply the mock
+    patch('src.utils.subprocess_wrapper.SecureSubprocess.run', mock_secure_subprocess_run).start()
+    patch('src.utils.subprocess_wrapper.SecureSubprocess.validate_command', lambda cmd: True).start()
+    patch('src.utils.subprocess_wrapper.SecureSubprocess._find_command_path', lambda cmd: f'/usr/bin/{cmd}').start()
 
 
 def pytest_unconfigure(config):
@@ -244,4 +273,41 @@ def cleanup_after_test():
     try:
         tk._default_root = None
     except:
-        pass 
+        pass
+
+
+@pytest.fixture
+def mock_config():
+    """Provide a properly mocked Config object for tests."""
+    from unittest.mock import Mock
+    
+    config = Mock()
+    config.config = {
+        'debug_mode': False,
+        'verbose_logging': False,
+        'theme': 'light',
+        'window_width': 1200,
+        'window_height': 800,
+        'auto_check_interval': 60
+    }
+    config.get.side_effect = lambda key, default=None: config.config.get(key, default)
+    config.get_feeds.return_value = []
+    config.load_settings.return_value = {}
+    
+    # Make batch_update work as a context manager
+    config.batch_update.return_value.__enter__ = Mock(return_value=None)
+    config.batch_update.return_value.__exit__ = Mock(return_value=None)
+    
+    return config
+
+
+@pytest.fixture
+def mock_checker():
+    """Provide a properly mocked UpdateChecker object for tests."""
+    from unittest.mock import Mock
+    
+    checker = Mock()
+    checker.last_news_items = []
+    checker.get_available_updates.return_value = []
+    
+    return checker
