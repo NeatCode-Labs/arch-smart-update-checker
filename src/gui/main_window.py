@@ -7,7 +7,7 @@ Main window for the Arch Smart Update Checker GUI application.
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Set, Callable, Union, Tuple
 import time
 import subprocess
 import re
@@ -45,7 +45,7 @@ DEFAULT_WINDOW_HEIGHT = 850
 class MainWindow(WindowPositionMixin):
     """Main application window with modern design."""
 
-    def __init__(self, config_file: Optional[str] = None):
+    def __init__(self, config_file: Optional[str] = None) -> None:
         """Initialize the main window."""
         self.root = tk.Tk()
         self.setup_window()
@@ -66,8 +66,11 @@ class MainWindow(WindowPositionMixin):
         self.checker = UpdateChecker(self.config)
 
         # Initialize update history manager
+        retention_days = self.config.get('update_history_retention_days', 365)
+        if not isinstance(retention_days, int):
+            retention_days = 365
         self.update_history = UpdateHistoryManager(
-            retention_days=self.config.get('update_history_retention_days', 365)
+            retention_days=retention_days
         )
 
         self.setup_styles()
@@ -100,7 +103,7 @@ class MainWindow(WindowPositionMixin):
         self._update_check_lock = threading.Lock()
         self._is_checking_simple = False  # Simple boolean instead of tkinter BooleanVar
 
-    def show_issues_dialog(self):
+    def show_issues_dialog(self) -> None:
         """Show dialog with critical package update issues."""
         # Create a popup window
         dialog = tk.Toplevel(self.root)
@@ -109,7 +112,7 @@ class MainWindow(WindowPositionMixin):
 
         # Use position_window for persistent positioning [[memory:2371890]]
         dialog_w, dialog_h = self.dims.dialog_size
-        self.position_window(dialog, width=dialog_w, height=dialog_h, parent=self.root)
+        self.position_window(dialog, width=dialog_w, height=dialog_h, parent=self.root)  # type: ignore[arg-type]
 
         # Header
         header_frame = ttk.Frame(dialog, style='Content.TFrame')
@@ -210,7 +213,7 @@ class MainWindow(WindowPositionMixin):
         dialog.grab_set()
         dialog.focus_set()
 
-    def show_news_dialog(self):
+    def show_news_dialog(self) -> None:
         """Show dialog with recent news items."""
         # Create a popup window
         dialog = tk.Toplevel(self.root)
@@ -218,7 +221,7 @@ class MainWindow(WindowPositionMixin):
         dialog.configure(bg=self.colors['background'])
 
         # Use position_window for persistent positioning [[memory:2371890]]
-        self.position_window(dialog, width=900, height=600, parent=self.root)
+        self.position_window(dialog, width=900, height=600, parent=self.root)  # type: ignore[arg-type]
 
         # Header
         header_frame = ttk.Frame(dialog, style='Content.TFrame')
@@ -261,11 +264,12 @@ class MainWindow(WindowPositionMixin):
         # Display news items
         if hasattr(self.checker, 'last_news_items') and self.checker.last_news_items:
             for item in self.checker.last_news_items[:5]:  # Show up to 5 items
-                # News items are dictionaries
-                title = item.get('title', 'Untitled')
-                link = item.get('link', '#')
-                date = item.get('date', 'Unknown date')
-                content = item.get('content', '')
+                # News items are dictionaries - cast for type safety
+                item_dict = item if isinstance(item, dict) else item.__dict__  # type: Dict[str, Any]
+                title = item_dict.get('title', 'Untitled')
+                link = item_dict.get('link', '#')
+                date = item_dict.get('date', 'Unknown date')
+                content = item_dict.get('content', '')
 
                 text_widget.insert('end', f"{title}\n", 'title')
                 text_widget.insert('end', f"Date: {date}\n", 'date')
@@ -334,7 +338,7 @@ class MainWindow(WindowPositionMixin):
                                 padx=15,
                                 pady=6,
                                 cursor='hand2',
-                                command=lambda: [dialog.destroy(), self.show_frame("news")])
+                                command=lambda: self._close_dialog_and_show_news(dialog))
         browser_btn.pack(side='left', padx=(0, 10))
 
         # Close button
@@ -359,7 +363,7 @@ class MainWindow(WindowPositionMixin):
         dialog.grab_set()
         dialog.focus_set()
 
-    def setup_window(self):
+    def setup_window(self) -> None:
         """Setup the main window properties with adaptive size."""
         from ..constants import get_config_dir
 
@@ -516,7 +520,7 @@ class MainWindow(WindowPositionMixin):
         except Exception as e:
             logger.warning(f"Failed to save window geometry: {e}")
 
-    def setup_styles(self):
+    def setup_styles(self) -> None:
         """Setup color schemes and ttk styles."""
         # Modern color schemes with better contrast and visual hierarchy
         self.color_schemes = {
@@ -617,13 +621,13 @@ class MainWindow(WindowPositionMixin):
         font_scale = self.config.config.get('font_size', 'medium')
         self.apply_font_size(font_scale)
 
-    def setup_variables(self):
+    def setup_variables(self) -> None:
         """Setup application variables."""
         self.current_frame = tk.StringVar(value="dashboard")
         self.status_text = tk.StringVar(value="Ready")
         self.is_checking = tk.BooleanVar(value=False)
 
-    def setup_components(self):
+    def setup_components(self) -> None:
         """Setup UI components."""
         # Main container with modern layout
         self.main_frame = ttk.Frame(self.root, style='Main.TFrame')
@@ -664,7 +668,7 @@ class MainWindow(WindowPositionMixin):
         # Setup sidebar navigation
         self.setup_sidebar()
 
-    def setup_sidebar(self):
+    def setup_sidebar(self) -> None:
         """Setup the sidebar navigation with modern design."""
         # Clear existing widgets to avoid duplicates
         for child in self.sidebar.winfo_children():
@@ -728,13 +732,13 @@ class MainWindow(WindowPositionMixin):
                 padx=10,  # Fixed smaller padding
                 pady=8,   # Fixed smaller padding
                 cursor='hand2',
-                command=lambda k=key: self.show_frame(k)
+                command=lambda k=key: self.show_frame(k)  # type: ignore[misc]
             )
             btn.pack(fill='x')
 
             # Add hover effect
-            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))
-            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))
+            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))  # type: ignore[misc]
+            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))  # type: ignore[misc]
 
             self.nav_buttons[key] = btn
 
@@ -903,7 +907,7 @@ class MainWindow(WindowPositionMixin):
     def show_frame(self, frame_name: str):
         """Show the specified frame and update navigation state."""
         # Store current frame
-        self.current_frame = frame_name
+        self.current_frame.set(frame_name)
 
         # Update navigation button states
         for name, btn in self.nav_buttons.items():
@@ -1591,7 +1595,7 @@ class MainWindow(WindowPositionMixin):
         dialog.configure(bg=self.colors['background'])
 
         # Use position_window for persistent positioning [[memory:2371890]]
-        self.position_window(dialog, width=700, height=500, parent=self.root)
+        self.position_window(dialog, width=700, height=500, parent=self.root)  # type: ignore[arg-type]
 
         # Header
         header_frame = tk.Frame(dialog, bg=self.colors['error'], height=80)
@@ -1750,6 +1754,11 @@ class MainWindow(WindowPositionMixin):
             self.logging_status_label.configure(text="📝 Verbose Logging")
         else:
             self.logging_status_label.configure(text="")
+
+    def _close_dialog_and_show_news(self, dialog: tk.Toplevel) -> None:
+        """Helper method to close dialog and show news frame."""
+        dialog.destroy()
+        self.show_frame("news")
 
     def _detect_default_terminal(self):
         """Detect the user's default terminal emulator."""
@@ -1960,7 +1969,7 @@ class MainWindow(WindowPositionMixin):
         else:
             self.sidebar_summary_labels['Disk space:'].configure(text="—")
 
-    def _format_size(self, size_bytes):
+    def _format_size(self, size_bytes: Optional[int]) -> str:
         """Format size in bytes to human readable format."""
         if size_bytes is None:
             return "—"
@@ -1975,17 +1984,29 @@ class MainWindow(WindowPositionMixin):
 
 
 class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
-    def __init__(self, parent, main_window, packages, news_items, updates=None):
+    def __init__(self, parent: tk.Widget, main_window: "MainWindow", packages: List[str], news_items: List[Dict[str, Any]], updates: Optional[List[Any]] = None) -> None:
         super().__init__(parent, style='Content.TFrame')
         self.main_window = main_window
         self.packages = list(packages)  # Ensure it's a mutable list
         self.news_items = news_items
         self.updates = updates  # Full update objects with version info
-        self.selected_packages = set(packages)  # Track selected packages
-        self.current_news_items = []  # Currently displayed news items
+        self.selected_packages: Set[str] = set(packages)  # Track selected packages
+        self.current_news_items: List[Dict[str, Any]] = []  # Currently displayed news items
+        
+        # Declare canvas and scrollbar attributes
+        self.pkg_list_canvas: tk.Canvas
+        self.pkg_scrollbar: ttk.Scrollbar
+        self.news_canvas: tk.Canvas
+        self.news_scrollbar: ttk.Scrollbar
+        self.pkg_frame: tk.Frame
+        self.news_frame: tk.Frame
+        self.pkg_vars: Dict[str, tk.BooleanVar] = {}
+        self.header_count_label: tk.Label
+        self.news_count: tk.Label
+        
         self._build_ui()
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         """Build simple responsive UI."""
         # Clear any existing widgets
         for widget in self.winfo_children():
@@ -2192,7 +2213,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         # Calculate sizes asynchronously after UI is built
         self.after(100, self._calculate_sizes_async)
 
-    def _format_size(self, size_bytes):
+    def _format_size(self, size_bytes: Optional[int]) -> str:
         """Format size in bytes to human readable format."""
         if size_bytes is None:
             return "Unknown"
@@ -2287,7 +2308,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             disk_text
         )
 
-    def get_selected_packages(self):
+    def get_selected_packages(self) -> List[str]:
         """Get list of currently selected packages."""
         selected = []
         for pkg, var in self.pkg_vars.items():
@@ -2295,13 +2316,13 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 selected.append(pkg)
         return selected
 
-    def select_all_packages(self):
+    def select_all_packages(self) -> None:
         """Select all packages."""
         for var in self.pkg_vars.values():
             var.set(True)
         self.update_news_display()
 
-    def select_no_packages(self):
+    def select_no_packages(self) -> None:
         """Deselect all packages."""
         for var in self.pkg_vars.values():
             var.set(False)
@@ -2314,7 +2335,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             # Update news item wrapping
             self.after_idle(self._update_news_wrapping)
 
-    def _update_news_wrapping(self):
+    def _update_news_wrapping(self) -> None:
         """Update news item text wrapping based on current width."""
         try:
             # Get the current width of the news canvas
@@ -2376,7 +2397,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def _scroll_canvas(self, canvas, event):
+    def _scroll_canvas(self, canvas: tk.Canvas, event: tk.Event) -> None:
         """Scroll the specified canvas."""
         try:
             if hasattr(event, 'delta') and event.delta:
@@ -2389,14 +2410,14 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event: tk.Event) -> None:
         """Handle mouse wheel scrolling for individual canvases."""
         # This is called when mouse wheel events are specifically bound to canvases
         widget = event.widget
-        if hasattr(widget, 'yview_scroll'):
+        if hasattr(widget, 'yview_scroll') and isinstance(widget, tk.Canvas):
             self._scroll_canvas(widget, event)
 
-    def update_news_display(self):
+    def update_news_display(self) -> None:
         """Update news display based on selected packages."""
         # Update header count
         selected = self.get_selected_packages()
@@ -2488,7 +2509,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         for i, item in enumerate(relevant_news):
             self.create_news_item(item, i)
 
-    def create_news_item(self, item, index):
+    def create_news_item(self, item: Dict[str, Any], index: int) -> None:
         """Create a simple responsive news item."""
         # Simple card frame
         card = tk.Frame(self.news_frame, bg=self.main_window.colors['surface'],
@@ -2500,7 +2521,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         content.pack(fill='x', padx=8, pady=6)
 
         # Store reference for dynamic resizing
-        card._content_frame = content
+        card._content_frame = content  # type: ignore[attr-defined]
 
         # Title - with proper text wrapping
         title = tk.Label(content,
@@ -2514,7 +2535,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         title.pack(fill='x', anchor='w')
 
         # Store reference for dynamic resizing
-        card._title_label = title
+        card._title_label = title  # type: ignore[attr-defined]
 
         # Meta info
         meta = tk.Frame(content, bg=self.main_window.colors['surface'])
@@ -2553,7 +2574,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             affects_label.pack(fill='x', anchor='w', pady=(3, 0))
 
             # Store reference for dynamic resizing
-            card._affects_label = affects_label
+            card._affects_label = affects_label  # type: ignore[attr-defined]
 
         # Click handler
         def on_click(e):
@@ -2561,16 +2582,19 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
         for widget in [card, content, title]:
             widget.bind("<Button-1>", on_click)
-            widget.configure(cursor='hand2')
+            try:
+                widget.configure(cursor='hand2')  # type: ignore[call-arg]
+            except tk.TclError:
+                pass  # Some widgets don't support cursor configuration
 
-    def show_news_detail(self, news_item):
+    def show_news_detail(self, news_item: Dict[str, Any]) -> None:
         """Show detailed view of a news item."""
         detail_window = tk.Toplevel(self)
         detail_window.title(news_item.get('title', 'News Detail'))
         detail_window.configure(bg=self.main_window.colors['background'])
 
         # Use position_window for persistent positioning [[memory:2371890]]
-        self.position_window(detail_window, width=800, height=600, parent=self.main_window.root)
+        self.position_window(detail_window, width=800, height=600, parent=self.main_window.root)  # type: ignore[arg-type]
 
         # Main container
         main_frame = ttk.Frame(detail_window, style='Content.TFrame')
@@ -2655,7 +2679,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                               command=detail_window.destroy)
         close_btn.pack(side='left')
 
-    def apply_updates(self):
+    def apply_updates(self) -> None:
         """Apply selected updates."""
         # Get only the selected packages from checkboxes
         selected = [pkg for pkg, var in self.pkg_vars.items() if var.get()]
@@ -3075,11 +3099,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         else:
             logger.warning("Could not create thread for terminal execution - thread limit reached")
 
-    def go_back(self):
+    def go_back(self) -> None:
         """Return to dashboard."""
         self.main_window.show_frame('dashboard')
 
-    def refresh_after_update(self, installed_packages):
+    def refresh_after_update(self, installed_packages: List[str]) -> None:
         """Remove successfully installed packages from the updates list.
 
         Args:
@@ -3105,8 +3129,8 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
             # Update dashboard to show no updates
             if 'dashboard' in self.main_window.frames:
-                self.main_window.frames['dashboard'].update_stats_cards(0, 0)
-                self.main_window.frames['dashboard'].refresh()
+                self.main_window.frames['dashboard'].update_stats_cards(0, 0)  # type: ignore[attr-defined]
+                self.main_window.frames['dashboard'].refresh()  # type: ignore[attr-defined]
 
             # Show success message and go back
             self.main_window.update_status("✅ All updates installed successfully!", "success")
@@ -3128,7 +3152,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             if 'dashboard' in self.main_window.frames:
                 remaining_count = len(self.packages)
                 news_count = len(self.news_items) if self.news_items else 0
-                self.main_window.frames['dashboard'].update_stats_cards(remaining_count, news_count)
+                self.main_window.frames['dashboard'].update_stats_cards(remaining_count, news_count)  # type: ignore[attr-defined]
 
             # Update the header count without rebuilding entire UI
             if hasattr(self, 'header_count_label'):
@@ -3156,6 +3180,6 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 "success"
             )
 
-    def refresh_theme(self):
+    def refresh_theme(self) -> None:
         """Refresh the frame with new theme colors."""
         self._build_ui()
