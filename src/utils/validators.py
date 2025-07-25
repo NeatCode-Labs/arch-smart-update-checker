@@ -4,6 +4,8 @@ Input validation and security utilities with enhanced protections.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import re
 import os
 import unicodedata

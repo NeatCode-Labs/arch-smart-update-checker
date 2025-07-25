@@ -4,6 +4,8 @@ Timer resource management for GUI components to prevent resource leaks.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import tkinter as tk
 from typing import Dict, Set, Optional, Callable, Any
 from contextlib import contextmanager

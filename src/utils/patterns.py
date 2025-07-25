@@ -4,6 +4,8 @@ Package pattern matching utilities with ReDoS protection.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import re
 import threading
 from typing import Set, List, Optional, Iterator, Any

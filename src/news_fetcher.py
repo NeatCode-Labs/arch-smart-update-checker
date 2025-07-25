@@ -4,6 +4,8 @@ RSS feed fetching and parsing functionality.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import re
 import html
 import requests  # type: ignore[import-untyped]
