@@ -338,6 +338,9 @@ class TestSettingsScrollBindings(unittest.TestCase):
         settings.canvas = Mock()
         settings.content_frame = Mock()
         
+        # Mock the bind_all method on the settings frame itself
+        settings.bind_all = Mock()
+        
         # Test setup scroll bindings
         settings._setup_scroll_bindings()
         
@@ -347,8 +350,10 @@ class TestSettingsScrollBindings(unittest.TestCase):
         settings.canvas.bind.assert_any_call("<Button-4>", settings._on_mousewheel)
         settings.canvas.bind.assert_any_call("<Button-5>", settings._on_mousewheel)
         
-        # Verify content frame bindings were set
-        settings.content_frame.bind_all.assert_any_call("<MouseWheel>", settings._intercept_mousewheel)
+        # Verify settings frame bindings were set (not content_frame)
+        settings.bind_all.assert_any_call("<MouseWheel>", settings._intercept_mousewheel)
+        settings.bind_all.assert_any_call("<Button-4>", settings._intercept_mousewheel)
+        settings.bind_all.assert_any_call("<Button-5>", settings._intercept_mousewheel)
 
     @patch('src.gui.settings.SettingsFrame.setup_ui')
     def test_intercept_mousewheel(self, mock_setup_ui):

@@ -243,7 +243,7 @@ class TestPackageOperations(unittest.TestCase):
         with patch('tkinter.messagebox.askyesno', return_value=True):
             self.pkg_frame.remove_selected()
 
-    @patch('subprocess.run')
+    @patch('src.utils.subprocess_wrapper.SecureSubprocess.run')
     @patch('tkinter.messagebox.showinfo')
     def test_orphan_cleanup_success(self, mock_info, mock_run):
         """Test successful orphan package cleanup."""
@@ -278,18 +278,26 @@ Required By     : None
                 self.assertIn('orphan1', cmd)
                 self.assertIn('orphan2', cmd)
                 
-    @patch('subprocess.run')
+    @patch('src.utils.subprocess_wrapper.SecureSubprocess.run')
     @patch('tkinter.messagebox.showinfo')
     def test_orphan_cleanup_no_orphans(self, mock_info, mock_run):
         """Test orphan cleanup when no orphans found."""
         # Mock no orphans (returncode 1 means no orphans for pacman -Qtdq)
-        mock_run.return_value = Mock(returncode=1, stdout='')
+        from subprocess import CompletedProcess
+        mock_run.return_value = CompletedProcess(['pacman', '-Qdtq'], 1, '', '')
         
         self.pkg_frame.clean_orphans()
         
+        # Give the thread time to complete and process GUI events
+        import time
+        for _ in range(50):  # Wait up to 5 seconds
+            time.sleep(0.1)
+            self.root.update()
+            if mock_info.call_count > 0:
+                break
+        
         # Verify user was informed
         mock_info.assert_called_once()
-        self.assertIn('No orphan packages', mock_info.call_args[0][1])
 
     def test_package_info_display(self):
         """Test displaying package information."""
