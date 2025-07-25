@@ -65,7 +65,7 @@ class PacmanRunner:
             return None
 
     @staticmethod
-    def run_update_in_terminal(packages: List[str]) -> Optional[subprocess.Popen[str]]:
+    def run_update_in_terminal(packages: List[str]) -> Optional[subprocess.Popen]:
         """
         Run pacman update in a terminal emulator.
 

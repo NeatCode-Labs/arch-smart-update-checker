@@ -485,7 +485,7 @@ class SecureSubprocess:
         cwd: Optional[str] = None,
         env: Optional[Dict[str, str]] = None,
         **kwargs: Any
-    ) -> subprocess.CompletedProcess[str]:
+    ) -> subprocess.CompletedProcess:
         """
         Run a command securely.
 
@@ -558,7 +558,7 @@ class SecureSubprocess:
         require_sudo: bool = False,
         timeout: int = 30,
         **kwargs: Any
-    ) -> subprocess.CompletedProcess[str]:
+    ) -> subprocess.CompletedProcess:
         """
         Run pacman command with proper validation.
 
