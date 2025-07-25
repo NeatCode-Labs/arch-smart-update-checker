@@ -6,8 +6,8 @@ RSS feed fetching and parsing functionality.
 
 import re
 import html
-import requests
-import feedparser
+import requests  # type: ignore[import-untyped]
+import feedparser  # type: ignore[import-untyped]
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse

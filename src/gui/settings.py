@@ -6,7 +6,10 @@ Settings frame for the Arch Smart Update Checker GUI.
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .main_window import MainWindow
 import json
 import os
 from unittest.mock import Mock as _Mock
@@ -27,7 +30,7 @@ logger = get_logger(__name__)
 class SettingsFrame(ttk.Frame, WindowPositionMixin):
     """Modern settings interface with configuration management."""
 
-    def __init__(self, parent, main_window):
+    def __init__(self, parent: tk.Widget, main_window: "MainWindow") -> None:
         """Initialize the settings frame."""
         super().__init__(parent, style='Content.TFrame')
         self.main_window = main_window
@@ -58,11 +61,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.callback_manager.register_cleanup_callback(self._cleanup_settings_resources)
 
     @property
-    def colors(self):
+    def colors(self) -> Dict[str, str]:
         """Get current colors from main window."""
         return self.main_window.colors
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the settings UI inside content_frame."""
         for widget in self.content_frame.winfo_children():
             widget.destroy()
@@ -93,7 +96,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.create_display_settings()
         self.create_advanced_settings()
 
-    def _setup_scroll_bindings(self):
+    def _setup_scroll_bindings(self) -> None:
         """Setup mouse wheel scroll bindings."""
         # Unbind any existing global bindings first to avoid conflicts
         try:
@@ -114,7 +117,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         self.bind_all("<Button-4>", self._intercept_mousewheel)
         self.bind_all("<Button-5>", self._intercept_mousewheel)
 
-    def _intercept_mousewheel(self, event):
+    def _intercept_mousewheel(self, event: tk.Event) -> None:
         """Intercept mouse wheel events and delegate to page scrolling."""
         try:
             # Only handle scrolling if we're currently displayed
@@ -122,7 +125,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 return
 
             # Get the widget under the mouse
-            widget = event.widget
+            widget: tk.Misc = event.widget
 
             # Check if the widget is part of the settings frame or its children
             parent = widget
@@ -130,7 +133,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 if parent == self or parent == self.content_frame or parent == self.canvas or parent == self.scrollable_frame:
                     # We're over the settings frame, handle scrolling
                     self._on_mousewheel(event)
-                    return "break"
+                    return "break"  # type: ignore[return-value]
                 try:
                     parent = parent.master
                 except Exception:
@@ -139,7 +142,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def create_header(self):
+    def create_header(self) -> None:
         """Create the settings header."""
         # Use standard font sizes for fixed window
         title_font_size = 24   # Standard title size
@@ -165,7 +168,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                   bg=self.colors['background'])
         subtitle_label.pack(anchor='w', padx=20, pady=(0, 20))
 
-    def create_general_settings(self):
+    def create_general_settings(self) -> None:
         """Create general settings section."""
         section_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         section_frame.pack(fill='x', padx=20, pady=10)
@@ -234,7 +237,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             retention_entry,
             "How long to keep update history records\nValid range: 1-3650 days (10 years max)\nLarge values may impact performance")
 
-    def create_feed_settings(self):
+    def create_feed_settings(self) -> None:
         """Create feed settings section, with dynamic area for inline edit form and correct option placement."""
         section_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         section_frame.pack(fill='x', padx=20, pady=10)
@@ -414,7 +417,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # (Save button moved to the bottom of the page)
 
-    def create_display_settings(self):
+    def create_display_settings(self) -> None:
         """Create display settings section (no font size setting)."""
         section_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         section_frame.pack(fill='x', padx=20, pady=10)
@@ -458,7 +461,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         theme_combo.bind("<Button-4>", block_wheel)
         theme_combo.bind("<Button-5>", block_wheel)
 
-    def create_advanced_settings(self):
+    def create_advanced_settings(self) -> None:
         """Create advanced settings section."""
         section_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         section_frame.pack(fill='x', padx=20, pady=10)
@@ -682,7 +685,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                                        bg=self.colors['surface'])
         self.feedback_label.pack()
 
-    def load_settings(self):
+    def load_settings(self) -> None:
         """Load current settings into the UI."""
         try:
             cfg = self.config.config
@@ -760,7 +763,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to load settings: {exc}")
 
-    def save_settings(self, silent=False):
+    def save_settings(self, silent: bool = False) -> None:
         """Save current settings."""
         # Temporarily disable autosave callbacks inside this explicit save
         prev_state = self._autosave_enabled
@@ -940,7 +943,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             # Restore autosave state
             self._autosave_enabled = prev_state
 
-    def reset_settings(self):
+    def reset_settings(self) -> None:
         """Reset settings to defaults."""
         if messagebox.askyesno("Confirm Reset", "Are you sure you want to reset all settings to defaults?"):
             try:
@@ -1010,7 +1013,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             except Exception as exc:
                 messagebox.showerror("Error", f"Failed to reset settings: {exc}")
 
-    def export_config(self):
+    def export_config(self) -> None:
         """Export configuration to file."""
         try:
             filename = filedialog.asksaveasfilename(
@@ -1029,7 +1032,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to export configuration: {exc}")
 
-    def import_config(self):
+    def import_config(self) -> None:
         """Import configuration from file with security validation."""
         from ..utils.validators import validate_config_path
 
@@ -1095,7 +1098,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to import configuration: {exc}")
 
-    def edit_feed(self):
+    def edit_feed(self) -> None:
         """Edit selected RSS feed (popup window)."""
         feeds = self.config.get_feeds()
 
@@ -1245,7 +1248,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                   bg=self.colors['secondary'], fg='white',
                   font=('Segoe UI', 10), padx=15, pady=5).pack(side='left', padx=5)
 
-    def test_feed(self):
+    def test_feed(self) -> None:
         """Test RSS feed accessibility."""
         # Since we don't have a selection, test all enabled feeds
         feeds = self.config.get_feeds()
@@ -1340,12 +1343,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         def test_in_thread():
             try:
-                import requests
+                import requests  # type: ignore[import-untyped]
                 response = requests.get(url, timeout=10, headers={'User-Agent': 'Arch Smart Update Checker'})
                 response.raise_for_status()
 
                 # Try to parse as feed
-                import feedparser
+                import feedparser  # type: ignore[import-untyped]
                 feed = feedparser.parse(response.text)
 
                 if feed.bozo:
@@ -1414,7 +1417,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         return True
 
-    def add_feed(self):
+    def add_feed(self) -> None:
         """Add a new RSS feed (popup window, centered before showing)."""
         popup = tk.Toplevel(self)
         popup.title("Add RSS Feed")
@@ -1498,7 +1501,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             padx=10,
             pady=5)
 
-    def browse_config(self):
+    def browse_config(self) -> None:
         """Browse for configuration file with security validation."""
         from ..utils.validators import validate_config_path
 
@@ -1543,7 +1546,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     f"Please select a file under your home directory."
                 )
 
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event: tk.Event) -> None:
         """Handle mouse wheel scrolling."""
         if hasattr(event, 'delta') and event.delta:
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -1553,11 +1556,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             elif event.num == 5:
                 self.canvas.yview_scroll(1, "units")
 
-    def update_feed_list(self):
+    def update_feed_list(self) -> None:
         """Stub for test compatibility."""
         pass
 
-    def refresh_theme(self):
+    def refresh_theme(self) -> None:
         """Refresh theme by recreating all UI components with new colors."""
         # Store current values before destroying widgets
         try:
@@ -1622,7 +1625,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         # Make sure scroll bindings are set up again
         self._setup_scroll_bindings()
 
-    def remove_feed(self):
+    def remove_feed(self) -> None:
         """Remove selected RSS feed (popup confirmation)."""
         feeds = self.config.get_feeds()
 
@@ -1705,13 +1708,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
     # Internal helpers
     # ----------------------------
 
-    def _apply_theme_preview(self):
+    def _apply_theme_preview(self) -> None:
         """Preview the selected theme without requiring explicit save."""
         # Disable theme preview to avoid issues with feed visibility
         # Themes will only be applied when Save Settings is clicked
         pass
 
-    def _auto_save(self):
+    def _auto_save(self) -> None:
         """Persist settings without showing popups using secure callbacks."""
         import os
         if os.getenv('PYTEST_CURRENT_TEST') is not None:
@@ -1737,25 +1740,25 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 delay_ms=1000
             )
 
-    def _apply_font_preview(self):
+    def _apply_font_preview(self) -> None:
         pass  # Font size setting is removed; do nothing
 
     def _on_feed_toggle(self, feed_index: int):
         """Handle feed checkbox toggle."""
         if self._autosave_enabled:
             try:
-                feeds = self.config.get_feeds()
+                feeds = self.config.get_feeds()  # type: ignore[attr-defined]
                 if feed_index < len(feeds):
                     # Find the var for this feed index
                     for orig_idx, var in self.feed_vars:
                         if orig_idx == feed_index:
                             feeds[feed_index]['enabled'] = var.get()
                             break
-                    self.config.set_feeds(feeds)
+                    self.config.set_feeds(feeds)  # type: ignore[attr-defined]
             except Exception:
                 pass  # Silently ignore errors during auto-save
 
-    def _cleanup_settings_resources(self):
+    def _cleanup_settings_resources(self) -> None:
         """Cleanup settings resources and sensitive data."""
         try:
             # Cancel any active autosave timer
@@ -1776,7 +1779,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception as e:
             logger.error(f"Error during settings cleanup: {e}")
 
-    def _show_feedback(self, message: str):
+    def _show_feedback(self, message: str) -> None:
         """Show temporary feedback message below save button."""
         if hasattr(self, 'feedback_label'):
             self.feedback_label.config(text=message)
@@ -1789,13 +1792,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
             # Hide the message after 3 seconds using secure timer manager
             create_delayed_callback(
-                root=self.main_window.root,
+                root=self.main_window.root,  # type: ignore[arg-type]
                 delay_ms=3000,
                 callback=secure_hide_callback,
                 component_id=self._component_id
             )
 
-    def _add_tooltip(self, widget, text):
+    def _add_tooltip(self, widget: tk.Widget, text: str) -> None:
         """Add a tooltip to a widget."""
         def on_enter(event):
             # Use after_idle to prevent interference with other event handlers
@@ -1808,7 +1811,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         widget.bind('<Enter>', on_enter, add='+')  # Use add='+' to not replace existing bindings
         widget.bind('<Leave>', on_leave, add='+')  # Use add='+' to not replace existing bindings
 
-    def _show_tooltip(self, widget, text, x_root, y_root):
+    def _show_tooltip(self, widget: tk.Widget, text: str, x_root: int, y_root: int) -> None:
         """Show tooltip for a widget."""
         try:
             if hasattr(widget, 'tooltip'):
@@ -1833,7 +1836,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def _hide_tooltip(self, widget):
+    def _hide_tooltip(self, widget: tk.Widget) -> None:
         """Hide tooltip for a widget."""
         try:
             if hasattr(widget, 'tooltip'):
@@ -1842,7 +1845,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def view_logs(self):
+    def view_logs(self) -> None:
         """Open the current log file with security validation."""
         try:
             from ..utils.logger import get_current_log_file
@@ -1882,7 +1885,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             logger.error(f"Failed to open log file: {exc}")
             messagebox.showerror("Error", f"Failed to open log file: {exc}")
 
-    def open_logs_directory(self):
+    def open_logs_directory(self) -> None:
         """Open the logs directory in file manager with security validation."""
         try:
             from ..utils.logger import get_current_log_file
@@ -1932,12 +1935,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             logger.error(f"Failed to open logs directory: {exc}")
             messagebox.showerror("Error", f"Failed to open logs directory: {exc}")
 
-    def _debounced_update_logs_button_visibility(self):
+    def _debounced_update_logs_button_visibility(self) -> None:
         """Update the View Logs button visibility (no longer needs debouncing since no layout changes)."""
         # Since we're no longer changing layout, just update immediately
         self._update_logs_button_visibility()
 
-    def _update_logs_button_visibility(self):
+    def _update_logs_button_visibility(self) -> None:
         """Update the visibility of the logs buttons based on logging settings."""
         try:
             if hasattr(
@@ -1974,7 +1977,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             # Ignore errors during initialization
             pass
 
-    def _update_scroll_region(self):
+    def _update_scroll_region(self) -> None:
         """Update the scroll region and re-establish scroll bindings."""
         try:
             if hasattr(self, 'canvas') and hasattr(self, 'scrollable_frame'):
@@ -1983,7 +1986,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def _do_scroll_region_update(self):
+    def _do_scroll_region_update(self) -> None:
         """Actually perform the scroll region update."""
         try:
             if hasattr(self, 'canvas') and hasattr(self, 'scrollable_frame'):
@@ -1996,7 +1999,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         except Exception:
             pass
 
-    def on_frame_shown(self):
+    def on_frame_shown(self) -> None:
         """Called when this frame becomes visible. Re-establish scroll bindings."""
         # Re-setup scroll bindings when frame is shown
         self._setup_scroll_bindings()
@@ -2011,7 +2014,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                 scrollregion=self.canvas.bbox("all")
             ))
 
-    def cleanup_timers(self):
+    def cleanup_timers(self) -> None:
         """Clean up all managed timers for this component."""
         # Cancel specific autosave timer
         if hasattr(self, '_autosave_timer_id') and self._autosave_timer_id:
@@ -2024,12 +2027,12 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             if cancelled > 0:
                 logger.debug(f"Cancelled {cancelled} timers for settings component")
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Override destroy to ensure proper timer cleanup."""
         self.cleanup_timers()
         super().destroy()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Destructor to ensure timer cleanup even if destroy isn't called."""
         try:
             self.cleanup_timers()

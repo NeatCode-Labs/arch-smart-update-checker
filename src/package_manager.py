@@ -77,7 +77,7 @@ class PackageManager:
                 raise PackageManagerError(f"Failed to get installed packages: {error_msg}")
 
             packages = []
-            current_package = {}
+            current_package: dict[str, str] = {}
 
             # Parse the output
             for line in result.stdout.split('\n'):

@@ -12,7 +12,7 @@ import os
 import sys
 import fcntl
 import signal
-import psutil
+import psutil  # type: ignore[import-untyped]
 import time
 import json
 import hashlib

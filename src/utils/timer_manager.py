@@ -34,7 +34,7 @@ class TimerResourceManager:
     TIMER_CREATION_WINDOW = 10  # seconds
 
     # Rate limiting tracking
-    _creation_history = deque(maxlen=100)  # Track recent timer creations
+    _creation_history: deque[float] = deque(maxlen=100)  # Track recent timer creations
     _component_creation_count: Dict[str, int] = defaultdict(int)
     _last_cleanup = time.time()
     _suspicious_activity_count = 0
@@ -104,7 +104,7 @@ class TimerResourceManager:
 
     @classmethod
     def create_timer(cls, root: tk.Widget, delay_ms: int, callback: Callable,
-                     component_id: str = None, timeout_ms: int = None,
+                     component_id: Optional[str] = None, timeout_ms: Optional[int] = None,
                      repeat: bool = False) -> Optional[str]:
         """
         Create a managed timer with automatic cleanup and resource limits.

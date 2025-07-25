@@ -6,7 +6,10 @@ Dashboard frame for the Arch Smart Update Checker GUI.
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .main_window import MainWindow
 from datetime import datetime
 import os
 
@@ -23,7 +26,7 @@ logger = get_logger(__name__)
 class DashboardFrame(ttk.Frame):
     """Modern dashboard with overview cards and widgets."""
 
-    def __init__(self, parent, main_window):
+    def __init__(self, parent: tk.Widget, main_window: "MainWindow") -> None:
         """Initialize the dashboard frame."""
         # Some tests pass a Mock as parent which Tk cannot accept.
         try:
@@ -47,7 +50,7 @@ class DashboardFrame(ttk.Frame):
         self.setup_ui()
         self.refresh()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the dashboard UI."""
         # Main container - no scroll needed for fixed window
         self.canvas = tk.Canvas(self, bg=self.main_window.colors['background'], highlightthickness=0)
@@ -69,7 +72,7 @@ class DashboardFrame(ttk.Frame):
         self.create_quick_actions()
         self.create_system_info()
 
-    def create_header(self):
+    def create_header(self) -> None:
         """Create the dashboard header."""
         # Use scaled font sizes - more compact for small screens
         title_font_size = self.dims.scale(20) if self.dims.window_size[0] < 1000 else self.dims.scale(24)
@@ -95,7 +98,7 @@ class DashboardFrame(ttk.Frame):
                                   bg=self.main_window.colors['background'])
         subtitle_label.pack(anchor='w', padx=self.dims.pad_large, pady=(0, self.dims.pad_large))
 
-    def create_stats_cards(self):
+    def create_stats_cards(self) -> None:
         """Create statistics cards."""
         stats_frame = ttk.Frame(self.scrollable_frame, style='Content.TFrame')
         stats_frame.pack(fill='x', padx=0, pady=self.dims.pad_medium)
@@ -130,7 +133,7 @@ class DashboardFrame(ttk.Frame):
         # Configure card layout
         self._configure_card_layout()
 
-    def create_stat_card(self, parent, title, value, description):
+    def create_stat_card(self, parent: tk.Widget, title: str, value: str, description: str) -> tk.Frame:
         """Create a single statistics card."""
         card = ttk.Frame(parent, style='Card.TFrame')
 
@@ -193,7 +196,7 @@ class DashboardFrame(ttk.Frame):
 
         return card
 
-    def create_quick_actions(self):
+    def create_quick_actions(self) -> None:
         """Create quick action buttons."""
         actions_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         # Minimal right padding for maximum content space
@@ -337,7 +340,7 @@ class DashboardFrame(ttk.Frame):
         self.animation_timer_id = None  # Store timer ID instead of raw timer
         self._component_id = f"dashboard_{id(self)}"  # Unique component ID for timer management
 
-    def create_system_info(self):
+    def create_system_info(self) -> None:
         """Create system information section."""
         info_frame = ttk.Frame(self.scrollable_frame, style='Card.TFrame')
         right_pad = 20  # Fixed small padding
@@ -390,7 +393,7 @@ class DashboardFrame(ttk.Frame):
 
             self.system_labels[label] = value_widget
 
-    def animate_dots(self):
+    def animate_dots(self) -> None:
         """Animate the dots in the status label."""
         if self.animation_timer_id is None:
             return
@@ -403,7 +406,7 @@ class DashboardFrame(ttk.Frame):
         if self.animation_timer_id is not None:
             self.scrollable_frame.after(500, self.animate_dots)
 
-    def start_checking_animation(self):
+    def start_checking_animation(self) -> None:
         """Start the checking animation."""
         self.dots_count = 0
         self.status_label.configure(text="Checking for updates")
@@ -412,7 +415,7 @@ class DashboardFrame(ttk.Frame):
         self.animation_timer_id = "simple_animation"  # Flag to indicate animation is running
         self.animate_dots()  # Start the animation
 
-    def stop_checking_animation(self, message="", success=True):
+    def stop_checking_animation(self, message: str = "", success: bool = True) -> None:
         """Stop the checking animation."""
         # Stop animation
         self.animation_timer_id = None
@@ -429,7 +432,7 @@ class DashboardFrame(ttk.Frame):
                 component_id=self._component_id
             )
 
-    def check_updates(self):
+    def check_updates(self) -> None:
         """Check for updates."""
         # Start animation
         self.start_checking_animation()
@@ -452,7 +455,7 @@ class DashboardFrame(ttk.Frame):
         # Update database sync time after check
         self.update_database_sync_time()
 
-    def sync_database(self):
+    def sync_database(self) -> None:
         """Sync package database with progress indication."""
         if not messagebox.askyesno("Sync Database",
                                    "This will sync the package database with the latest from mirrors.\n\n"

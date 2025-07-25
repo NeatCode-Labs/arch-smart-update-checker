@@ -7,7 +7,7 @@ Thread resource management for secure application-wide thread control with enhan
 import threading
 import time
 import os
-import psutil
+import psutil  # type: ignore[import-untyped]
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional, Callable, Any, Dict, List, Set
 from contextlib import contextmanager
@@ -381,7 +381,7 @@ class ThreadResourceManager:
             thread_id: Thread to monitor
         """
         try:
-            import psutil
+            import psutil  # type: ignore[import-untyped]
             current_process = psutil.Process()
 
             # Get thread-specific resource usage if available

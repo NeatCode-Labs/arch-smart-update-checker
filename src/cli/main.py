@@ -32,8 +32,9 @@ class AsucCLI:
         self.config = Config(config_path)
         self.checker = UpdateChecker(self.config)
         self.package_manager = PackageManager()
+        retention_days = self.config.get('update_history_retention_days', 365)
         self.update_history = UpdateHistoryManager(
-            retention_days=self.config.get('update_history_retention_days', 365)
+            retention_days=int(retention_days) if retention_days is not None else 365
         )
         self.formatter: Optional[OutputFormatter] = None
 
@@ -344,7 +345,7 @@ class AsucCLI:
                     output_lines.append(f"  Total packages: {total_packages}")
 
                     # Helper function to format size
-                    def format_size(size_bytes):
+                    def format_size(size_bytes: int) -> str:
                         if size_bytes < 1024:
                             return f"{size_bytes} B"
                         elif size_bytes < 1024 * 1024:
@@ -836,7 +837,7 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main():
+def main() -> None:
     """Main entry point for the CLI."""
     parser = create_parser()
     args = parser.parse_args()

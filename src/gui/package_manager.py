@@ -6,7 +6,10 @@ Package manager frame for the Arch Smart Update Checker GUI.
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .main_window import MainWindow
 import threading
 import subprocess
 import os
@@ -32,7 +35,7 @@ logger = get_logger(__name__)
 class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
     """Modern package manager with search and management capabilities."""
 
-    def __init__(self, parent, main_window):
+    def __init__(self, parent: tk.Widget, main_window: "MainWindow") -> None:
         """Initialize the package manager frame."""
         try:
             super().__init__(parent, style='Content.TFrame')
@@ -59,17 +62,17 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         self._load_timer_id = self.after(500, self._safe_load_packages)
 
     @property
-    def colors(self):
+    def colors(self) -> Dict[str, str]:
         """Get current colors from main window."""
         return self.main_window.colors
 
-    def _safe_load_packages(self):
+    def _safe_load_packages(self) -> None:
         """Safely load packages with proper checks."""
         if not self._loading_in_progress:
             self._loading_in_progress = True
             self.load_packages()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the package manager UI."""
         # Main container
         main_container = ttk.Frame(self, style='Content.TFrame')
@@ -87,7 +90,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Action buttons
         self.create_action_buttons(main_container)
 
-    def create_header(self, parent):
+    def create_header(self, parent: tk.Widget) -> None:
         """Create the header section."""
         header_frame = ttk.Frame(parent, style='Content.TFrame')
         header_frame.pack(fill='x', pady=(0, self.dims.pad_medium))
@@ -108,7 +111,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                   bg=self.colors['background'])
         subtitle_label.pack(anchor='w', padx=self.dims.pad_large, pady=(0, self.dims.pad_large))
 
-    def create_search_bar(self, parent):
+    def create_search_bar(self, parent: tk.Widget) -> None:
         """Create search and filter controls."""
         search_frame = ttk.Frame(parent, style='Content.TFrame')
         search_frame.pack(fill='x', pady=(0, self.dims.pad_medium))
@@ -173,7 +176,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         refresh_btn.pack(side='right')
         self._add_tooltip(refresh_btn, "Refresh package list (F5)")
 
-    def create_package_area(self, parent):
+    def create_package_area(self, parent: tk.Widget) -> None:
         """Create the package list display area."""
         package_frame = ttk.Frame(parent, style='Content.TFrame')
         package_frame.pack(fill='both', expand=True, pady=(0, 10))
@@ -273,7 +276,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                                     bg=self.colors['background'])
         self.stats_label.pack(anchor='w', pady=(10, 0))
 
-    def create_action_buttons(self, parent):
+    def create_action_buttons(self, parent: tk.Widget) -> None:
         """Create action buttons."""
         action_frame = ttk.Frame(parent, style='Content.TFrame')
         action_frame.pack(fill='x')
@@ -365,7 +368,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         clean_orphans_btn.pack(side='left', padx=(0, 10))
         self._add_tooltip(clean_orphans_btn, "Remove orphaned packages that are not needed by any other package")
 
-    def load_packages(self):
+    def load_packages(self) -> None:
         """Load installed packages."""
         # Disable buttons during loading
         for child in self.winfo_children():
@@ -442,7 +445,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Show error dialog
         messagebox.showerror(title, message)
 
-    def display_packages(self, packages: List[Dict[str, str]], critical_packages: set):
+    def display_packages(self, packages: List[Dict[str, str]], critical_packages: set[str]) -> None:
         """Display packages in the treeview."""
         # Clear existing items
         for item in self.package_tree.get_children():
@@ -492,7 +495,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         self.all_packages = packages
         self.critical_packages = critical_packages
 
-    def filter_packages(self):
+    def filter_packages(self) -> None:
         """Filter displayed packages based on search and filter criteria."""
         if not hasattr(self, 'all_packages'):
             return
@@ -555,7 +558,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
             stats_text += f" ({critical_count} critical)"
         self.stats_label.config(text=stats_text)
 
-    def sort_packages(self, column):
+    def sort_packages(self, column: str) -> None:
         """Sort packages by the specified column."""
         # Get all items
         items = []
@@ -629,7 +632,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                 heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼')
                 self.package_tree.heading(col, text=heading_text)
 
-    def mark_package_critical(self):
+    def mark_package_critical(self) -> None:
         """Mark selected package as critical."""
         selection = self.package_tree.selection()
         if not selection:
@@ -676,7 +679,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Reload display
         self.load_packages()
 
-    def remove_package_critical(self):
+    def remove_package_critical(self) -> None:
         """Remove selected package from critical list."""
         selection = self.package_tree.selection()
         if not selection:
@@ -717,7 +720,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Reload display
         self.load_packages()
 
-    def view_package_details(self):
+    def view_package_details(self) -> None:
         """View details of selected package."""
         selection = self.package_tree.selection()
         if not selection:

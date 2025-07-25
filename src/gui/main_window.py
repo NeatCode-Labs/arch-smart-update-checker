@@ -849,7 +849,7 @@ class MainWindow(WindowPositionMixin):
         )
         made_by_label.pack(anchor='w', pady=(8, 0))
 
-    def _update_sidebar_width(self):
+    def _update_sidebar_width(self) -> None:
         """Set adaptive sidebar width based on layout."""
         # Ensure sidebar is wide enough for content
         base_width = 210  # Slightly wider for button text
@@ -862,7 +862,7 @@ class MainWindow(WindowPositionMixin):
         if hasattr(self, 'status_label'):
             self.status_label.configure(wraplength=sidebar_width - 30)
 
-    def setup_bindings(self):
+    def setup_bindings(self) -> None:
         """Setup event bindings."""
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
@@ -873,7 +873,7 @@ class MainWindow(WindowPositionMixin):
             btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))
             btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))
 
-    def on_nav_hover(self, button, entering):
+    def on_nav_hover(self, button: tk.Widget, entering: bool) -> None:
         """Handle navigation button hover effects."""
         if entering:
             button.configure(
@@ -904,7 +904,7 @@ class MainWindow(WindowPositionMixin):
                     fg=self.colors['text']
                 )
 
-    def show_frame(self, frame_name: str):
+    def show_frame(self, frame_name: str) -> None:
         """Show the specified frame and update navigation state."""
         # Store current frame
         self.current_frame.set(frame_name)
@@ -958,7 +958,7 @@ class MainWindow(WindowPositionMixin):
 
         # Special handling removed for news frame (no longer present)
 
-    def update_status(self, message: str, status_type: str = "info"):
+    def update_status(self, message: str, status_type: str = "info") -> None:
         """Update the status message."""
         self.status_text.set(message)
 
@@ -972,7 +972,7 @@ class MainWindow(WindowPositionMixin):
         else:
             self.status_label.configure(fg=self.colors['text_secondary'])
 
-    def run_check(self):
+    def run_check(self) -> None:
         """Run the update check in a background thread."""
         # Use instance lock to prevent concurrent update checks
         with self._update_check_lock:
@@ -1071,7 +1071,7 @@ class MainWindow(WindowPositionMixin):
         else:
             thread.start()  # Start the thread!
 
-    def on_check_error(self, error_msg: str):
+    def on_check_error(self, error_msg: str) -> None:
         """Handle check error."""
         self.update_status(error_msg, "error")
 
@@ -1081,7 +1081,7 @@ class MainWindow(WindowPositionMixin):
 
         messagebox.showerror("Update Check Error", error_msg)
 
-    def on_check_complete(self, update_count: int, updates: list, news_items: list):
+    def on_check_complete(self, update_count: int, updates: list, news_items: list) -> None:
         """Handle check completion."""
         if update_count == 0:
             self.update_status("No updates available", "success")
@@ -1116,13 +1116,13 @@ class MainWindow(WindowPositionMixin):
             news_count = len(news_items) if news_items else 0
             self.frames['dashboard'].update_stats_cards(update_count, news_count)
 
-    def on_closing(self):
+    def on_closing(self) -> None:
         """Handle window closing."""
         # This method is kept for compatibility but actual closing is handled by _on_window_close
         # Directly exit the application without additional confirmation
         self.root.destroy()
 
-    def apply_theme(self):
+    def apply_theme(self) -> None:
         """Apply the current theme to all components."""
         theme = self.config.config.get('theme', 'light')
         self.colors = self.color_schemes.get(theme, self.color_schemes['light'])
@@ -1230,7 +1230,7 @@ class MainWindow(WindowPositionMixin):
         # Update logging status after theme change
         self.update_logging_status()
 
-    def apply_font_size(self, size: str):
+    def apply_font_size(self, size: str) -> None:
         """Scale default Tk fonts to small/medium/large."""
         try:
             import tkinter.font as tkfont
@@ -1245,7 +1245,7 @@ class MainWindow(WindowPositionMixin):
         except Exception:
             pass
 
-    def _cleanup_resources(self):
+    def _cleanup_resources(self) -> None:
         """Cleanup resources and sensitive data when window is destroyed."""
         try:
             # Clear sensitive configuration data
@@ -1271,7 +1271,7 @@ class MainWindow(WindowPositionMixin):
             cleanup_logger = get_logger(__name__)
             cleanup_logger.error(f"Error during main window cleanup: {e}")
 
-    def run(self):
+    def run(self) -> None:
         """Start the GUI application."""
         try:
             # Register protocol handler for window close
@@ -1760,7 +1760,7 @@ class MainWindow(WindowPositionMixin):
         dialog.destroy()
         self.show_frame("news")
 
-    def _detect_default_terminal(self):
+    def _detect_default_terminal(self) -> Optional[str]:
         """Detect the user's default terminal emulator."""
         # Method 1: Check for flatpak-installed terminals first (likely user preference)
         try:
@@ -1878,7 +1878,7 @@ class MainWindow(WindowPositionMixin):
         logger.warning("No suitable terminal emulator found")
         return None
 
-    def _is_safe_terminal(self, terminal_name):
+    def _is_safe_terminal(self, terminal_name: str) -> bool:
         """Check if a terminal name is safe to execute."""
         # Handle flatpak commands
         if isinstance(terminal_name, str) and terminal_name.startswith('flatpak run '):
@@ -1898,7 +1898,7 @@ class MainWindow(WindowPositionMixin):
         }
         return terminal_name in safe_terminals
 
-    def _build_terminal_command(self, terminal, script_path):
+    def _build_terminal_command(self, terminal: str, script_path: str) -> List[str]:
         """Build the appropriate terminal command for different terminal types."""
         # Handle flatpak applications
         if terminal.startswith('flatpak run '):
@@ -2226,7 +2226,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         else:
             return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
 
-    def _calculate_sizes_async(self):
+    def _calculate_sizes_async(self) -> None:
         """Calculate sizes asynchronously to avoid blocking UI."""
         def calculate():
             try:
@@ -2328,7 +2328,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             var.set(False)
         self.update_news_display()
 
-    def _on_frame_resize(self, event):
+    def _on_frame_resize(self, event: tk.Event) -> None:
         """Handle frame resize events."""
         if event.widget == self:
             self._current_width = event.width
@@ -2358,7 +2358,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                 if hasattr(widget, '_affects_label'):
                     widget._affects_label.configure(wraplength=400)
 
-    def _configure_pkg_scroll(self, event):
+    def _configure_pkg_scroll(self, event: tk.Event) -> None:
         """Configure package scrollbar visibility."""
         self.pkg_canvas.configure(scrollregion=self.pkg_canvas.bbox("all"))
         # Only show scrollbar if content is larger than canvas
@@ -2367,13 +2367,13 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         else:
             self.pkg_scrollbar.pack_forget()
 
-    def _configure_news_scroll(self, event):
+    def _configure_news_scroll(self, event: tk.Event) -> None:
         """Configure news scrollbar visibility."""
         self.news_canvas.configure(scrollregion=self.news_canvas.bbox("all"))
         # Always show scrollbar for news since content is usually longer
         self.news_scrollbar.pack(side="right", fill="y")
 
-    def _intercept_news_mousewheel(self, event):
+    def _intercept_news_mousewheel(self, event: tk.Event) -> Optional[str]:
         """Intercept mouse wheel events and delegate to appropriate canvas."""
         try:
             # Get mouse position relative to this frame
