@@ -26,7 +26,7 @@ class ColoredFormatter(logging.Formatter):
         'RESET': '\033[0m'      # Reset
     }
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """Format log record with colors."""
         log_color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
         reset_color = self.COLORS['RESET']
@@ -40,7 +40,7 @@ class ColoredFormatter(logging.Formatter):
 # Global configuration for logging with thread synchronization
 _global_config: Optional[Dict[str, Any]] = None
 _log_file_path: Optional[str] = None
-_configured_loggers: set = set()  # Track configured loggers to prevent duplicates
+_configured_loggers: set[str] = set()  # Track configured loggers to prevent duplicates
 _logger_instances: Dict[str, logging.Logger] = {}  # Cache logger instances
 _global_state_lock = threading.RLock()  # Reentrant lock for global state synchronization
 
@@ -270,7 +270,7 @@ def get_logger(name: str) -> logging.Logger:
         return logger
 
 
-def sanitize_log_message(message: str, sensitive_patterns: Optional[list] = None, debug_level: bool = False) -> str:
+def sanitize_log_message(message: str, sensitive_patterns: Optional[list[str]] = None, debug_level: bool = False) -> str:
     """
     Enhanced log message sanitization to prevent information disclosure.
 
@@ -503,7 +503,7 @@ def _apply_additional_sanitization(message: str, debug_level: bool = False) -> s
     return message
 
 
-def sanitize_debug_message(message: str, extra_patterns: Optional[list] = None) -> str:
+def sanitize_debug_message(message: str, extra_patterns: Optional[list[str]] = None) -> str:
     """
     Enhanced debug message sanitization with stricter controls.
 
@@ -517,7 +517,7 @@ def sanitize_debug_message(message: str, extra_patterns: Optional[list] = None) 
     return sanitize_log_message(message, extra_patterns, debug_level=True)
 
 
-def create_secure_debug_logger(name: str, enable_debug: bool = False) -> logging.Logger:
+def create_secure_debug_logger(name: str, enable_debug: bool = False) -> Any:
     """
     Create a logger with automatic debug message sanitization.
 
@@ -532,39 +532,39 @@ def create_secure_debug_logger(name: str, enable_debug: bool = False) -> logging
 
     # Create a wrapper that automatically sanitizes debug messages
     class SecureDebugLogger:
-        def __init__(self, base_logger):
+        def __init__(self, base_logger: logging.Logger) -> None:
             self._logger = base_logger
             self._debug_enabled = enable_debug
 
-        def debug(self, msg, *args, **kwargs):
+        def debug(self, msg: Any, *args: Any, **kwargs: Any) -> None:
             if self._debug_enabled and self._logger.isEnabledFor(logging.DEBUG):
                 sanitized_msg = sanitize_debug_message(str(msg))
                 self._logger.debug(sanitized_msg, *args, **kwargs)
 
-        def info(self, msg, *args, **kwargs):
+        def info(self, msg: Any, *args: Any, **kwargs: Any) -> None:
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.info(sanitized_msg, *args, **kwargs)
 
-        def warning(self, msg, *args, **kwargs):
+        def warning(self, msg: Any, *args: Any, **kwargs: Any) -> None:
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.warning(sanitized_msg, *args, **kwargs)
 
-        def error(self, msg, *args, **kwargs):
+        def error(self, msg: Any, *args: Any, **kwargs: Any) -> None:
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.error(sanitized_msg, *args, **kwargs)
 
-        def critical(self, msg, *args, **kwargs):
+        def critical(self, msg: Any, *args: Any, **kwargs: Any) -> None:
             sanitized_msg = sanitize_log_message(str(msg))
             self._logger.critical(sanitized_msg, *args, **kwargs)
 
-        def __getattr__(self, name):
+        def __getattr__(self, name: str) -> Any:
             # Forward other attributes to the base logger
             return getattr(self._logger, name)
 
     return SecureDebugLogger(logger)
 
 
-def log_security_event(event_type: str, details: Optional[dict] = None, severity: str = "warning") -> None:
+def log_security_event(event_type: str, details: Optional[dict[str, Any]] = None, severity: str = "warning") -> None:
     """
     Log security events with proper sanitization.
 
@@ -610,7 +610,7 @@ class ContextualSanitizer:
         self.component_name = component_name
         self.component_patterns = self._get_component_patterns()
 
-    def _get_component_patterns(self) -> list:
+    def _get_component_patterns(self) -> list[tuple[str, str]]:
         """Get sanitization patterns specific to component."""
         patterns = []
 

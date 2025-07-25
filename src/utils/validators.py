@@ -590,7 +590,7 @@ def validate_feed_url(url: str, require_https: bool = True) -> bool:
     return True
 
 
-def validate_json_structure(data: dict, required_keys: List[str]) -> bool:
+def validate_json_structure(data: dict[str, Any], required_keys: List[str]) -> bool:
     """
     Validate JSON data structure.
 
@@ -679,7 +679,7 @@ def validate_config_value(key: str, value: Any, value_type: type,
             return False
 
     # Length check for strings
-    if value_type == str:
+    if value_type == str and isinstance(value, str):
         if min_value is not None and len(value) < min_value:
             logger.warning(f"String {key} too short: {len(value)} < {min_value}")
             return False

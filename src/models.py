@@ -113,7 +113,7 @@ class PackageUpdate:
     size: Optional[int] = None  # Download size in bytes
     installed_size: Optional[int] = None  # Installed size in bytes
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate package update data."""
         if not self.name:
             raise ValueError("Package name cannot be empty")

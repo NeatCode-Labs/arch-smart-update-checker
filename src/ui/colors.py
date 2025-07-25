@@ -4,7 +4,7 @@ Color utilities for terminal output.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from colorama import Fore, Back, Style, init
+from colorama import Fore, Back, Style, init  # type: ignore[import-untyped]
 
 # Initialize colorama for cross-platform color support
 init(autoreset=True)

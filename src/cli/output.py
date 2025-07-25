@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 from datetime import datetime
 import sys
 
-from colorama import init, Fore, Style
+from colorama import init, Fore, Style  # type: ignore[import-untyped]
 
 # Initialize colorama for cross-platform color support
 init(autoreset=True)
