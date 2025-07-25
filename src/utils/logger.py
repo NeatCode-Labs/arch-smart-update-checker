@@ -270,7 +270,7 @@ def get_logger(name: str) -> logging.Logger:
         return logger
 
 
-def sanitize_log_message(message: str, sensitive_patterns: list = None, debug_level: bool = False) -> str:
+def sanitize_log_message(message: str, sensitive_patterns: Optional[list] = None, debug_level: bool = False) -> str:
     """
     Enhanced log message sanitization to prevent information disclosure.
 
@@ -503,7 +503,7 @@ def _apply_additional_sanitization(message: str, debug_level: bool = False) -> s
     return message
 
 
-def sanitize_debug_message(message: str, extra_patterns: list = None) -> str:
+def sanitize_debug_message(message: str, extra_patterns: Optional[list] = None) -> str:
     """
     Enhanced debug message sanitization with stricter controls.
 
@@ -564,7 +564,7 @@ def create_secure_debug_logger(name: str, enable_debug: bool = False) -> logging
     return SecureDebugLogger(logger)
 
 
-def log_security_event(event_type: str, details: dict = None, severity: str = "warning") -> None:
+def log_security_event(event_type: str, details: Optional[dict] = None, severity: str = "warning") -> None:
     """
     Log security events with proper sanitization.
 

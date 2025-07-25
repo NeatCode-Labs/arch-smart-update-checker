@@ -7,7 +7,7 @@ Input validation and security utilities with enhanced protections.
 import re
 import os
 import unicodedata
-from typing import Optional, List, Union, Any
+from typing import Optional, List, Union, Any, Dict
 from urllib.parse import urlparse
 import ipaddress
 import string
@@ -55,7 +55,7 @@ class SecurityFilter:
     ]
 
     @classmethod
-    def validate_input_length(cls, value: str, input_type: str, max_length: int = None) -> None:
+    def validate_input_length(cls, value: str, input_type: str, max_length: Optional[int] = None) -> None:
         """
         Validate input length against security limits.
 
@@ -648,9 +648,9 @@ def sanitize_html(text: str) -> str:
     return text
 
 
-def validate_config_value(key: str, value: any, value_type: type,
-                          min_value: Optional[any] = None,
-                          max_value: Optional[any] = None) -> bool:
+def validate_config_value(key: str, value: Any, value_type: type,
+                          min_value: Optional[Any] = None,
+                          max_value: Optional[Any] = None) -> bool:
     """
     Validate a configuration value.
 
@@ -869,7 +869,7 @@ def validate_config_json(data: dict) -> bool:
         raise ValueError("Configuration must be a JSON object")
 
     # Define allowed configuration keys and their types
-    allowed_keys = {
+    allowed_keys: Dict[str, Union[type, tuple]] = {
         'cache_ttl_hours': int,
         'feeds': list,
         'extra_patterns': list,
@@ -1020,13 +1020,13 @@ def sanitize_config_json(data: dict) -> dict:
 
             # Type conversion with validation
             try:
-                if expected_type == int:
+                if expected_type is int:
                     sanitized[key] = int(value)
-                elif expected_type == bool:
+                elif expected_type is bool:
                     sanitized[key] = bool(value)
-                elif expected_type == str:
+                elif expected_type is str:
                     sanitized[key] = str(value)
-                elif expected_type == list:
+                elif expected_type is list:
                     if isinstance(value, list):
                         sanitized[key] = value.copy()
                 elif expected_type == (str, type(None)):
@@ -1139,7 +1139,7 @@ def validate_boolean_input(value: str) -> bool:
         raise ValueError("Invalid boolean value")
 
 
-def create_safe_error_message(error_type: str, details: str = None, safe_details: str = None) -> str:
+def create_safe_error_message(error_type: str, details: Optional[str] = None, safe_details: Optional[str] = None) -> str:
     """
     Create error messages that don't disclose sensitive information.
 
@@ -1218,7 +1218,7 @@ class SecureErrorHandler:
 
     @classmethod
     def handle_validation_error(cls, context: str, original_error: Exception,
-                                user_input: str = None) -> str:
+                                user_input: Optional[str] = None) -> str:
         """
         Handle validation errors securely.
 
@@ -1259,7 +1259,7 @@ class SecureErrorHandler:
 
     @classmethod
     def handle_network_error(cls, context: str, original_error: Exception,
-                             url: str = None) -> str:
+                             url: Optional[str] = None) -> str:
         """
         Handle network errors securely.
 
@@ -1304,7 +1304,7 @@ class SecureErrorHandler:
 
     @classmethod
     def handle_file_error(cls, context: str, original_error: Exception,
-                          file_path: str = None) -> str:
+                          file_path: Optional[str] = None) -> str:
         """
         Handle file operation errors securely.
 
@@ -1345,7 +1345,7 @@ class SecureErrorHandler:
 
     @classmethod
     def handle_command_error(cls, context: str, original_error: Exception,
-                             command: str = None) -> str:
+                             command: Optional[str] = None) -> str:
         """
         Handle command execution errors securely.
 
@@ -1532,7 +1532,7 @@ def safe_str_conversion(value: Any, context: str = "unknown") -> str:
         return f"[{context.upper()}_VALUE]"
 
 
-def validate_and_set_locale(locale_string: str, category: int = None) -> bool:
+def validate_and_set_locale(locale_string: str, category: Optional[int] = None) -> bool:
     """
     Validate and safely set locale to prevent injection attacks.
 
@@ -1547,6 +1547,9 @@ def validate_and_set_locale(locale_string: str, category: int = None) -> bool:
     from ..utils.logger import get_logger
 
     logger = get_logger(__name__)
+    
+    if category is None:
+        category = locale.LC_TIME
 
     # Whitelist of safe, known locales
     SAFE_LOCALES = {
@@ -1587,9 +1590,6 @@ def validate_and_set_locale(locale_string: str, category: int = None) -> bool:
 
     # Attempt to set the locale safely
     try:
-        if category is None:
-            category = locale.LC_TIME
-
         # Try with UTF-8 encoding first
         locale.setlocale(category, (base_locale, 'UTF-8'))
         logger.debug(f"Successfully set locale to: {base_locale}.UTF-8")
@@ -1707,7 +1707,7 @@ def validate_environment_variable(env_var: str, value: str, var_type: str = "str
     return True
 
 
-def get_safe_environment_variable(env_var: str, default: str = None, var_type: str = "string") -> str:
+def get_safe_environment_variable(env_var: str, default: Optional[str] = None, var_type: str = "string") -> str:
     """
     Get environment variable with validation and safe fallback.
 
@@ -1803,7 +1803,7 @@ def validate_editor_command(editor_env: str) -> str:
     raise ValueError("No safe text editor found")
 
 
-def sanitize_environment_for_subprocess(env_dict: dict = None) -> dict:
+def sanitize_environment_for_subprocess(env_dict: Optional[dict] = None) -> dict:
     """
     Sanitize environment dictionary for safe subprocess execution.
 
