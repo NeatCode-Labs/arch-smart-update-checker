@@ -2690,10 +2690,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         check=False
                     )
                     logger.debug(
-                        f"pacman -Q {pkg} returned: {
-                            result.returncode}, stdout: {
-                            result.stdout}, stderr: {
-                            result.stderr}")
+                        f"pacman -Q {pkg} returned: {result.returncode}, stdout: {result.stdout}, stderr: {result.stderr}")
                     if result.returncode == 0 and result.stdout:
                         # Format: "package-name version"
                         parts = result.stdout.strip().split(' ', 1)

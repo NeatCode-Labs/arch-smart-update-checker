@@ -453,9 +453,7 @@ class UpdateHistoryFrame(ttk.Frame, WindowPositionMixin):
         text.insert('end', f"Duration: {entry.duration_sec:.1f} seconds\n")
         text.insert('end', f"Exit Code: {entry.exit_code}\n")
         text.insert(
-            'end', f"Result: {
-                '✅ Success' if entry.succeeded else f'❌ Failed (exit code {
-                    entry.exit_code})'}\n\n")
+            'end', f"Result: {'✅ Success' if entry.succeeded else f'❌ Failed (exit code {entry.exit_code})'}\n\n")
         text.insert('end', f"Packages ({len(entry.packages)}):\n")
         for pkg in entry.packages:
             # Include version info if available

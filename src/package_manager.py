@@ -179,9 +179,7 @@ class PackageManager:
         self._installed_packages_cache = None
         self._installed_names_cache = None
         logger.info(
-            f"CACHE CLEARED: installed_packages={
-                self._installed_packages_cache}, names={
-                self._installed_names_cache}")
+            f"CACHE CLEARED: installed_packages={self._installed_packages_cache}, names={self._installed_names_cache}")
 
     def get_package_dependencies(self, package_name: str) -> List[str]:
         """

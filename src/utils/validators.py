@@ -898,9 +898,7 @@ def validate_config_json(data: dict) -> bool:
             value = data[key]
             if not isinstance(value, expected_type):
                 raise ValueError(
-                    f"Invalid type for '{key}': expected {
-                        expected_type.__name__}, got {
-                        type(value).__name__}")
+                    f"Invalid type for '{key}': expected {expected_type.__name__}, got {type(value).__name__}")
 
             # Additional validation for specific keys
             if key == 'theme' and value not in ['light', 'dark']:

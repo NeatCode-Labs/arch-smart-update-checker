@@ -149,8 +149,7 @@ class ThreadResourceManager:
             # Check background thread limit
             if is_background and cls._background_threads >= cls.MAX_BACKGROUND_THREADS:
                 logger.warning(
-                    f"Background thread creation denied: reached max background threads ({
-                        cls.MAX_BACKGROUND_THREADS})")
+                    f"Background thread creation denied: reached max background threads ({cls.MAX_BACKGROUND_THREADS})")
                 cls._security_monitor.record_thread_failure("background_limit")
                 return False
 

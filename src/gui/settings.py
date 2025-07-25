@@ -914,8 +914,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             if 'history' in self.main_window.frames:
                 history_frame = self.main_window.frames['history']
                 logger.debug(
-                    f"Settings: Syncing with Update History panel, update_history_enabled={
-                        settings['update_history_enabled']}")
+                    f"Settings: Syncing with Update History panel, update_history_enabled={settings['update_history_enabled']}")
                 if hasattr(history_frame, '_update_toggle_button'):
                     history_frame._update_toggle_button()
                 else:

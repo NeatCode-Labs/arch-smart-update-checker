@@ -31,16 +31,7 @@ class OutputFormatter:
         Returns:
             Formatted header
         """
-        return f"\n{
-            Colors.header(
-                '=' *
-                self.width)}\n{
-            Colors.header(
-                title.center(
-                    self.width))}\n{
-                        Colors.header(
-                            '=' *
-                            self.width)}"
+        return f"\n{Colors.header('=' * self.width)}\n{Colors.header(title.center(self.width))}\n{Colors.header('=' * self.width)}\n"
 
     def format_subheader(self, title: str) -> str:
         """

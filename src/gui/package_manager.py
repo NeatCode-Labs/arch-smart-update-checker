@@ -661,8 +661,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Show feedback
         if marked_count > 0 and not already_critical:
             messagebox.showinfo(
-                "Success", f"Successfully marked {marked_count} package{
-                    's' if marked_count > 1 else ''} as critical.")
+                "Success", f"Successfully marked {marked_count} package{'s' if marked_count > 1 else ''} as critical.")
         elif marked_count > 0 and already_critical:
             msg = f"Marked {marked_count} package{'s' if marked_count > 1 else ''} as critical.\n\n"
             msg += f"The following package{'s were' if len(already_critical) > 1 else ' was'} already critical:\n"
