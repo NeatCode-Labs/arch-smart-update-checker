@@ -99,10 +99,17 @@ def pytest_configure(config):
     
     # Patch ThreadPoolExecutor globally and in specific modules
     patch('concurrent.futures.ThreadPoolExecutor', MockThreadPoolExecutor).start()
-    # Patch the ThreadPoolExecutor import in update_history module
-    patch('src.utils.update_history.ThreadPoolExecutor', MockThreadPoolExecutor).start()
-    # Patch ThreadPoolExecutor in thread manager
-    patch('src.utils.thread_manager.ThreadPoolExecutor', MockThreadPoolExecutor).start()
+    # Patch the ThreadPoolExecutor imports using the module import path
+    try:
+        import src.utils.update_history
+        patch.object(src.utils.update_history, 'ThreadPoolExecutor', MockThreadPoolExecutor).start()
+    except (ImportError, AttributeError):
+        pass  # Module might not be imported yet
+    try:
+        import src.utils.thread_manager
+        patch.object(src.utils.thread_manager, 'ThreadPoolExecutor', MockThreadPoolExecutor).start()
+    except (ImportError, AttributeError):
+        pass  # Module might not be imported yet
 
 
 def pytest_unconfigure(config):
