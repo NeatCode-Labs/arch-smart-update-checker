@@ -30,9 +30,18 @@ def pytest_configure(config):
     
     # MEMORY FIX: Create a single global root window
     # that will be reused across tests instead of creating new Tk() instances
-    _global_root = tk.Tk()
-    _global_root.withdraw()  # Hide the window
-    tk._default_root = _global_root
+    try:
+        _global_root = tk.Tk()
+        _global_root.withdraw()  # Hide the window
+        tk._default_root = _global_root
+    except tk.TclError as e:
+        if "no display name and no $DISPLAY" in str(e):
+            # Running in headless environment (e.g., CI)
+            # Skip Tk initialization and let individual tests handle it
+            _global_root = None
+            print("Warning: Running in headless environment - GUI tests will be skipped")
+        else:
+            raise
     
     # Mock threading globally to prevent background threads in tests
     class MockThread:
@@ -129,41 +138,30 @@ def gui_root():
     """Provide a root window for GUI tests."""
     global _global_root
     
+    # Skip GUI tests in headless environment
+    if _global_root is None:
+        pytest.skip("Skipping GUI test - no display available")
+    
     # Create a toplevel for this test
-    if _global_root:
-        test_window = tk.Toplevel(_global_root)
-        test_window.withdraw()
-        
-        yield test_window
-        
-        # Cleanup
-        try:
-            test_window.after_cancel('all')
-            for widget in test_window.winfo_children():
-                try:
-                    widget.destroy()
-                except:
-                    pass
-            test_window.destroy()
-        except:
-            pass
-        
-        # Force garbage collection
-        gc.collect()
-    else:
-        # Fallback if no global root
-        root = tk.Tk()
-        root.withdraw()
-        
-        yield root
-        
-        try:
-            root.destroy()
-            root.quit()
-        except:
-            pass
-        
-        gc.collect()
+    test_window = tk.Toplevel(_global_root)
+    test_window.withdraw()
+    
+    yield test_window
+    
+    # Cleanup
+    try:
+        test_window.after_cancel('all')
+        for widget in test_window.winfo_children():
+            try:
+                widget.destroy()
+            except:
+                pass
+        test_window.destroy()
+    except:
+        pass
+    
+    # Force garbage collection
+    gc.collect()
 
 
 @pytest.fixture
