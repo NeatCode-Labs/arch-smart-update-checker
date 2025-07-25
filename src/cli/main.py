@@ -486,14 +486,14 @@ class AsucCLI:
                         print(self.formatter.format_updates_table(updates_dict))  # type: ignore[union-attr]
 
                     if not args.quiet:
-                        self.formatter.info  # type: ignore[union-attr]("Note: Use 'asuc-cli check' to also see relevant news items")
+                        self.formatter.info("Note: Use 'asuc-cli check' to also see relevant news items")  # type: ignore[union-attr]
                 else:
-                    self.formatter.success  # type: ignore[union-attr]("No updates available")
+                    self.formatter.success("No updates available")  # type: ignore[union-attr]
 
             return 0
 
         except Exception as e:
-            self.formatter.error(f"Failed to check updates: {str(e)}")
+            self.formatter.error(f"Failed to check updates: {str(e)}")  # type: ignore[union-attr]
             return 20
 
     def cmd_news(self, args: argparse.Namespace) -> int:
@@ -526,17 +526,17 @@ class AsucCLI:
                 data = [
                     {
                         'title': n.title,
-                        'url': n.url,
-                        'published': n.published,
+                        'url': n.link,
+                        'published': n.date,
                         'content': n.content,
                         'affected_packages': list(n.affected_packages) if n.affected_packages else []
                     }
                     for n in relevant_news
                 ]
-                self.formatter.output_json(data)
+                self.formatter.output_json(data)  # type: ignore[union-attr]
             else:
                 if relevant_news:
-                    self.formatter.header(f"Relevant news items: {len(relevant_news)}")
+                    self.formatter.header(f"Relevant news items: {len(relevant_news)}")  # type: ignore[union-attr]
                     news_dict = [
                         {
                             'title': n.title,
@@ -546,14 +546,14 @@ class AsucCLI:
                         }
                         for n in relevant_news
                     ]
-                    print(self.formatter.format_news_items(news_dict))
+                    print(self.formatter.format_news_items(news_dict))  # type: ignore[union-attr]
                 else:
-                    self.formatter.info("No relevant news items")
+                    self.formatter.info("No relevant news items")  # type: ignore[union-attr]
 
             return 0
 
         except Exception as e:
-            self.formatter.error(f"Failed to fetch news: {str(e)}")
+            self.formatter.error(f"Failed to fetch news: {str(e)}")  # type: ignore[union-attr]
             return 20
 
     def cmd_history(self, args: argparse.Namespace) -> int:
@@ -563,18 +563,18 @@ class AsucCLI:
                 if not args.yes:
                     response = input("Clear all update history? [y/N] ")
                     if response.lower() not in ['y', 'yes']:
-                        self.formatter.info("Clear cancelled")
+                        self.formatter.info("Clear cancelled")  # type: ignore[union-attr]
                         return 0
 
                 self.update_history.clear()
-                self.formatter.success("Update history cleared")
+                self.formatter.success("Update history cleared")  # type: ignore[union-attr]
                 return 0
 
             if args.export:
                 # Export history
                 format_ = 'csv' if args.export.lower().endswith('.csv') else 'json'
                 self.update_history.export(args.export, format_)
-                self.formatter.success(f"History exported to {args.export}")
+                self.formatter.success(f"History exported to {args.export}")  # type: ignore[union-attr]
                 return 0
 
             # Display history
@@ -586,14 +586,14 @@ class AsucCLI:
 
             if args.json:
                 data = [entry.to_dict() for entry in entries]
-                self.formatter.output_json(data)
+                self.formatter.output_json  # type: ignore[union-attr](data)
             else:
                 if entries:
-                    self.formatter.header(f"Update History ({len(entries)} entries)")
+                    self.formatter.header(f"Update History ({len(entries)} entries)")  # type: ignore[union-attr]
                     entries_dict = [entry.to_dict() for entry in entries]
-                    print(self.formatter.format_history_table(entries_dict))
+                    print(self.formatter.format_history_table(entries_dict))  # type: ignore[union-attr]
                 else:
-                    self.formatter.info("No update history recorded")
+                    self.formatter.info  # type: ignore[union-attr]("No update history recorded")
 
             return 0
 
