@@ -879,7 +879,7 @@ class MainWindow(WindowPositionMixin):
             button.configure(
                 bg=self.colors['background'],
                 fg=self.colors['primary']
-)  # type: ignore[call-arg]  # bg keyword arg for button styling
+            )  # type: ignore[call-arg]  # bg keyword arg for button styling
         else:
             # Check if this button is active
             active_frame = getattr(self, 'current_frame', 'dashboard')

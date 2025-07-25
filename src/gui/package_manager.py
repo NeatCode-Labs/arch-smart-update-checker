@@ -261,12 +261,12 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         self.package_tree.bind('<F5>', lambda e: self.load_packages())
 
         # Bind column header clicks for sorting
-        self.package_tree.heading('#0', command=lambda: self.sort_packages('#0')) # type: ignore[call-overload]
-        self.package_tree.heading('version', command=lambda: self.sort_packages('version')) # type: ignore[call-overload]
-        self.package_tree.heading('repository', command=lambda: self.sort_packages('repository')) # type: ignore[call-overload]
-        self.package_tree.heading('size', command=lambda: self.sort_packages('size')) # type: ignore[call-overload]
-        self.package_tree.heading('install_date', command=lambda: self.sort_packages('install_date')) # type: ignore[call-overload]
-        self.package_tree.heading('status', command=lambda: self.sort_packages('status')) # type: ignore[call-overload]
+        self.package_tree.heading('#0', command=lambda: self.sort_packages('#0'))  # type: ignore[call-overload]
+        self.package_tree.heading('version', command=lambda: self.sort_packages('version'))  # type: ignore[call-overload]
+        self.package_tree.heading('repository', command=lambda: self.sort_packages('repository'))  # type: ignore[call-overload]
+        self.package_tree.heading('size', command=lambda: self.sort_packages('size'))  # type: ignore[call-overload]
+        self.package_tree.heading('install_date', command=lambda: self.sort_packages('install_date'))  # type: ignore[call-overload]
+        self.package_tree.heading('status', command=lambda: self.sort_packages('status'))  # type: ignore[call-overload]
 
         # Stats label
         self.stats_label = tk.Label(package_frame,
@@ -624,13 +624,13 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         for col in ['#0', 'version', 'repository', 'size', 'install_date', 'status']:
             if col == column:
                 # Add sort indicator
-                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼') # type: ignore[call-overload]
+                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼')  # type: ignore[call-overload]
                 indicator = ' ▼' if self.sort_reverse else ' ▲'
-                self.package_tree.heading(col, text=heading_text + indicator) # type: ignore[call-overload]
+                self.package_tree.heading(col, text=heading_text + indicator)  # type: ignore[call-overload]
             else:
                 # Remove sort indicator from other columns
-                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼') # type: ignore[call-overload]
-                self.package_tree.heading(col, text=heading_text) # type: ignore[call-overload]
+                heading_text = self.package_tree.heading(col)['text'].rstrip(' ▲▼')  # type: ignore[call-overload]
+                self.package_tree.heading(col, text=heading_text)  # type: ignore[call-overload]
 
     def mark_package_critical(self) -> None:
         """Mark selected package as critical."""
