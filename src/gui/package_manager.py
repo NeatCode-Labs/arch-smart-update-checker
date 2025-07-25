@@ -1064,9 +1064,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                             if matches:
                                 updated_packages = [pkg for pkg in matches if pkg not in reinstalled]
                                 logger.info(
-                                    f"Found {
-                                        len(updated_packages)} actual updates (excluded {
-                                        len(reinstalled)} reinstalls)")
+                                    f"Found {len(updated_packages)} actual updates (excluded {len(reinstalled)} reinstalls)")
                             else:
                                 # If we can't parse specific packages, use a generic entry
                                 updated_packages = ["Full System Update"]

@@ -297,9 +297,7 @@ class ThreadResourceManager:
 
                 if runtime > cls.THREAD_TIMEOUT_SECONDS:
                     logger.warning(
-                        f"Thread {thread_id} ran for {
-                            runtime:.1f}s (timeout: {
-                            cls.THREAD_TIMEOUT_SECONDS}s)")
+                        f"Thread {thread_id} ran for {runtime:.1f}s (timeout: {cls.THREAD_TIMEOUT_SECONDS}s)")
 
                 # Clean up tracking data
                 del cls._thread_registry[thread_id]

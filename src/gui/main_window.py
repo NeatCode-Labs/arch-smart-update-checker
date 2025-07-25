@@ -3026,9 +3026,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                 version_info=filtered_version_info
                             )
                             logger.info(
-                                f"Recorded update history for {
-                                    len(packages_to_record)} packages (excluded {
-                                    len(reinstalled_packages)} reinstalls)")
+                                f"Recorded update history for {len(packages_to_record)} packages (excluded {len(reinstalled_packages)} reinstalls)")
 
                             # Refresh update history panel if it exists and is visible
                             if 'history' in self.main_window.frames:
