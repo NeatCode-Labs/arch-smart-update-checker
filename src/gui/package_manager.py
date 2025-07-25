@@ -4,6 +4,8 @@ Package manager frame for the Arch Smart Update Checker GUI.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict, Any, List, Optional, TYPE_CHECKING
@@ -561,7 +563,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
     def sort_packages(self, column: str) -> None:
         """Sort packages by the specified column."""
         # Get all items
-        items = []
+        items: list = []
         for item in self.package_tree.get_children():
             if column == '#0':
                 # Package name is in the text field

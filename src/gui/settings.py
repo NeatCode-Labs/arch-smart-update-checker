@@ -4,6 +4,8 @@ Settings frame for the Arch Smart Update Checker GUI.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from typing import Dict, Any, List, Optional, TYPE_CHECKING

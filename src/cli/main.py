@@ -4,6 +4,8 @@ Main entry point for the asuc-cli command-line tool.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import argparse
 import sys
 import os

@@ -191,8 +191,6 @@ cython_debug/
 *.log
 .cache/
 config.json
-test_*.py
-*_test.py
 
 # Legacy and temporary files
 v1.0/

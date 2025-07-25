@@ -267,7 +267,7 @@ class NewsFetcher:
 
         return response
 
-    def _validate_request_parameters(self, url: str, timeout: Optional[int] = None) -> tuple:
+    def _validate_request_parameters(self, url: str, timeout: Optional[int] = None) -> tuple[str, int]:
         """
         Validate and normalize request parameters for security.
 
