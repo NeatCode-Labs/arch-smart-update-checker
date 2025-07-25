@@ -1261,8 +1261,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
                         status_label.config(text="✅ Package removal completed successfully!", foreground='green')
                         self.main_window.root.after(
                             0, lambda: messagebox.showinfo(
-                                "Success", f"Successfully removed {
-                                    len(packages)} package(s)"))
+                                "Success", f"Successfully removed {len(packages)} package(s)"))
                         # Refresh package list
                         self.main_window.root.after(1000, self.refresh_packages)
                     else:
