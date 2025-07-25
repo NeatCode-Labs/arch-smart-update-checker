@@ -871,7 +871,7 @@ class MainWindow(WindowPositionMixin):
             if btn is None:
                 continue
             btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))  # type: ignore[misc])
-            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))
+            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))  # type: ignore[misc])
 
     def on_nav_hover(self, button: tk.Widget, entering: bool) -> None:
         """Handle navigation button hover effects."""
@@ -896,13 +896,13 @@ class MainWindow(WindowPositionMixin):
                 button.configure(
                     bg=self.colors['primary'],
                     fg='white'
-                )
+                )  # type: ignore[call-arg]  # bg/fg for button styling
             else:
                 # Return to normal state
                 button.configure(
                     bg=self.colors['surface'],
                     fg=self.colors['text']
-                )
+                )  # type: ignore[call-arg]  # bg/fg for button styling
 
     def show_frame(self, frame_name: str) -> None:
         """Show the specified frame and update navigation state."""

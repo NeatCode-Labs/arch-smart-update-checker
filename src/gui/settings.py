@@ -43,7 +43,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
         # Suppress autosave callbacks while building UI
         self._autosave_enabled = False
-        self._autosave_timer_id = None  # Store timer ID instead of raw timer
+        self._autosave_timer_id: Optional[str] = None  # Store timer ID instead of raw timer
 
         self.content_frame = ttk.Frame(self, style='Content.TFrame')
         self.content_frame.pack(fill='both', expand=True)
@@ -354,9 +354,8 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             self.feed_edit_panel = ttk.Frame(settings_frame, style='Card.TFrame', height=120)
             self.feed_edit_panel.pack(fill='x', pady=(10, 0))
             self.feed_edit_panel.pack_propagate(False)
-            self._render_edit_feed_panel()
         else:
-            self.feed_edit_panel = None
+            self.feed_edit_panel = None  # type: ignore[assignment]
         # Feed options (now always below feed list/buttons)
 
         # ------------------- News Freshness Setting -------------------
@@ -892,7 +891,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             try:
                 if hasattr(self.main_window, 'checker') and hasattr(self.main_window.checker, 'news_fetcher'):
                     old_freshness = self.main_window.checker.news_fetcher.max_news_age_days
-                    self.main_window.checker.news_fetcher.max_news_age_days = settings['max_news_age_days']
+                    self.main_window.checker.news_fetcher.max_news_age_days = int(settings['max_news_age_days'])
 
                     # Clear cache if freshness setting changed to ensure fresh filtering
                     if old_freshness != settings['max_news_age_days']:

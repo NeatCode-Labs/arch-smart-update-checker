@@ -49,7 +49,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         self.dims = get_dimensions()
 
         # Sort state tracking
-        self.sort_column = None
+        self.sort_column: Optional[str] = None
         self.sort_reverse = False
 
         # Timer management

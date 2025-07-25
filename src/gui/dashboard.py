@@ -133,7 +133,7 @@ class DashboardFrame(ttk.Frame):
         # Configure card layout
         self._configure_card_layout()
 
-    def create_stat_card(self, parent: tk.Widget, title: str, value: str, description: str) -> tk.Frame:
+    def create_stat_card(self, parent: tk.Widget, title: str, value: str, description: str) -> ttk.Frame:
         """Create a single statistics card."""
         card = ttk.Frame(parent, style='Card.TFrame')
 
@@ -161,7 +161,7 @@ class DashboardFrame(ttk.Frame):
                                wraplength=WRAP,
                                justify='left')
         title_label.pack(anchor='w')
-        card.title_label = title_label  # store reference for wrap update
+        card.title_label = title_label  # type: ignore[attr-defined]  # store reference for wrap update
 
         # Value
         value_label = tk.Label(content_frame,
@@ -183,9 +183,9 @@ class DashboardFrame(ttk.Frame):
         desc_label.pack(anchor='w', fill='x')
 
         # Store references for updates
-        card.value_label = value_label
-        card.desc_label = desc_label
-        card.title = title
+        card.value_label = value_label  # type: ignore[attr-defined]
+        card.desc_label = desc_label  # type: ignore[attr-defined]
+        card.title = title  # type: ignore[attr-defined]
 
         # Make clickable for issues and news
         if "Issues Found" in title or "News Items" in title:
@@ -337,7 +337,7 @@ class DashboardFrame(ttk.Frame):
 
         # Animation state
         self.dots_count = 0
-        self.animation_timer_id = None  # Store timer ID instead of raw timer
+        self.animation_timer_id: Optional[str] = None  # Store timer ID instead of raw timer
         self._component_id = f"dashboard_{id(self)}"  # Unique component ID for timer management
 
     def create_system_info(self) -> None:
