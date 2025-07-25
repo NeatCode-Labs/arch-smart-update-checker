@@ -101,14 +101,7 @@ class OutputFormatter:
             new = update.get('new_version', 'unknown')
 
             if self.use_color:
-                row = f"  {
-                    self.white}{
-                    name:<{max_name}}{
-                    self.reset}  {
-                    current:<{max_current}}  {
-                    self.green}{
-                        new:<{max_new}}{
-                            self.reset}"
+                row = f"  {self.white}{name:<{max_name}}{self.reset}  {current:<{max_current}}  {self.green}{new:<{max_new}}{self.reset}"
             else:
                 row = f"  {name:<{max_name}}  {current:<{max_current}}  {new:<{max_new}}"
 

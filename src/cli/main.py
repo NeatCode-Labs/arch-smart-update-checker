@@ -364,8 +364,7 @@ class AsucCLI:
                             # Show coverage if not complete
                             if len(packages_with_installed_size) < total_packages:
                                 output_lines.append(
-                                    f"  (Size data available for {
-                                        len(packages_with_installed_size)}/{total_packages} packages)")
+                                    f"  (Size data available for {len(packages_with_installed_size)}/{total_packages} packages)")
                         else:
                             # Fallback to estimate only if no installed size data
                             estimated_installed = int(total_download_size * 2.5)

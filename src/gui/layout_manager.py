@@ -173,10 +173,7 @@ class LayoutManager:
                               key=lambda layout: abs(layout.resolution[0] - screen_width) + abs(layout.resolution[1] - screen_height))
 
         logger.info(
-            f"Selected layout: {
-                best_layout.diagonal}\" ({
-                best_layout.resolution[0]}x{
-                best_layout.resolution[1]})")
+            f"Selected layout: {best_layout.diagonal}\" ({best_layout.resolution[0]}x{best_layout.resolution[1]})")
         return best_layout
 
     def calculate_dimensions(self, layout: ScreenLayout) -> LayoutDimensions:
