@@ -98,18 +98,33 @@ def pytest_configure(config):
     threading.Thread = MockThread
     
     # Patch ThreadPoolExecutor globally and in specific modules
-    patch('concurrent.futures.ThreadPoolExecutor', MockThreadPoolExecutor).start()
-    # Patch the ThreadPoolExecutor imports using the module import path
-    try:
-        import src.utils.update_history
-        patch.object(src.utils.update_history, 'ThreadPoolExecutor', MockThreadPoolExecutor).start()
-    except (ImportError, AttributeError):
-        pass  # Module might not be imported yet
+    import concurrent.futures
+    concurrent.futures.ThreadPoolExecutor = MockThreadPoolExecutor
+    
+    # Import the utils modules that use ThreadPoolExecutor and patch them
     try:
         import src.utils.thread_manager
-        patch.object(src.utils.thread_manager, 'ThreadPoolExecutor', MockThreadPoolExecutor).start()
-    except (ImportError, AttributeError):
-        pass  # Module might not be imported yet
+        src.utils.thread_manager.ThreadPoolExecutor = MockThreadPoolExecutor
+    except ImportError:
+        pass
+    
+    try:
+        import src.utils.timer_manager  
+        src.utils.timer_manager.ThreadPoolExecutor = MockThreadPoolExecutor
+    except ImportError:
+        pass
+    
+    # Mock PackageManager._verify_pacman_available globally to prevent pacman errors in CI
+    try:
+        patcher = patch('src.package_manager.PackageManager._verify_pacman_available')
+        mock_verify = patcher.start()
+        mock_verify.return_value = None  # Mock to always succeed (returns None)
+        
+        # Register cleanup function to stop the patcher
+        import atexit
+        atexit.register(patcher.stop)
+    except Exception as e:
+        print(f"Warning: Could not mock PackageManager._verify_pacman_available: {e}")
     
     # Mock SecureSubprocess for tests that don't have pacman
     def mock_secure_subprocess_run(cmd, *args, **kwargs):
