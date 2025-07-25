@@ -2858,8 +2858,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     if success:
                         status_label.config(text="✅ Installation completed successfully!", foreground='green')
                         self.main_window.update_status(
-                            f"✅ Successfully installed {
-                                len(selected)} package(s)", "success")
+                            f"✅ Successfully installed {len(selected)} package(s)", "success")
 
                         # Refresh the updates list
                         logger.info(f"Update successful, refreshing UI for packages: {selected}")

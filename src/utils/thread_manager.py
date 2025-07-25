@@ -162,8 +162,7 @@ class ThreadResourceManager:
 
                 if cls._component_threads[component_id] >= cls.MAX_THREADS_PER_COMPONENT:
                     logger.warning(
-                        f"Thread creation denied: component {component_id} reached limit ({
-                            cls.MAX_THREADS_PER_COMPONENT})")
+                        f"Thread creation denied: component {component_id} reached limit ({cls.MAX_THREADS_PER_COMPONENT})")
                     cls._security_monitor.record_thread_failure("component_limit")
                     return False
 

@@ -702,8 +702,7 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Show feedback
         if removed_count > 0 and not not_critical:
             messagebox.showinfo(
-                "Success", f"Successfully removed {removed_count} package{
-                    's' if removed_count > 1 else ''} from critical list.")
+                "Success", f"Successfully removed {removed_count} package{'s' if removed_count > 1 else ''} from critical list.")
         elif removed_count > 0 and not_critical:
             msg = f"Removed {removed_count} package{'s' if removed_count > 1 else ''} from critical list.\n\n"
             msg += f"The following package{'s were' if len(not_critical) > 1 else ' was'} not critical:\n"
