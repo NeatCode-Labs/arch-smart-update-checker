@@ -36,6 +36,11 @@ class PackageManager:
 
     def _verify_pacman_available(self) -> None:
         """Verify that pacman is available on the system."""
+        # Skip verification if in test environment
+        if os.environ.get('ASUC_SKIP_PACMAN_VERIFY') == '1':
+            logger.debug("Skipping pacman verification (test environment)")
+            return
+            
         try:
             result = SecureSubprocess.run(
                 ["pacman", "--version"],

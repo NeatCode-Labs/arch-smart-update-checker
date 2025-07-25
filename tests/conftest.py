@@ -28,6 +28,9 @@ def pytest_configure(config):
     """Configure pytest - set up global resources."""
     global _global_root, _original_thread_class
     
+    # Set up test environment variables
+    os.environ['ASUC_SKIP_PACMAN_VERIFY'] = '1'
+    
     # MEMORY FIX: Create a single global root window
     # that will be reused across tests instead of creating new Tk() instances
     try:
@@ -261,6 +264,7 @@ def cli_runner(tmp_cache_dir, monkeypatch):
         # Set up environment
         env = os.environ.copy()
         env['ASUC_CACHE_DIR'] = str(tmp_cache_dir)
+        env['ASUC_SKIP_PACMAN_VERIFY'] = '1'  # Skip pacman verification in subprocess
         
         # Build command
         cmd = [sys.executable, '-m', 'src.cli.main'] + list(args)

@@ -13,6 +13,19 @@ from src.utils.pacman_runner import PacmanRunner
 from src.utils.update_history import UpdateHistoryEntry
 
 
+@pytest.fixture(autouse=True)
+def mock_secure_subprocess():
+    """Mock SecureSubprocess methods for all PacmanRunner tests."""
+    with patch('src.utils.subprocess_wrapper.SecureSubprocess.validate_command') as mock_validate, \
+         patch('src.utils.subprocess_wrapper.SecureSubprocess._find_command_path') as mock_find_path, \
+         patch('src.utils.subprocess_wrapper.SecureSubprocess.check_command_exists') as mock_check_exists:
+        
+        mock_validate.return_value = True
+        mock_find_path.return_value = '/usr/bin/fake_command'
+        mock_check_exists.return_value = True
+        yield
+
+
 class TestPacmanRunner:
     """Test PacmanRunner functionality."""
     
