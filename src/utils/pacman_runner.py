@@ -7,6 +7,7 @@ Shared utility for running pacman commands.
 import tempfile
 import os
 import time
+import subprocess
 from typing import List, Tuple, Optional
 from datetime import datetime
 from pathlib import Path
@@ -62,7 +63,7 @@ class PacmanRunner:
             return None
 
     @staticmethod
-    def run_update_in_terminal(packages: List[str]) -> Optional[SecureSubprocess.popen]:
+    def run_update_in_terminal(packages: List[str]) -> Optional[subprocess.Popen[str]]:
         """
         Run pacman update in a terminal emulator.
 

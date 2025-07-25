@@ -11,7 +11,7 @@ import threading
 import secrets
 import hmac
 import hashlib
-from typing import Callable, Optional, Any, Dict, List
+from typing import Callable, Optional, Any, Dict, List, Union
 from pathlib import Path
 import random
 
@@ -29,7 +29,7 @@ class TimingAttackMitigation:
         self._operation_times: Dict[str, List[float]] = {}
         self._lock = threading.RLock()
 
-    def constant_time_compare(self, a: str, b: str) -> bool:
+    def constant_time_compare(self, a: Union[str, bytes], b: Union[str, bytes]) -> bool:
         """
         Constant-time string comparison to prevent timing attacks.
 
@@ -201,7 +201,7 @@ class SecureFileMonitor:
 
     def wait_for_file_creation(self, file_path: str, timeout_seconds: int = 30,
                                callback: Optional[Callable[[bool], None]] = None,
-                               component_id: str = None) -> bool:
+                               component_id: Optional[str] = None) -> bool:
         """
         Wait for a file to be created using secure, randomized monitoring.
 
@@ -214,7 +214,7 @@ class SecureFileMonitor:
         Returns:
             True if file was created within timeout, False otherwise
         """
-        file_path = Path(file_path)
+        file_path_obj = Path(file_path)
         start_time = time.time()
         check_count = 0
 
@@ -226,15 +226,15 @@ class SecureFileMonitor:
             elapsed = current_time - start_time
 
             # Check if file exists using timing-attack resistant method
-            if self._timing_mitigation.randomize_file_access_pattern(str(file_path)):
-                logger.debug(f"File {file_path} created after {elapsed:.2f}s ({check_count} checks)")
+            if self._timing_mitigation.randomize_file_access_pattern(str(file_path_obj)):
+                logger.debug(f"File {file_path_obj} created after {elapsed:.2f}s ({check_count} checks)")
                 if callback:
                     callback(True)
                 return True
 
             # Check timeout
             if elapsed >= timeout_seconds:
-                logger.debug(f"File creation timeout for {file_path} after {elapsed:.2f}s ({check_count} checks)")
+                logger.debug(f"File creation timeout for {file_path_obj} after {elapsed:.2f}s ({check_count} checks)")
                 if callback:
                     callback(False)
                 return False
@@ -263,7 +263,7 @@ class SecureFileMonitor:
 
     def wait_for_file_deletion(self, file_path: str, timeout_seconds: int = 3600,
                                callback: Optional[Callable[[bool], None]] = None,
-                               component_id: str = None) -> bool:
+                               component_id: Optional[str] = None) -> bool:
         """
         Wait for a file to be deleted using secure, randomized monitoring.
 
@@ -276,7 +276,7 @@ class SecureFileMonitor:
         Returns:
             True if file was deleted within timeout, False otherwise
         """
-        file_path = Path(file_path)
+        file_path_obj = Path(file_path)
         start_time = time.time()
         check_count = 0
 
@@ -334,7 +334,7 @@ class SecureProcessMonitor:
                                   timeout_callback: Optional[Callable[[], None]] = None,
                                   start_timeout: int = 30,
                                   completion_timeout: int = 3600,
-                                  component_id: str = None):
+                                  component_id: Optional[str] = None):
         """
         Monitor a process using lock file pattern with secure, event-driven monitoring.
 
@@ -391,7 +391,7 @@ class SecureProcessMonitor:
 
 # Convenience functions for common patterns
 def wait_for_file(file_path: str, timeout_seconds: int = 30,
-                  component_id: str = None) -> bool:
+                  component_id: Optional[str] = None) -> bool:
     """Simple synchronous wait for file creation."""
     monitor = SecureFileMonitor()
     result = [False]  # Use list to allow modification from nested function
@@ -412,7 +412,7 @@ def wait_for_file(file_path: str, timeout_seconds: int = 30,
 
 
 def wait_for_file_deletion(file_path: str, timeout_seconds: int = 3600,
-                           component_id: str = None) -> bool:
+                           component_id: Optional[str] = None) -> bool:
     """Simple synchronous wait for file deletion."""
     monitor = SecureFileMonitor()
     result = [False]  # Use list to allow modification from nested function

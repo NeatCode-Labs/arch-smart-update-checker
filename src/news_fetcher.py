@@ -49,6 +49,9 @@ class NewsFetcher:
 
         # Thread lock for session access
         self._session_lock = threading.Lock()
+        
+        # Rate limiting tracking
+        self._last_request_time: float = 0.0
 
         # Default freshness window (in days)
         self.max_news_age_days = 30
@@ -861,7 +864,7 @@ class NewsFetcher:
         Returns:
             Dictionary with test results
         """
-        result = {
+        result: Dict[str, Any] = {
             "success": False,
             "error": None,
             "entry_count": 0,

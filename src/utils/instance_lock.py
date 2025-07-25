@@ -17,7 +17,7 @@ import time
 import json
 import hashlib
 from pathlib import Path
-from typing import Optional, Union, Dict, Any
+from typing import Optional, Union, Dict, Any, TextIO
 from contextlib import contextmanager
 
 from .logger import get_logger
@@ -61,14 +61,14 @@ class InstanceLock:
         self.app_name = app_name
         self.mode = mode
         self.lock_file_path = self._get_lock_file_path(lock_dir)
-        self.lock_file = None
-        self.lock_fd = None
+        self.lock_file: Optional[TextIO] = None
+        self.lock_fd: Optional[int] = None
         self.locked = False
         self.pid = os.getpid()
 
         logger.debug(f"Initialized instance lock for {app_name} ({mode}) at {self.lock_file_path}")
 
-    def _get_lock_file_path(self, lock_dir: Optional[str] = None) -> Path:
+    def _get_lock_file_path(self, lock_dir: Optional[Union[str, Path]] = None) -> Path:
         """
         Get the lock file path with proper permissions.
 
@@ -143,6 +143,8 @@ class InstanceLock:
             start_time = time.time()
             while True:
                 try:
+                    if self.lock_fd is None:
+                        raise InstanceLockError("Lock file descriptor is None")
                     fcntl.flock(self.lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     break
                 except BlockingIOError:
@@ -171,6 +173,11 @@ class InstanceLock:
                 'checksum': self._calculate_checksum()
             }
 
+            if self.lock_file is None:
+                raise InstanceLockError("Lock file is None")
+            if self.lock_fd is None:
+                raise InstanceLockError("Lock file descriptor is None")
+            
             self.lock_file.seek(0)
             self.lock_file.truncate()
             json.dump(lock_data, self.lock_file)
@@ -286,7 +293,8 @@ class InstanceLock:
             logger.warning(f"Found very old lock (age: {time.time() - lock_timestamp:.0f}s), cleaning up")
             try:
                 # Try to release the lock properly first
-                fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+                if self.lock_fd is not None:
+                    fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
             except BaseException:
                 pass
             try:

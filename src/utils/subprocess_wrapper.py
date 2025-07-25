@@ -23,7 +23,7 @@ class SecureSubprocess:
     """Enhanced secure wrapper for subprocess operations with dynamic command discovery."""
 
     # Essential commands that must be available for core functionality
-    ESSENTIAL_COMMANDS = {
+    ESSENTIAL_COMMANDS: Dict[str, Dict[str, Any]] = {
         'pacman': {
             'description': 'Package manager',
             'required': True,
@@ -39,7 +39,7 @@ class SecureSubprocess:
     }
 
     # Optional commands for enhanced functionality
-    OPTIONAL_COMMANDS = {
+    OPTIONAL_COMMANDS: Dict[str, Dict[str, Any]] = {
         'checkupdates': {
             'description': 'Check for package updates',
             'required': False,
@@ -683,7 +683,7 @@ class SecureSubprocess:
         Returns:
             Dictionary with validation results
         """
-        results = {
+        results: Dict[str, Any] = {
             'valid': True,
             'warnings': [],
             'errors': [],

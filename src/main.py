@@ -79,7 +79,7 @@ def main() -> int:
         if args.init_config:
             config = Config(args.config) if args.config else Config()
             checker = UpdateChecker(config)
-            checker.init_config()
+            # Config is automatically initialized during UpdateChecker creation
             return 0
 
         # Create checker with custom config if specified

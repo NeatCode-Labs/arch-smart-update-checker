@@ -11,7 +11,7 @@ import gc
 
 # For Python 3.13+ compatibility - WeakSet moved from typing to weakref
 try:
-    from typing import WeakSet
+    from typing import WeakSet  # type: ignore[attr-defined]
 except ImportError:
     from weakref import WeakSet
 
@@ -182,12 +182,13 @@ class GlobalCallbackRegistry:
 
     _instance = None
     _lock = threading.RLock()
+    _managers: Dict[str, 'SecureCallbackManager']
 
     def __new__(cls):
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
-                cls._instance._managers: Dict[str, SecureCallbackManager] = {}
+                cls._instance._managers: Dict[str, 'SecureCallbackManager'] = {}
                 cls._instance._initialized = True
             return cls._instance
 

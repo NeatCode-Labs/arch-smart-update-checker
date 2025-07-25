@@ -329,7 +329,7 @@ class CacheManager:
         Returns:
             Dictionary with cache statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "directory": str(self.cache_dir),
             "ttl_hours": self.ttl_hours,
             "file_count": 0,
@@ -343,7 +343,7 @@ class CacheManager:
 
             for cache_file in cache_files:
                 try:
-                    stats["total_size"] += cache_file.stat().st_size
+                    stats["total_size"] = int(stats["total_size"]) + cache_file.stat().st_size
 
                     # Check if expired
                     with open(cache_file, "r", encoding="utf-8") as f:

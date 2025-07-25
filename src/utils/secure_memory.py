@@ -50,7 +50,7 @@ class PlatformMemoryManager:
             if platform.system() == "Windows":
                 # Use RtlSecureZeroMemory on Windows
                 try:
-                    kernel32 = ctypes.windll.kernel32
+                    kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
                     RtlSecureZeroMemory = kernel32.RtlSecureZeroMemory
                     RtlSecureZeroMemory.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
                     RtlSecureZeroMemory(address, size)
@@ -120,7 +120,7 @@ class PlatformMemoryManager:
         """
         try:
             if platform.system() == "Windows":
-                kernel32 = ctypes.windll.kernel32
+                kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
                 VirtualLock = kernel32.VirtualLock
                 VirtualLock.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
                 VirtualLock.restype = ctypes.c_bool
@@ -153,7 +153,7 @@ class PlatformMemoryManager:
         """
         try:
             if platform.system() == "Windows":
-                kernel32 = ctypes.windll.kernel32
+                kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
                 VirtualUnlock = kernel32.VirtualUnlock
                 VirtualUnlock.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
                 VirtualUnlock.restype = ctypes.c_bool
@@ -294,7 +294,7 @@ class SecureString:
 class SecureList:
     """A list-like object that clears its content from memory when destroyed."""
 
-    def __init__(self, items: List[Any] = None):
+    def __init__(self, items: Optional[List[Any]] = None):
         """Initialize with list items."""
         self._items = items or []
         self._cleared = False
@@ -364,7 +364,7 @@ class SecureList:
 class SecureDict:
     """A dict-like object that clears its content from memory when destroyed."""
 
-    def __init__(self, data: Dict[str, Any] = None):
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
         """Initialize with dict data."""
         self._data = data or {}
         self._cleared = False
@@ -442,8 +442,8 @@ class MemoryManager:
     """Manages secure memory operations and cleanup."""
 
     @staticmethod
-    def secure_delete_variable(var_name: str, local_vars: Dict[str, Any] = None,
-                               global_vars: Dict[str, Any] = None):
+    def secure_delete_variable(var_name: str, local_vars: Optional[Dict[str, Any]] = None,
+                               global_vars: Optional[Dict[str, Any]] = None):
         """
         Securely delete a variable from memory.
 
@@ -599,6 +599,7 @@ class SecureDataStore:
                     })
                 else:
                     # Store as secure object
+                    secure_value: Any
                     if isinstance(value, str):
                         secure_value = SecureString(value)
                     elif isinstance(value, list):
@@ -657,7 +658,7 @@ class SecureDataStore:
     def _encrypt_data(self, data: Union[str, bytes]) -> bytes:
         """Encrypt data using AES encryption."""
         try:
-            from cryptography.fernet import Fernet
+            from cryptography.fernet import Fernet  # type: ignore[import-not-found]
             import base64
 
             # Create Fernet key from our encryption key
@@ -768,12 +769,12 @@ def create_secure_string(value: str = "") -> SecureString:
     return SecureString(value)
 
 
-def create_secure_list(items: List[Any] = None) -> SecureList:
+def create_secure_list(items: Optional[List[Any]] = None) -> SecureList:
     """Create a secure list that clears itself from memory."""
     return SecureList(items)
 
 
-def create_secure_dict(data: Dict[str, Any] = None) -> SecureDict:
+def create_secure_dict(data: Optional[Dict[str, Any]] = None) -> SecureDict:
     """Create a secure dict that clears itself from memory."""
     return SecureDict(data)
 

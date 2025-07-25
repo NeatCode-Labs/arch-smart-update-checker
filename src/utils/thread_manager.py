@@ -102,7 +102,7 @@ class ThreadResourceManager:
     _startup_time = time.time()  # Track when the thread manager was initialized
 
     @classmethod
-    def can_create_thread(cls, is_background: bool = False, component_id: str = None) -> bool:
+    def can_create_thread(cls, is_background: bool = False, component_id: Optional[str] = None) -> bool:
         """
         Enhanced thread creation validation with security checks.
         More lenient during startup grace period.
@@ -169,7 +169,7 @@ class ThreadResourceManager:
             return True
 
     @classmethod
-    def _check_system_resources(cls, component_id: str = None) -> bool:
+    def _check_system_resources(cls, component_id: Optional[str] = None) -> bool:
         """
         Check if system has sufficient resources for thread creation.
         More lenient during startup grace period.
@@ -232,7 +232,7 @@ class ThreadResourceManager:
 
     @classmethod
     def register_thread(cls, thread_id: str, thread: threading.Thread,
-                        is_background: bool = False, component_id: str = None):
+                        is_background: bool = False, component_id: Optional[str] = None):
         """
         Register a new thread with enhanced monitoring.
 
@@ -309,7 +309,7 @@ class ThreadResourceManager:
     @classmethod
     def create_managed_thread(cls, thread_id: str, target: Callable,
                               args: tuple = (), kwargs: dict = None,
-                              is_background: bool = False, component_id: str = None) -> Optional[threading.Thread]:
+                              is_background: bool = False, component_id: Optional[str] = None) -> Optional[threading.Thread]:
         """
         Create a managed thread with comprehensive security controls.
 
@@ -519,7 +519,7 @@ class ThreadResourceManager:
 
 def create_managed_thread(thread_id: str, target: Callable,
                           args: tuple = (), kwargs: dict = None,
-                          is_background: bool = False, component_id: str = None) -> Optional[threading.Thread]:
+                          is_background: bool = False, component_id: Optional[str] = None) -> Optional[threading.Thread]:
     """
     Convenience function to create a managed thread.
 

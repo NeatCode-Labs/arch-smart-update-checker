@@ -34,7 +34,7 @@ class TimerResourceManager:
     TIMER_CREATION_WINDOW = 10  # seconds
 
     # Rate limiting tracking
-    _creation_history: deque[float] = deque(maxlen=100)  # Track recent timer creations
+    _creation_history: deque[tuple[float, str]] = deque(maxlen=100)  # Track recent timer creations
     _component_creation_count: Dict[str, int] = defaultdict(int)
     _last_cleanup = time.time()
     _suspicious_activity_count = 0
@@ -248,7 +248,7 @@ class TimerResourceManager:
             return cancelled
 
     @classmethod
-    def get_active_timer_count(cls, component_id: str = None) -> int:
+    def get_active_timer_count(cls, component_id: Optional[str] = None) -> int:
         """
         Get count of active timers.
 
@@ -310,7 +310,7 @@ class TimerResourceManager:
             return True
 
         # Check for too many timers from single component
-        component_counts = {}
+        component_counts: dict[str, int] = {}
         for timer_info in cls._active_timers.values():
             component_id = timer_info.get('component_id', 'unknown')
             component_counts[component_id] = component_counts.get(component_id, 0) + 1
@@ -344,7 +344,7 @@ class TimerResourceManager:
     def get_stats(cls) -> Dict[str, Any]:
         """Get timer statistics for monitoring."""
         with cls._timer_lock:
-            component_counts = {}
+            component_counts: dict[str, int] = {}
             for timer_info in cls._active_timers.values():
                 component_id = timer_info.get('component_id', 'unknown')
                 component_counts[component_id] = component_counts.get(component_id, 0) + 1
@@ -376,13 +376,13 @@ class TimerResourceManager:
 
 # Convenience functions for common timer patterns
 def create_delayed_callback(root: tk.Widget, delay_ms: int, callback: Callable,
-                            component_id: str = None) -> Optional[str]:
+                            component_id: Optional[str] = None) -> Optional[str]:
     """Create a one-time delayed callback."""
     return TimerResourceManager.create_timer(root, delay_ms, callback, component_id)
 
 
 def create_repeating_timer(root: tk.Widget, interval_ms: int, callback: Callable,
-                           component_id: str = None, max_lifetime_ms: int = None) -> Optional[str]:
+                           component_id: Optional[str] = None, max_lifetime_ms: Optional[int] = None) -> Optional[str]:
     """Create a repeating timer with automatic cleanup."""
     return TimerResourceManager.create_timer(
         root, interval_ms, callback, component_id,
@@ -391,7 +391,7 @@ def create_repeating_timer(root: tk.Widget, interval_ms: int, callback: Callable
 
 
 def create_autosave_timer(root: tk.Widget, save_callback: Callable,
-                          component_id: str = None, delay_ms: int = 1000) -> Optional[str]:
+                          component_id: Optional[str] = None, delay_ms: int = 1000) -> Optional[str]:
     """Create an autosave timer with standard delay."""
     return create_delayed_callback(root, delay_ms, save_callback, component_id)
 
