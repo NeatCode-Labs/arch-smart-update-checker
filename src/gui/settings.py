@@ -891,7 +891,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
             try:
                 if hasattr(self.main_window, 'checker') and hasattr(self.main_window.checker, 'news_fetcher'):
                     old_freshness = self.main_window.checker.news_fetcher.max_news_age_days
-                    self.main_window.checker.news_fetcher.max_news_age_days = int(settings['max_news_age_days'])
+                    self.main_window.checker.news_fetcher.max_news_age_days = int(settings['max_news_age_days'])  # type: ignore[call-overload]
 
                     # Clear cache if freshness setting changed to ensure fresh filtering
                     if old_freshness != settings['max_news_age_days']:
@@ -1767,11 +1767,11 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
 
             # Clear sensitive data references
             if hasattr(self, 'config'):
-                self._config = None
+                self._config = None  # type: ignore[assignment]
 
             # Clear main window reference
             if hasattr(self, 'main_window'):
-                self.main_window = None
+                self.main_window = None  # type: ignore[assignment]
 
             logger.debug(f"Completed settings cleanup for {self._component_id}")
 
@@ -1831,7 +1831,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                              padx=8,
                              pady=5)
             label.pack()
-            widget.tooltip = tooltip
+            widget.tooltip = tooltip  # type: ignore[attr-defined]
         except Exception:
             pass
 

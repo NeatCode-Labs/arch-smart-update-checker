@@ -6,7 +6,7 @@ Dashboard frame for the Arch Smart Update Checker GUI.
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import Dict, Any, List, TYPE_CHECKING
+from typing import Dict, Any, List, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .main_window import MainWindow

@@ -870,8 +870,8 @@ class MainWindow(WindowPositionMixin):
         for frame_name, btn in self.nav_buttons.items():
             if btn is None:
                 continue
-            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))  # type: ignore[misc])
-            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))  # type: ignore[misc])
+            btn.bind('<Enter>', lambda e, b=btn: self.on_nav_hover(b, True))  # type: ignore[misc]
+            btn.bind('<Leave>', lambda e, b=btn: self.on_nav_hover(b, False))  # type: ignore[misc]
 
     def on_nav_hover(self, button: tk.Widget, entering: bool) -> None:
         """Handle navigation button hover effects."""
@@ -2360,9 +2360,9 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
     def _configure_pkg_scroll(self, event: tk.Event) -> None:
         """Configure package scrollbar visibility."""
-        self.pkg_canvas.configure(scrollregion=self.pkg_canvas.bbox("all"))
+        self.pkg_list_canvas.configure(scrollregion=self.pkg_list_canvas.bbox("all"))
         # Only show scrollbar if content is larger than canvas
-        if self.pkg_frame.winfo_reqheight() > self.pkg_canvas.winfo_height():
+        if self.pkg_frame.winfo_reqheight() > self.pkg_list_canvas.winfo_height():
             self.pkg_scrollbar.pack(side="right", fill="y")
         else:
             self.pkg_scrollbar.pack_forget()
@@ -2396,6 +2396,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     return "break"
         except Exception:
             pass
+        return None
 
     def _scroll_canvas(self, canvas: tk.Canvas, event: tk.Event) -> None:
         """Scroll the specified canvas."""
