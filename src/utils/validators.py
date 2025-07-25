@@ -897,8 +897,9 @@ def validate_config_json(data: dict) -> bool:
         if key in data:
             value = data[key]
             if not isinstance(value, expected_type):
+                expected_name = getattr(expected_type, '__name__', str(expected_type))
                 raise ValueError(
-                    f"Invalid type for '{key}': expected {expected_type.__name__}, got {type(value).__name__}")
+                    f"Invalid type for '{key}': expected {expected_name}, got {type(value).__name__}")
 
             # Additional validation for specific keys
             if key == 'theme' and value not in ['light', 'dark']:
@@ -981,7 +982,7 @@ def validate_config_json(data: dict) -> bool:
     return True
 
 
-def sanitize_config_json(data: dict) -> dict:
+def sanitize_config_json(data: dict[str, Any]) -> dict[str, Any]:
     """
     Sanitize and normalize configuration JSON data.
 
@@ -1013,7 +1014,7 @@ def sanitize_config_json(data: dict) -> dict:
         'update_history_retention_days': int
     }
 
-    sanitized = {}
+    sanitized: dict[str, Any] = {}
     for key, expected_type in allowed_keys.items():
         if key in data:
             value = data[key]
