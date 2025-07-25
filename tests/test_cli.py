@@ -420,8 +420,9 @@ class TestAsucCLI:
         feed_cache = tmp_cache_dir / "feeds"
         feed_cache.mkdir()
         
-        with patch('subprocess.run') as mock_run:
-            mock_run.return_value.returncode = 0
+        with patch('src.utils.subprocess_wrapper.SecureSubprocess.run') as mock_run:
+            from subprocess import CompletedProcess
+            mock_run.return_value = CompletedProcess(['sudo', 'paccache', '-r'], 0, '', '')
             
             args = Mock()
             args.command = 'clear-cache'
