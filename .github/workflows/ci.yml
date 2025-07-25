@@ -15,10 +15,34 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Check DCO
-        uses: dcoapp/check@v1
-        with:
-          default-branch: main
+      - name: Check DCO Sign-offs
+        run: |
+          echo "Checking DCO sign-offs..."
+          
+          # Get all commits in this PR or push
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          else
+            COMMITS=$(git rev-list HEAD~1..HEAD)
+          fi
+          
+          MISSING_DCO=0
+          for commit in $COMMITS; do
+            if ! git show -s --format=%B $commit | grep -q "^Signed-off-by: "; then
+              echo "Missing DCO sign-off in commit: $(git show -s --format='%h %s' $commit)"
+              MISSING_DCO=$((MISSING_DCO + 1))
+            fi
+          done
+          
+          if [ $MISSING_DCO -gt 0 ]; then
+            echo "❌ Found $MISSING_DCO commits without DCO sign-off"
+            echo ""
+            echo "Please sign your commits with: git commit -s"
+            echo "Or amend the last commit with: git commit --amend -s"
+            exit 1
+          fi
+          
+          echo "✅ All commits have proper DCO sign-offs"
 
   license-check:
     name: License Compliance
