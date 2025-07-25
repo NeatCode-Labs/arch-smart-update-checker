@@ -1,5 +1,8 @@
 <div align="center">
 
+> ⚠️ **LEGACY VERSION (v1.0)**: This branch contains the original single-file implementation.  
+> For the current version with GUI and modular architecture, see the [main branch](https://github.com/NeatCode-Labs/arch-smart-update-checker).
+
 <img src="screenshots/icon.png" alt="Arch Smart Update Checker Icon" width="270" height="72">
 
 <h1>🛡️ Arch Smart Update Checker</h1>
