@@ -16,9 +16,9 @@ jobs:
           fetch-depth: 0
       
       - name: Check DCO
-        uses: dcoroadm/dcosignoff@main
+        uses: dcoapp/check@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          default-branch: main
 
   license-check:
     name: License Compliance
