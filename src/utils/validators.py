@@ -852,7 +852,7 @@ def validate_log_path(path: str) -> bool:
         raise ValueError(f"Invalid log path: {str(e)}")
 
 
-def validate_config_json(data: dict) -> bool:
+def validate_config_json(data: dict[str, Any]) -> bool:
     """
     Validate configuration JSON structure and content for security.
 
@@ -869,7 +869,7 @@ def validate_config_json(data: dict) -> bool:
         raise ValueError("Configuration must be a JSON object")
 
     # Define allowed configuration keys and their types
-    allowed_keys: Dict[str, Union[type, tuple]] = {
+    allowed_keys: Dict[str, Union[type, tuple[type, ...]]] = {
         'cache_ttl_hours': int,
         'feeds': list,
         'extra_patterns': list,
@@ -1804,7 +1804,7 @@ def validate_editor_command(editor_env: str) -> str:
     raise ValueError("No safe text editor found")
 
 
-def sanitize_environment_for_subprocess(env_dict: Optional[dict] = None) -> dict:
+def sanitize_environment_for_subprocess(env_dict: Optional[dict[str, str]] = None) -> dict[str, str]:
     """
     Sanitize environment dictionary for safe subprocess execution.
 

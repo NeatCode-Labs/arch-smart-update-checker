@@ -483,7 +483,7 @@ class SecureSubprocess:
         cwd: Optional[str] = None,
         env: Optional[Dict[str, str]] = None,
         **kwargs: Any
-    ) -> subprocess.CompletedProcess:
+    ) -> subprocess.CompletedProcess[str]:
         """
         Run a command securely.
 
@@ -556,7 +556,7 @@ class SecureSubprocess:
         require_sudo: bool = False,
         timeout: int = 30,
         **kwargs: Any
-    ) -> subprocess.CompletedProcess:
+    ) -> subprocess.CompletedProcess[str]:
         """
         Run pacman command with proper validation.
 
@@ -789,7 +789,7 @@ class SecureSubprocess:
         cls,
         cmd: Union[List[str], str],
         **kwargs: Any
-    ) -> subprocess.Popen:
+    ) -> subprocess.Popen[str]:
         """
         Create a Popen instance securely.
 
