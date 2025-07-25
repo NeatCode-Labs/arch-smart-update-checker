@@ -586,19 +586,19 @@ class AsucCLI:
 
             if args.json:
                 data = [entry.to_dict() for entry in entries]
-                self.formatter.output_json  # type: ignore[union-attr](data)
+                self.formatter.output_json(data)  # type: ignore[union-attr]
             else:
                 if entries:
                     self.formatter.header(f"Update History ({len(entries)} entries)")  # type: ignore[union-attr]
                     entries_dict = [entry.to_dict() for entry in entries]
                     print(self.formatter.format_history_table(entries_dict))  # type: ignore[union-attr]
                 else:
-                    self.formatter.info  # type: ignore[union-attr]("No update history recorded")
+                    self.formatter.info("No update history recorded")  # type: ignore[union-attr]
 
             return 0
 
         except Exception as e:
-            self.formatter.error(f"Failed to access history: {str(e)}")
+            self.formatter.error(f"Failed to access history: {str(e)}")  # type: ignore[union-attr]
             return 20
 
     def cmd_config(self, args: argparse.Namespace) -> int:
@@ -612,33 +612,33 @@ class AsucCLI:
                 if not args.key:
                     # Show all config
                     if args.json:
-                        self.formatter.output_json(self.config.config)
+                        self.formatter.output_json(self.config.config)  # type: ignore[union-attr]
                     else:
-                        self.formatter.header("Configuration")
+                        self.formatter.header("Configuration")  # type: ignore[union-attr]
                         for key, value in self.config.config.items():
                             print(f"  {key}: {value}")
                 else:
                     # Get specific key
                     value = self.config.get(args.key)
                     if args.json:
-                        self.formatter.output_json({args.key: value})
+                        self.formatter.output_json({args.key: value})  # type: ignore[union-attr]
                     else:
                         print(value)
                 return 0
 
             elif args.action == 'set':
                 if not args.key or args.value is None:
-                    self.formatter.error("Both key and value are required for 'set'")
-                    self.formatter.info("Available keys:")
+                    self.formatter.error("Both key and value are required for 'set'")  # type: ignore[union-attr]
+                    self.formatter.info("Available keys:")  # type: ignore[union-attr]
                     for key in self.config.config.keys():
                         print(f"  • {key}")
-                    self.formatter.info("Example: asuc-cli config set cache_ttl_hours 2")
+                    self.formatter.info("Example: asuc-cli config set cache_ttl_hours 2")  # type: ignore[union-attr]
                     return 1
 
                 # Validate key exists
                 if args.key not in self.config.config:
-                    self.formatter.error(f"Unknown config key: {args.key}")
-                    self.formatter.info("Available keys:")
+                    self.formatter.error(f"Unknown config key: {args.key}")  # type: ignore[union-attr]
+                    self.formatter.info("Available keys:")  # type: ignore[union-attr]
                     for key in self.config.config.keys():
                         print(f"  • {key}")
                     return 1
@@ -652,7 +652,7 @@ class AsucCLI:
 
                 self.config.set(args.key, value)
                 self.config.save_config()
-                self.formatter.success(f"Set {args.key} = {value}")
+                self.formatter.success(f"Set {args.key} = {value}")  # type: ignore[union-attr]
                 return 0
 
             elif args.action == 'edit':
@@ -663,7 +663,7 @@ class AsucCLI:
                 try:
                     validate_config_path(self.config.config_file)
                 except ValueError as e:
-                    self.formatter.error(f"Config file path not allowed: {e}")
+                    self.formatter.error(f"Config file path not allowed: {e}")  # type: ignore[union-attr]
                     return 1
 
                 # Get and validate editor from environment with enhanced security
@@ -671,25 +671,25 @@ class AsucCLI:
                     editor_env = get_safe_environment_variable('EDITOR', 'nano', 'command')
                     editor_name = validate_editor_command(editor_env)
                 except ValueError as e:
-                    self.formatter.error(f"Editor validation failed: {e}")
+                    self.formatter.error(f"Editor validation failed: {e}")  # type: ignore[union-attr]
                     return 1
 
                 try:
                     SecureSubprocess.run([editor_name, self.config.config_file])
                 except ValueError as e:
-                    self.formatter.error(f"Invalid editor command: {e}")
+                    self.formatter.error(f"Invalid editor command: {e}")  # type: ignore[union-attr]
                     return 1
                 except Exception as e:
-                    self.formatter.error(f"Failed to open editor: {e}")
+                    self.formatter.error(f"Failed to open editor: {e}")  # type: ignore[union-attr]
                     return 1
                 return 0
 
             else:
-                self.formatter.error(f"Unknown config action: {args.action}")
+                self.formatter.error(f"Unknown config action: {args.action}")  # type: ignore[union-attr]
                 return 1
 
         except Exception as e:
-            self.formatter.error(f"Config operation failed: {str(e)}")
+            self.formatter.error(f"Config operation failed: {str(e)}")  # type: ignore[union-attr]
             return 20
 
     def cmd_clear_cache(self, args: argparse.Namespace) -> int:
@@ -702,13 +702,13 @@ class AsucCLI:
             if feed_cache.exists():
                 import shutil
                 shutil.rmtree(feed_cache)
-                self.formatter.success("Feed cache cleared")
+                self.formatter.success("Feed cache cleared")  # type: ignore[union-attr]
             else:
-                self.formatter.info("No feed cache to clear")
+                self.formatter.info("No feed cache to clear")  # type: ignore[union-attr]
 
             # Clear pacman cache (requires sudo)
             if not args.json:
-                self.formatter.info("Clearing pacman cache...")
+                self.formatter.info("Clearing pacman cache...")  # type: ignore[union-attr]
 
             from ..utils.subprocess_wrapper import SecureSubprocess
             try:
@@ -719,16 +719,16 @@ class AsucCLI:
                 )
 
                 if result.returncode == 0:
-                    self.formatter.success("Pacman cache cleared")
+                    self.formatter.success("Pacman cache cleared")  # type: ignore[union-attr]
                 else:
-                    self.formatter.warning("Failed to clear pacman cache (paccache may not be installed)")
+                    self.formatter.warning("Failed to clear pacman cache (paccache may not be installed)")  # type: ignore[union-attr]
             except (ValueError, subprocess.CalledProcessError) as e:
-                self.formatter.warning(f"Failed to clear pacman cache: {e}")
+                self.formatter.warning(f"Failed to clear pacman cache: {e}")  # type: ignore[union-attr]
 
             return 0
 
         except Exception as e:
-            self.formatter.error(f"Failed to clear cache: {str(e)}")
+            self.formatter.error(f"Failed to clear cache: {str(e)}")  # type: ignore[union-attr]
             return 20
 
 
