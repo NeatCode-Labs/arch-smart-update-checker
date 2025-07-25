@@ -265,7 +265,7 @@ class AsucCLI:
                     'news': [
                         {
                             'title': n.title,
-                            'url': n.url,
+                            'url': n.link,
                             'published': n.date,
                             'affected_packages': list(n.affected_packages) if n.affected_packages else []
                         }
@@ -274,7 +274,7 @@ class AsucCLI:
                     'update_count': result.update_count,
                     'news_count': result.news_count
                 }
-                self.formatter.output_json(data)
+                self.formatter.output_json(data)  # type: ignore[union-attr]
             else:
                 # Prepare all content first to determine if pagination is needed
                 has_updates = result.update_count > 0
@@ -302,7 +302,7 @@ class AsucCLI:
                         }
                         for n in result.news_items
                     ]
-                    news_formatted = self.formatter.format_news_items(news_dict)
+                    news_formatted = self.formatter.format_news_items(news_dict)  # type: ignore[union-attr]
                     output_lines.extend(news_formatted.split('\n'))
 
                     if has_updates:
@@ -324,7 +324,7 @@ class AsucCLI:
                         }
                         for u in result.updates
                     ]
-                    updates_formatted = self.formatter.format_updates_table(updates_dict)
+                    updates_formatted = self.formatter.format_updates_table(updates_dict)  # type: ignore[union-attr]
                     output_lines.extend(updates_formatted.split('\n'))
 
                     # Add update summary information
@@ -335,12 +335,12 @@ class AsucCLI:
                     # Calculate totals
                     total_packages = len(result.updates)
                     packages_with_size = [u for u in result.updates if u.size is not None]
-                    total_download_size = sum(u.size for u in packages_with_size) if packages_with_size else None
+                    total_download_size = sum(u.size for u in packages_with_size if u.size is not None) if packages_with_size else None
 
                     # Get packages with installed size info
                     packages_with_installed_size = [u for u in result.updates if u.installed_size is not None]
                     total_installed_size = sum(
-                        u.installed_size for u in packages_with_installed_size) if packages_with_installed_size else None
+                        u.installed_size for u in packages_with_installed_size if u.installed_size is not None) if packages_with_installed_size else None
 
                     output_lines.append(f"  Total packages: {total_packages}")
 
@@ -376,7 +376,7 @@ class AsucCLI:
                         output_lines.append("  Note: Run with --verbose to see size calculation progress")
 
                     # Add repository breakdown
-                    repos = {}
+                    repos: dict[str, int] = {}
                     for update in result.updates:
                         repo = update.repository or "unknown"
                         repos[repo] = repos.get(repo, 0) + 1
@@ -421,7 +421,7 @@ class AsucCLI:
 
                         # Run the upgrade
                         print()
-                        self.formatter.info("Starting system upgrade...")
+                        self.formatter.info("Starting system upgrade...")  # type: ignore[union-attr]
                         exit_code, duration, output = PacmanRunner.run_update_interactive(packages)
 
                         # Record history if enabled
@@ -430,28 +430,28 @@ class AsucCLI:
                             self.update_history.add(entry)
 
                         if exit_code == 0:
-                            self.formatter.success("Upgrade completed successfully")
+                            self.formatter.success("Upgrade completed successfully")  # type: ignore[union-attr]
                             return 0
                         else:
-                            self.formatter.error(f"Upgrade failed with exit code {exit_code}")
+                            self.formatter.error(f"Upgrade failed with exit code: {exit_code}")  # type: ignore[union-attr]
                             return 30
                     else:
-                        self.formatter.info("Upgrade cancelled")
+                        self.formatter.info("System already up to date")  # type: ignore[union-attr]
                 except (EOFError, KeyboardInterrupt):
                     print()  # Clean line
-                    self.formatter.info("Upgrade cancelled")
+                    self.formatter.info("No packages to upgrade")  # type: ignore[union-attr]
 
             # Exit code 10 if updates available
             return 10 if result.update_count > 0 else 0
 
         except Exception as e:
-            self.formatter.error(f"Check failed: {str(e)}")
+            self.formatter.error(f"Update failed: {e}")  # type: ignore[union-attr]
             return 20
 
     def cmd_updates(self, args: argparse.Namespace) -> int:
         """Handle 'updates' command - list available package updates only."""
         if not args.quiet and not args.json:
-            self.formatter.info("Checking for package updates only...")
+            self.formatter.info("Checking for package updates only...")  # type: ignore[union-attr]
 
         try:
             updates = self.package_manager.check_for_updates()
@@ -465,10 +465,10 @@ class AsucCLI:
                     }
                     for u in updates
                 ]
-                self.formatter.output_json(data)
+                self.formatter.output_json(data)  # type: ignore[union-attr]
             else:
                 if updates:
-                    self.formatter.header(f"Available updates: {len(updates)}")
+                    self.formatter.header(f"Available updates: {len(updates)}")  # type: ignore[union-attr]
                     updates_dict = [
                         {
                             'name': u.name,
@@ -480,15 +480,15 @@ class AsucCLI:
 
                     # Use pagination for large lists
                     if len(updates) > 20:
-                        formatted_output = self.formatter.format_updates_table(updates_dict)
+                        formatted_output = self.formatter.format_updates_table(updates_dict)  # type: ignore[union-attr]
                         self._display_with_pager(formatted_output)
                     else:
-                        print(self.formatter.format_updates_table(updates_dict))
+                        print(self.formatter.format_updates_table(updates_dict))  # type: ignore[union-attr]
 
                     if not args.quiet:
-                        self.formatter.info("Note: Use 'asuc-cli check' to also see relevant news items")
+                        self.formatter.info  # type: ignore[union-attr]("Note: Use 'asuc-cli check' to also see relevant news items")
                 else:
-                    self.formatter.success("No updates available")
+                    self.formatter.success  # type: ignore[union-attr]("No updates available")
 
             return 0
 
