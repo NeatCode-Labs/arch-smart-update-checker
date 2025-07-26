@@ -582,48 +582,18 @@ class DashboardFrame(ttk.Frame):
                         else:
                             raise Exception("Password dialog cancelled")
                     else:
-                        # Try normal pkexec flow
-                        logger.info("Trying standard pkexec authentication...")
+                        # Check if we're on a hardened kernel that might have pkexec issues
+                        if is_hardened:
+                            # On hardened kernels, pkexec might hang or not work properly
+                            # Skip pkexec entirely and go straight to zenity fallback
+                            logger.info("Hardened kernel detected, using zenity instead of pkexec")
 
-                        # Try pkexec with a timeout - on hardened kernels it might hang
-                        try:
-                            # Use subprocess without pipes first to allow authentication dialog
-                            # This is critical - pipes block the auth dialog!
-                            auth_process = subprocess.Popen(
-                                ["pkexec", "true"],
-                                stdin=None,
-                                stdout=None,
-                                stderr=None
-                            )
+                            # Update status
+                            self.main_window.root.after(0, lambda: status_label.config(
+                                text="Using alternative authentication for hardened kernel..."))
 
-                            # Wait for up to 3 seconds for pkexec to complete
-                            # On hardened kernels, it might hang indefinitely
-                            try:
-                                auth_result = auth_process.wait(timeout=3)
-                                logger.info(f"pkexec completed with code: {auth_result}")
-                            except subprocess.TimeoutExpired:
-                                logger.warning("pkexec timed out - likely blocked on hardened kernel")
-                                auth_process.kill()
-                                auth_result = -1
-
-                            if auth_result == 0:
-                                logger.info("pkexec authentication successful")
-                            else:
-                                raise Exception("pkexec failed or timed out")
-
-                        except Exception as e:
-                            logger.warning(f"pkexec failed: {e}, trying zenity fallback...")
-
-                            # On hardened kernels, pkexec might not work properly
-                            # Fallback to sudo with zenity for password if available
+                            # Use zenity for password prompt
                             if subprocess.run(["which", "zenity"], capture_output=True).returncode == 0:
-                                logger.info("Using zenity for password prompt")
-
-                                # Update status to show we're using zenity
-                                self.main_window.root.after(0, lambda: status_label.config(
-                                    text="pkexec not available, using alternative authentication..."))
-
-                                # Create a zenity password prompt
                                 zenity_cmd = [
                                     "zenity", "--password",
                                     "--title=Authentication Required",
@@ -639,7 +609,6 @@ class DashboardFrame(ttk.Frame):
                                     )
 
                                     if zenity_result.returncode == 0 and zenity_result.stdout:
-                                        # Got password, use it with sudo
                                         password = zenity_result.stdout.strip()
 
                                         # Test sudo with password
@@ -650,19 +619,17 @@ class DashboardFrame(ttk.Frame):
                                             stderr=subprocess.PIPE,
                                             text=True
                                         )
-                                        test_sudo.communicate(input=password + '\n')
+                                        test_out, test_err = test_sudo.communicate(input=password + '\n')
 
                                         if test_sudo.returncode == 0:
-                                            # Password worked, switch to sudo
                                             sync_cmd = ["sudo", "-S", "pacman", "-Sy", "--noconfirm"]
-                                            logger.info("Switched to sudo with zenity authentication")
-
-                                            # Store password temporarily for the actual command
                                             self._sudo_password = password
+                                            logger.info("Authentication successful with zenity")
                                         else:
+                                            logger.error(f"sudo test failed: {test_err}")
                                             raise Exception("Invalid password")
                                     else:
-                                        raise Exception("Password entry cancelled")
+                                        raise Exception("Password dialog cancelled")
 
                                 except Exception as e:
                                     logger.error(f"Zenity authentication failed: {e}")
@@ -673,6 +640,10 @@ class DashboardFrame(ttk.Frame):
                                 exit_code = 1
                                 success = False
                                 raise Exception("No authentication method available")
+                        else:
+                            # On regular kernels, use pkexec directly without pre-testing
+                            # This avoids the double password prompt issue
+                            logger.info("Using pkexec for authentication")
 
                     # Update status
                     self.main_window.root.after(0, lambda: status_label.config(text="Syncing database..."))
