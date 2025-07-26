@@ -49,43 +49,65 @@ def history_enabled_config():
     """Create a mock config with history enabled for testing."""
     config = Mock()
     
+    # Mock config data
+    config_data = {
+        'cache_ttl_hours': 2,
+        'check_interval': 60,
+        'auto_download': False,
+        'enable_history': True,
+        'retention_days': 365,
+        'timeout': 30,
+        'retries': 3,
+        'theme': 'default',
+        'news_limit': 10,
+        'show_packages': True,
+    }
+    
+    # Set up the config property to return the mock data
+    config.config = config_data
+    config.config_file = "/tmp/test_config.json"
+    
     # Set up common config methods
-    def config_get(section, option, fallback=None):
-        defaults = {
-            ('settings', 'retention_days'): '365',
-            ('settings', 'check_interval'): '60',
-            ('settings', 'auto_download'): 'false',
-            ('settings', 'enable_history'): 'true',
-            ('network', 'timeout'): '30',
-            ('network', 'retries'): '3',
-            ('ui', 'theme'): 'default',
-        }
-        return defaults.get((section, option), fallback or "default_value")
+    def config_get(key, fallback=None):
+        return config_data.get(key, fallback)
     
-    def config_getboolean(section, option, fallback=False):
-        value = config_get(section, option, str(fallback).lower())
-        return value.lower() in ('true', '1', 'yes', 'on')
+    def config_getboolean(key, fallback=False):
+        value = config_data.get(key, fallback)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', '1', 'yes', 'on')
+        return bool(value)
     
-    def config_getint(section, option, fallback=0):
-        value = config_get(section, option, str(fallback))
+    def config_getint(key, fallback=0):
+        value = config_data.get(key, fallback)
+        if isinstance(value, int):
+            return value
         try:
             return int(value)
         except (ValueError, TypeError):
             return fallback
     
-    def config_getfloat(section, option, fallback=0.0):
-        value = config_get(section, option, str(fallback))
+    def config_getfloat(key, fallback=0.0):
+        value = config_data.get(key, fallback)
+        if isinstance(value, float):
+            return value
         try:
             return float(value)
         except (ValueError, TypeError):
             return fallback
     
+    def config_set(key, value):
+        config_data[key] = value
+    
     config.get.side_effect = config_get
     config.getboolean.side_effect = config_getboolean
     config.getint.side_effect = config_getint
     config.getfloat.side_effect = config_getfloat
+    config.set.side_effect = config_set
+    config.save_config.return_value = None
     config.sections.return_value = ['settings', 'network', 'ui']
-    config.options.return_value = ['check_interval', 'auto_download', 'enable_history', 'retention_days']
+    config.options.return_value = list(config_data.keys())
     config.has_section.return_value = True
     config.has_option.return_value = True
     
