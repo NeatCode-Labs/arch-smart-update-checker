@@ -108,6 +108,11 @@ require {
     type xserver_t;
     type user_t;
 }
+
+# Define tmpfs type for X11 access
+type asuc_tmpfs_t;
+files_tmpfs_file(asuc_tmpfs_t)
+
 xserver_user_x_domain_template(asuc, asuc_t, asuc_tmpfs_t)
 allow asuc_t xserver_t:unix_stream_socket connectto;
 allow asuc_t user_t:unix_stream_socket connectto;
