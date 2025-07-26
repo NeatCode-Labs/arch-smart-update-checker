@@ -253,6 +253,64 @@ asuc-cli config set update_history_enabled true
 asuc-cli config edit
 ```
 
+## 🗑️ Uninstallation
+
+To completely remove Arch Smart Update Checker and all its data:
+
+### Automated Uninstall
+
+Use the provided uninstall script:
+
+```bash
+# Basic uninstall (with confirmation prompt)
+./uninstall.sh
+
+# Skip confirmation prompt
+./uninstall.sh --force
+
+# Preview what will be removed (dry run)
+./uninstall.sh --dry-run
+
+# If you used a custom config location
+./uninstall.sh --config /path/to/custom/config.json
+```
+
+The uninstall script will remove:
+- Configuration directory: `~/.config/arch-smart-update-checker/`
+- Cache directory: `~/.cache/arch-smart-update-checker/`
+- Update history data
+- Custom log files (if configured)
+- Systemd user service files
+- Desktop entries
+- Temporary files
+
+**Note**: The script does NOT remove the executables (`asuc-cli` and `asuc-gui`). To remove them:
+- If installed via `install.sh`: Remove the installation directory
+- If installed via AUR: Use your package manager (`yay -R arch-smart-update-checker`)
+
+### Manual Uninstall
+
+If you prefer manual removal:
+
+```bash
+# Remove configuration and cache
+rm -rf ~/.config/arch-smart-update-checker
+rm -rf ~/.cache/arch-smart-update-checker
+
+# Remove executables (location depends on installation method)
+# For pipx:
+pipx uninstall arch-smart-update-checker
+
+# For pip --user:
+pip uninstall arch-smart-update-checker
+
+# For system-wide installation:
+sudo pip uninstall arch-smart-update-checker
+
+# Remove from virtual environment:
+# Simply delete the venv directory
+```
+
 ## 🔒 Security
 
 This application implements enterprise-grade security:

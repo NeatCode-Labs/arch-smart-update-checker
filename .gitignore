@@ -11,6 +11,9 @@ __pycache__/
 arch-smart-update-checker-pipx.py
 arch-smart-update-checker-venv.sh
 
+# Uninstaller output
+uninstall_output.txt
+
 # Cache directory
 .cache/
 
