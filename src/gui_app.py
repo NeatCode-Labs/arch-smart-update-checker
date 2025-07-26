@@ -28,6 +28,12 @@ def create_parser() -> argparse.ArgumentParser:
         type=str,
         help='Path to custom configuration file'
     )
+    return parser
+
+
+def main():
+    """Main entry point for GUI application."""
+    parser = create_parser()
     parser.add_argument("--version", action="version", version="%(prog)s 2.2.0")
     
     args = parser.parse_args()

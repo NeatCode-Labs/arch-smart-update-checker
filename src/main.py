@@ -37,6 +37,14 @@ def create_parser() -> argparse.ArgumentParser:
     
     args = parser.parse_args()
 
+    return parser
+
+
+def main():
+    """Main entry point for CLI application."""
+    parser = create_parser()
+    args = parser.parse_args()
+
     try:
         # Handle init-config
         if args.init_config:

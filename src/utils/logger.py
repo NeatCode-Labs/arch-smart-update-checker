@@ -585,14 +585,13 @@ def create_secure_debug_logger(name: str, enable_debug: bool = False) -> Any:
 
 def log_security_event(event_type: str, details: Optional[dict[str, Any]] = None, severity: str = "warning") -> None:
     """
-    Log security events with proper sanitization, rate limiting, and enriched context.
-
+    Log a security event with rate limiting and metrics.
+    
     Args:
         event_type: Type of security event
         details: Event details (will be sanitized)
         severity: Log severity level
     """
-    global _security_event_counts, _security_log_path
     
     # Check rate limiting
     with _global_state_lock:
