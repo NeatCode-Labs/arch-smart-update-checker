@@ -11,6 +11,7 @@ import shutil
 import os
 from unittest.mock import Mock, patch
 import sys
+import pytest
 
 # Imports are handled by pytest and the src/ structure
 
@@ -23,16 +24,24 @@ def get_or_create_root():
     """Get or create a singleton Tk root to prevent memory leaks."""
     global _test_root
     if _test_root is None:
+        if os.environ.get('ASUC_HEADLESS'):
+            pytest.skip("Skipping GUI test in headless environment")
         _test_root = tk.Tk()
         _test_root.withdraw()
     return _test_root
 
 
+@pytest.mark.gui
+@pytest.mark.integration
 class TestDashboardPersistenceIntegration(unittest.TestCase):
     """Integration tests for dashboard persistence features."""
 
     def setUp(self):
         """Set up test fixtures with real file system."""
+        # Skip if headless
+        if os.environ.get('ASUC_HEADLESS'):
+            self.skipTest("Skipping GUI test in headless environment")
+            
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
         self.root.withdraw()

@@ -12,6 +12,7 @@ from unittest.mock import Mock, patch, MagicMock, mock_open
 import sys
 import os
 import threading
+import pytest
 
 # Imports are handled by pytest and the src/ structure
 
@@ -31,6 +32,8 @@ def get_or_create_root():
     """Get or create a singleton Tk root to prevent memory leaks."""
     global _test_root
     if _test_root is None:
+        if os.environ.get('ASUC_HEADLESS'):
+            pytest.skip("Skipping GUI test in headless environment")
         _test_root = tk.Tk()
         _test_root.withdraw()
     return _test_root
@@ -49,10 +52,20 @@ class MockThread:
         """No-op start method."""
         self._started = True
         self._alive = True
-        # Run target synchronously if provided
+        # Run target synchronously if provided with timeout
         if self.target:
             try:
-                self.target()
+                # Quick timeout for test stability
+                import signal
+                def timeout_handler(signum, frame):
+                    raise TimeoutError("Test thread timed out")
+                old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(5)  # 5 second timeout for tests
+                try:
+                    self.target()
+                finally:
+                    signal.alarm(0)
+                    signal.signal(signal.SIGALRM, old_handler)
             except:
                 pass
             finally:
@@ -71,11 +84,16 @@ class MockThread:
 threading.Thread = MockThread
 
 
+@pytest.mark.gui
 class TestMainWindow(unittest.TestCase):
     """Test the main window functionality."""
 
     def setUp(self):
         """Set up test fixtures."""
+        # Skip if headless
+        if os.environ.get('ASUC_HEADLESS'):
+            self.skipTest("Skipping GUI test in headless environment")
+            
         # Mock the Config and UpdateChecker classes before creating MainWindow
         with patch('src.gui.main_window.Config') as mock_config_class, \
              patch('src.gui.main_window.UpdateChecker') as mock_checker_class, \

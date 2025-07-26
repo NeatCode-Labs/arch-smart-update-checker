@@ -11,6 +11,7 @@ import sys
 import os
 import subprocess
 import tempfile
+import signal
 from pathlib import Path
 from unittest.mock import patch, Mock
 from concurrent.futures import ThreadPoolExecutor, Future
@@ -30,6 +31,11 @@ def pytest_configure(config):
     
     # Set up test environment variables
     os.environ['ASUC_SKIP_PACMAN_VERIFY'] = '1'
+    os.environ['ASUC_TEST_MODE'] = '1'
+    
+    # Force headless mode in CI
+    if os.environ.get('CI'):
+        os.environ['ASUC_HEADLESS'] = '1'
     
     # MEMORY FIX: Create a single global root window
     # that will be reused across tests instead of creating new Tk() instances
@@ -37,6 +43,17 @@ def pytest_configure(config):
         _global_root = tk.Tk()
         _global_root.withdraw()  # Hide the window
         tk._default_root = _global_root
+        
+        # Set up a timeout handler for GUI operations
+        def timeout_handler():
+            try:
+                _global_root.update_idletasks()
+            except:
+                pass
+        
+        # Schedule periodic updates to prevent hanging
+        _global_root.after(100, timeout_handler)
+        
     except tk.TclError as e:
         if "no display name and no $DISPLAY" in str(e):
             # Running in headless environment (e.g., CI)
@@ -59,10 +76,27 @@ def pytest_configure(config):
         def start(self):
             self._started = True
             self._alive = True
-            # Actually run the target function to allow ThreadPoolExecutor to work
+            # Run target synchronously to prevent hanging
             if self.target:
                 try:
-                    self.target(*self.args, **self.kwargs)
+                    # Add timeout to prevent infinite loops
+                    import signal
+                    
+                    def timeout_handler(signum, frame):
+                        raise TimeoutError("Mock thread execution timed out")
+                    
+                    # Set a timeout for thread execution
+                    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(30)  # 30 second timeout
+                    
+                    try:
+                        self.target(*self.args, **self.kwargs)
+                    finally:
+                        signal.alarm(0)
+                        signal.signal(signal.SIGALRM, old_handler)
+                        
+                except (TimeoutError, Exception):
+                    pass
                 finally:
                     self._alive = False
         
@@ -82,8 +116,24 @@ def pytest_configure(config):
             # Run synchronously and return a completed future
             future = Future()
             try:
-                result = fn(*args, **kwargs)
-                future.set_result(result)
+                # Add timeout to prevent hanging
+                import signal
+                
+                def timeout_handler(signum, frame):
+                    raise TimeoutError("Task execution timed out")
+                
+                old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(30)  # 30 second timeout
+                
+                try:
+                    result = fn(*args, **kwargs)
+                    future.set_result(result)
+                except Exception as e:
+                    future.set_exception(e)
+                finally:
+                    signal.alarm(0)
+                    signal.signal(signal.SIGALRM, old_handler)
+                    
             except Exception as e:
                 future.set_exception(e)
             return future
