@@ -31,6 +31,9 @@ def get_or_create_root():
     """Get or create a singleton Tk root to prevent memory leaks."""
     global _test_root
     if _test_root is None:
+        # Skip GUI setup in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            return None
         _test_root = tk.Tk()
         _test_root.withdraw()
     return _test_root
@@ -41,6 +44,9 @@ class TestPackageSearchAndFilter(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        # Skip GUI setup in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         # MEMORY FIX: Use Toplevel instead of new Tk()
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
@@ -171,6 +177,9 @@ class TestPackageOperations(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        # Skip GUI setup in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         self.root = tk.Tk()
         self.root.withdraw()
         
