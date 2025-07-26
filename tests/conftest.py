@@ -61,6 +61,9 @@ def history_enabled_config():
         'theme': 'default',
         'news_limit': 10,
         'show_packages': True,
+        # Additional keys expected by CLI tests
+        'update_history_enabled': True,
+        'update_history_retention_days': 365,
     }
     
     # Set up the config property to return the mock data
