@@ -248,6 +248,7 @@ jobs:
           pip install cyclonedx-bom
           
           # Generate SBOM in multiple formats
+          pip freeze > requirements.txt
           cyclonedx-py requirements -o sbom.json
           cyclonedx-py requirements -o sbom.xml -F xml
           
