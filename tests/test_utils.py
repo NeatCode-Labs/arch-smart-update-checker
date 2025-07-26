@@ -1,94 +1,70 @@
 """
-Test utilities for Arch Smart Update Checker tests.
-Provides common patches and helpers for testing with the new logging functionality.
+Test utilities and basic functionality.
 """
 
+import unittest
+import os
+import sys
+import pytest
 from unittest.mock import Mock, patch
-from contextlib import contextmanager
 
+class TestBasicFunctionality(unittest.TestCase):
+    """Test basic functionality to verify test infrastructure works."""
 
-@contextmanager
-def patch_main_window_creation():
-    """Context manager to patch MainWindow creation with logging support."""
-    with patch('src.gui.main_window.Config') as mock_config_class, \
-         patch('src.gui.main_window.UpdateChecker') as mock_checker_class, \
-         patch('src.utils.logger.set_global_config') as mock_set_global_config, \
-         patch('src.gui.main_window.get_logger') as mock_get_logger:
+    def test_imports_work(self):
+        """Test that core imports work correctly."""
+        try:
+            from src.config import Config
+            from src.checker import UpdateChecker
+            from src.utils.validators import validate_package_name
+            self.assertTrue(True, "All imports successful")
+        except ImportError as e:
+            self.fail(f"Import failed: {e}")
+
+    def test_environment_setup(self):
+        """Test that test environment is set up correctly."""
+        self.assertEqual(os.environ.get('ASUC_SKIP_PACMAN_VERIFY'), '1')
+        self.assertTrue(True, "Environment setup correct")
+
+    def test_package_validation(self):
+        """Test package name validation function."""
+        from src.utils.validators import validate_package_name
         
-        # Mock logger
-        mock_logger = Mock()
-        mock_get_logger.return_value = mock_logger
+        # Valid package names
+        self.assertTrue(validate_package_name("firefox"))
+        self.assertTrue(validate_package_name("package-name"))
+        self.assertTrue(validate_package_name("test123"))
         
-        # Provide the mocks to the caller
-        yield {
-            'config_class': mock_config_class,
-            'checker_class': mock_checker_class,
-            'set_global_config': mock_set_global_config,
-            'get_logger': mock_get_logger,
-            'logger': mock_logger
-        }
+        # Invalid package names
+        self.assertFalse(validate_package_name(""))
+        self.assertFalse(validate_package_name("../invalid"))
+        self.assertFalse(validate_package_name("pkg with spaces"))
 
+    def test_config_creation(self):
+        """Test basic config creation."""
+        from src.config import Config
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            f.write('{"theme": "light", "debug_mode": false}')
+            config_file = f.name
+        
+        try:
+            config = Config(config_file)
+            self.assertIsNotNone(config)
+            self.assertEqual(config.get('theme'), 'light')
+        finally:
+            os.unlink(config_file)
 
-def create_mock_main_window(root_widget=None):
-    """Create a mock main window with all necessary attributes for testing."""
-    mock_main_window = Mock()
-    mock_main_window.root = root_widget
-    mock_main_window.colors = {
-        'background': '#F5F7FA',
-        'surface': '#FFFFFF',
-        'text': '#1E293B',
-        'text_secondary': '#64748B',
-        'primary': '#2563EB',
-        'secondary': '#6B7280',
-        'success': '#10B981',
-        'warning': '#F59E0B',
-        'error': '#EF4444'
-    }
-    
-    # Mock config with logging settings
-    mock_main_window.config = Mock()
-    mock_main_window.config.config = {
-        'theme': 'light',
-        'debug_mode': False,
-        'verbose_logging': False,
-        'auto_check_interval': 60,
-        'notifications': True,
-        'start_minimized': False,
-        'auto_refresh_feeds': True,
-        'max_news_age_days': 14
-    }
-    mock_main_window.config.get_feeds = Mock(return_value=[])
-    mock_main_window.config.save = Mock()
-    
-    # Mock logging status update method
-    mock_main_window.update_logging_status = Mock()
-    
-    # Mock other common methods
-    mock_main_window.run_check = Mock()
-    mock_main_window.update_status = Mock()
-    mock_main_window.apply_theme = Mock()
-    
-    return mock_main_window
+    @pytest.mark.timeout(10)
+    def test_cache_operations(self):
+        """Test cache operations work without hanging."""
+        from src.utils.cache import CacheManager
+        
+        cache = CacheManager(ttl_hours=1)
+        cache.set("test_key", "test_value")
+        value = cache.get("test_key")
+        self.assertEqual(value, "test_value")
 
-
-def patch_settings_frame_creation():
-    """Context manager to patch SettingsFrame creation with logging support."""
-    return patch('src.gui.settings.SettingsFrame.setup_ui')
-
-
-def create_mock_settings_vars():
-    """Create mock variables for settings frame testing."""
-    vars_dict = {}
-    var_names = [
-        'interval_var', 'theme_var', 'notifications_var', 'minimize_var',
-        'auto_refresh_var', 'debug_var', 'verbose_var',
-        'news_age_var'
-    ]
-    
-    for name in var_names:
-        mock_var = Mock()
-        mock_var.get.return_value = None
-        mock_var.set.return_value = None
-        vars_dict[name] = mock_var
-    
-    return vars_dict 
+if __name__ == '__main__':
+    unittest.main() 
