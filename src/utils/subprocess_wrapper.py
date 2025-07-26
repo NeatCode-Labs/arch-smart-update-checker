@@ -51,20 +51,12 @@ class SecureSubprocess:
         },
         'bwrap': {
             'description': 'Bubblewrap sandboxing tool',
-            'required': False,
-            'search_paths': ['/usr/bin', '/usr/local/bin'],
-            'alternatives': ['firejail'],
+            'alternatives': []
         },
-        'firejail': {
-            'description': 'Firejail sandboxing tool',
-            'required': False,
-            'search_paths': ['/usr/bin', '/usr/local/bin'],
-            'alternatives': ['bwrap'],
-        },
-        'paccache': {
-            'description': 'Package cache management',
-            'required': False,
-            'search_paths': ['/usr/bin', '/usr/local/bin'],
+        'pacman': {
+            'description': 'Package manager',
+            'required': True,
+            'search_paths': ['/usr/bin', '/bin', '/usr/local/bin'],
             'alternatives': [],
         },
         'which': {
@@ -721,17 +713,17 @@ class SecureSubprocess:
     @classmethod
     def _create_sandbox_command(cls, cmd: List[str], sandbox_type: str, cwd: Optional[str] = None) -> List[str]:
         """
-        Create a sandboxed command using bubblewrap or firejail.
+        Create a sandboxed command using bubblewrap.
 
         Args:
             cmd: Original command to sandbox
-            sandbox_type: Type of sandbox ('bwrap' or 'firejail')
+            sandbox_type: Type of sandbox ('bwrap')
             cwd: Working directory for the command
 
         Returns:
             Sandboxed command list
         """
-        if sandbox_type not in ['bwrap', 'firejail']:
+        if sandbox_type != 'bwrap':
             raise ValueError(f"Unsupported sandbox type: {sandbox_type}")
 
         # Check if sandbox tool is available
@@ -781,28 +773,6 @@ class SecureSubprocess:
             
             # Add the original command
             sandbox_cmd.extend(['--'] + cmd)
-            
-        else:  # firejail
-            # Firejail configuration
-            sandbox_cmd = [sandbox_path]
-            
-            # Basic isolation
-            sandbox_cmd.extend([
-                '--noprofile',  # Don't use default profiles
-                '--quiet',      # Reduce output
-            ])
-            
-            # For package management commands
-            cmd_name = os.path.basename(actual_cmd)
-            if cmd_name in ['pacman', 'checkupdates', 'paccache']:
-                # Allow network for package operations
-                pass  # Network is allowed by default
-            else:
-                # Restrict network for other commands
-                sandbox_cmd.append('--net=none')
-            
-            # Add the original command
-            sandbox_cmd.extend(['--'] + cmd)
         
         logger.debug(f"Created sandboxed command using {sandbox_type}")
         return sandbox_cmd
@@ -822,26 +792,22 @@ class SecureSubprocess:
         **kwargs: Any
     ) -> subprocess.CompletedProcess:
         """
-        Run a command securely.
+        Run a command securely with validation and sandboxing.
 
         Args:
-            cmd: Command to run (list preferred, string will be split)
-            capture_output: Whether to capture stdout/stderr
+            cmd: Command to run
+            capture_output: Whether to capture output
             text: Whether to decode output as text
             check: Whether to raise exception on non-zero exit
             timeout: Timeout in seconds
             cwd: Working directory
             env: Environment variables
-            sandbox: Sandbox type ('bwrap' or 'firejail')
+            sandbox: Sandbox type ('bwrap')
             sandbox_profile: Name of sandbox profile to use
             **kwargs: Additional arguments for subprocess.run
 
         Returns:
             CompletedProcess instance
-
-        Raises:
-            ValueError: If command is invalid
-            subprocess.SubprocessError: If command fails
         """
         # Convert string to list if needed
         if isinstance(cmd, str):
@@ -970,8 +936,6 @@ class SecureSubprocess:
         if use_sandbox and not require_sudo:  # Don't sandbox sudo commands
             if cls.check_command_exists('bwrap'):
                 sandbox = 'bwrap'
-            elif cls.check_command_exists('firejail'):
-                sandbox = 'firejail'
 
         return cls.run(cmd, timeout=timeout, sandbox=sandbox, **kwargs)
 
@@ -1245,15 +1209,28 @@ class SecureSubprocess:
         cmd = [xdg_open, url]
         
         try:
-            # Run the command with advanced sandboxing
-            if sandbox and cls.check_command_exists('firejail'):
-                result = cls.run(
-                    cmd, 
-                    timeout=timeout, 
-                    capture_output=True, 
-                    check=False,
-                    sandbox='firejail',
-                    sandbox_profile='url_open'
+            # Open URL in sandboxed browser
+            if sandbox and cls.check_command_exists('bwrap'):
+                # Create custom file access profile
+                from .sandbox_profiles import FileAccessProfile, SandboxLevel
+                profile = FileAccessProfile(
+                    level=SandboxLevel.STRICT,
+                    allowed_paths=[url]
+                )
+                
+                from .sandbox_profiles import SandboxManager
+                sandboxed_cmd = SandboxManager.get_sandbox_command(
+                    cmd,
+                    profile,
+                    sandbox='bwrap',
+                    allow_network=True  # Browser needs network
+                )
+                
+                result = subprocess.run(
+                    sandboxed_cmd,
+                    timeout=timeout,
+                    capture_output=True,
+                    check=False
                 )
             else:
                 result = cls.run(cmd, timeout=timeout, capture_output=True, check=False)
@@ -1308,7 +1285,7 @@ class SecureSubprocess:
         
         try:
             # Run the command with advanced sandboxing
-            if sandbox and cls.check_command_exists('firejail'):
+            if sandbox and cls.check_command_exists('bwrap'):
                 # Create custom file access profile
                 from .sandbox_profiles import FileAccessProfile, SandboxLevel
                 profile = FileAccessProfile(
@@ -1317,7 +1294,7 @@ class SecureSubprocess:
                 )
                 
                 from .sandbox_profiles import SandboxManager
-                sandboxed_cmd = SandboxManager.get_sandbox_command(cmd, profile, 'firejail')
+                sandboxed_cmd = SandboxManager.get_sandbox_command(cmd, profile, 'bwrap')
                 
                 result = subprocess.run(
                     sandboxed_cmd,

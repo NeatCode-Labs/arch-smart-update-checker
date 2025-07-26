@@ -109,16 +109,16 @@ ignore_missing_imports = false
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --strict-config --timeout=300"
+addopts = "-ra -q --strict-markers --strict-config"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-timeout = 300
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "gui: marks tests as GUI tests",
+    "timeout: marks tests with timeout requirements",
 ]
 
 [tool.coverage.run]

@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Automated Security Scanning** - CodeQL and Bandit in CI/CD pipeline
   - **Dependency Vulnerability Checking** - pip-audit with critical failure on high-severity issues
   - **MAC Security Profiles** - Complete AppArmor and SELinux policies with installers
-  - **Enhanced Subprocess Sandboxing** - Bubblewrap and Firejail integration
+  - **Enhanced Subprocess Sandboxing** - Bubblewrap integration with automatic detection
+- **AppArmor Security Profiles** - Complete MAC profiles for enhanced security
   - **Security Event Logging** - Dedicated security log with rate limiting and enriched context
   - **Security Metrics Collection** - SQLite-based metrics tracking with trend analysis
   - **Advanced Sandboxing Profiles** - Granular profiles for different security levels

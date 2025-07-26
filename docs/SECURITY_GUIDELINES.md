@@ -132,7 +132,8 @@ Only these commands can be executed:
 - `pacman` - Package manager
 - `checkupdates` - Update checking
 - `paccache` - Cache management
-- `bwrap`/`firejail` - Sandboxing tools
+- `bwrap` - Sandboxing tool (built-in)
+- AppArmor profiles available in `security/apparmor/` for system-wide MAC
 
 ### Privileged Commands
 These require special handling via secure wrappers:
@@ -144,7 +145,7 @@ These require special handling via secure wrappers:
 Always prefer sandboxed execution:
 ```python
 # Enable sandboxing by default
-result = SecureSubprocess.run(cmd, sandbox='firejail')
+result = SecureSubprocess.run(cmd, sandbox='bwrap')
 ```
 
 ## Dependency Management

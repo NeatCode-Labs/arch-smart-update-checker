@@ -41,7 +41,8 @@ This document provides an overview of all security-related documentation and fea
   - Command whitelisting
   - Secure subprocess wrapper (`SecureSubprocess`)
   - Privileged command wrappers (systemctl, mount, umount)
-  - Sandboxing with firejail/bubblewrap
+  - Sandboxing with bubblewrap (built-in)
+  - AppArmor profiles for system-wide security (external)
   - Advanced sandboxing profiles
 
 ### Security Monitoring & Logging

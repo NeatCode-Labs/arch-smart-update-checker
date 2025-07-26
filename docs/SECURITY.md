@@ -63,7 +63,7 @@ Arch Smart Update Checker implements multiple security measures:
 ### Secure Subprocess Execution
 - No shell execution (`shell=False`)
 - Command whitelisting
-- Sandboxing support (Bubblewrap/Firejail)
+- Sandboxing support (Bubblewrap built-in, AppArmor profiles available)
 - Privilege separation
 
 ### File System Security
@@ -122,7 +122,8 @@ Please use responsible disclosure and allow reasonable time for patches before p
 ### Enhanced Command Execution Security
 - Dedicated secure wrappers for privileged commands (systemctl, mount, umount)
 - Strict argument validation and whitelisting for all system commands
-- Expanded sandboxing support using firejail/bubblewrap for external processes
+- Expanded sandboxing support using bubblewrap for external processes
+- Comprehensive AppArmor profiles for system-wide MAC (Mandatory Access Control)
 - Advanced sandboxing profiles with multiple security levels (BASIC, STANDARD, STRICT, PARANOID)
 
 ### Advanced Input Validation

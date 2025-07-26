@@ -229,7 +229,7 @@ The Arch Smart Update Checker demonstrates a strong security posture with multip
 
 ### Medium Priority ✅ COMPLETED
 1. **AppArmor/SELinux**: ✅ Complete profiles created with installation scripts
-2. **Sandboxing**: ✅ Bubblewrap/Firejail support implemented
+2. **Sandboxing**: ✅ Bubblewrap support implemented, AppArmor profiles provided
 3. **Audit Logging**: ✅ Security event logging integrated
 
 ### Low Priority ✅ COMPLETED

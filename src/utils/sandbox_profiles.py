@@ -25,15 +25,11 @@ class SandboxLevel(IntEnum):
 class SandboxProfile:
     """Base class for sandbox profiles."""
     
-    def __init__(self, name: str, level: SandboxLevel):
+    def __init__(self, name: str, level: SandboxLevel = SandboxLevel.STANDARD):
+        """Initialize a sandbox profile."""
         self.name = name
         self.level = level
-        self.firejail_args: List[str] = []
         self.bwrap_args: List[str] = []
-    
-    def get_firejail_args(self) -> List[str]:
-        """Get Firejail arguments for this profile."""
-        return self.firejail_args.copy()
     
     def get_bwrap_args(self) -> List[str]:
         """Get bubblewrap arguments for this profile."""
@@ -48,65 +44,24 @@ class NetworkProfile(SandboxProfile):
         
         if level == SandboxLevel.BASIC:
             # Basic network isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--private-tmp',
-                '--nosound',
-            ]
             self.bwrap_args = [
-                '--unshare-pid',
-                '--proc', '/proc',
-                '--dev', '/dev',
-                '--tmpfs', '/tmp',
+                '--share-net',
+                '--ro-bind', '/etc/resolv.conf', '/etc/resolv.conf',
+                '--ro-bind', '/etc/hosts', '/etc/hosts',
             ]
-            
         elif level == SandboxLevel.STANDARD:
-            # Standard network isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--private-tmp',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-                '--seccomp',
-                '--caps.drop=all',
-                '--protocol=unix,inet,inet6',
-            ]
+            # Standard network isolation with more restrictions
             self.bwrap_args = [
-                '--unshare-all',
                 '--share-net',
-                '--proc', '/proc',
-                '--dev', '/dev',
-                '--tmpfs', '/tmp',
-                '--new-session',
+                '--ro-bind', '/etc/resolv.conf', '/etc/resolv.conf',
+                '--ro-bind', '/etc/hosts', '/etc/hosts',
+                '--ro-bind', '/etc/ssl', '/etc/ssl',
+                '--ro-bind', '/etc/ca-certificates', '/etc/ca-certificates',
             ]
-            
-        elif level == SandboxLevel.STRICT:
-            # Strict network isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--private',
-                '--private-tmp',
-                '--private-dev',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-                '--seccomp.drop=@clock,@cpu-emulation,@debug,@module,@mount,@obsolete,@raw-io,@reboot,@resources,@swap',
-                '--caps.drop=all',
-                '--protocol=inet,inet6',
-                '--nodbus',
-                '--machine-id',
-            ]
+        else:  # STRICT
+            # No network access
             self.bwrap_args = [
-                '--unshare-all',
-                '--share-net',
-                '--proc', '/proc',
-                '--dev', '/dev',
-                '--tmpfs', '/tmp',
-                '--tmpfs', '/var',
-                '--tmpfs', '/home',
-                '--new-session',
-                '--die-with-parent',
+                '--unshare-net',
             ]
 
 
@@ -120,77 +75,43 @@ class FileAccessProfile(SandboxProfile):
         
         if level == SandboxLevel.BASIC:
             # Basic file isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--net=none',
-                '--nosound',
+            self.bwrap_args = [
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
+                '--proc', '/proc',
+                '--dev', '/dev',
             ]
             # Add whitelisted paths
             for path in self.allowed_paths:
-                self.firejail_args.extend(['--whitelist=' + path])
-            
-            self.bwrap_args = [
-                '--unshare-pid',
-                '--proc', '/proc',
-                '--dev', '/dev',
-            ]
-            # Add read-only bind mounts for allowed paths
-            for path in self.allowed_paths:
                 self.bwrap_args.extend(['--ro-bind', path, path])
-                
+        
         elif level == SandboxLevel.STANDARD:
             # Standard file isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--net=none',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-                '--seccomp',
-                '--caps.drop=all',
-                '--nodbus',
-            ]
-            for path in self.allowed_paths:
-                self.firejail_args.extend(['--whitelist=' + path])
-            
             self.bwrap_args = [
-                '--unshare-all',
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
+                '--ro-bind', '/bin', '/bin',
+                '--ro-bind', '/sbin', '/sbin',
                 '--proc', '/proc',
                 '--dev', '/dev',
                 '--tmpfs', '/tmp',
             ]
             for path in self.allowed_paths:
                 self.bwrap_args.extend(['--ro-bind', path, path])
-                
-        elif level == SandboxLevel.STRICT:
+        
+        else:  # STRICT
             # Strict file isolation
-            self.firejail_args = [
-                '--noprofile',
-                '--net=none',
-                '--private',
-                '--private-tmp',
-                '--private-dev',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-                '--seccomp.drop=@clock,@cpu-emulation,@debug,@module,@mount,@obsolete,@raw-io,@reboot,@resources,@swap',
-                '--caps.drop=all',
-                '--nodbus',
-                '--machine-id',
-                '--noroot',
-            ]
-            for path in self.allowed_paths:
-                self.firejail_args.extend(['--whitelist=' + path])
-            
             self.bwrap_args = [
-                '--unshare-all',
-                '--proc', '/proc',
-                '--dev', '/dev',
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
                 '--tmpfs', '/tmp',
                 '--tmpfs', '/var',
                 '--tmpfs', '/home',
-                '--new-session',
-                '--die-with-parent',
+                '--proc', '/proc',
+                '--dev', '/dev',
             ]
             for path in self.allowed_paths:
                 self.bwrap_args.extend(['--ro-bind', path, path])
@@ -205,12 +126,6 @@ class PackageManagerProfile(SandboxProfile):
         # Package managers need more access, so sandboxing is limited
         if level == SandboxLevel.BASIC:
             # Basic isolation for package queries
-            self.firejail_args = [
-                '--noprofile',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-            ]
             self.bwrap_args = [
                 '--ro-bind', '/usr', '/usr',
                 '--ro-bind', '/etc', '/etc',
@@ -223,15 +138,6 @@ class PackageManagerProfile(SandboxProfile):
             
         elif level in [SandboxLevel.STANDARD, SandboxLevel.STRICT]:
             # More restrictive for read-only operations
-            self.firejail_args = [
-                '--noprofile',
-                '--nosound',
-                '--nogroups',
-                '--nonewprivs',
-                '--seccomp',
-                '--caps.drop=all',
-                '--read-only=/var/lib/pacman',
-            ]
             self.bwrap_args = [
                 '--unshare-pid',
                 '--ro-bind', '/usr', '/usr',
@@ -242,6 +148,42 @@ class PackageManagerProfile(SandboxProfile):
                 '--dev', '/dev',
                 '--tmpfs', '/tmp',
                 '--new-session',
+            ]
+
+
+class TerminalProfile(SandboxProfile):
+    """Sandbox profile for terminal operations."""
+    
+    def __init__(self, level: SandboxLevel = SandboxLevel.BASIC):
+        super().__init__("terminal", level)
+        
+        if level == SandboxLevel.BASIC:
+            # Basic terminal isolation
+            self.bwrap_args = [
+                '--share-net',
+                '--ro-bind', '/etc', '/etc',
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
+                '--ro-bind', '/bin', '/bin',
+                '--proc', '/proc',
+                '--dev', '/dev',
+                '--bind', os.path.expanduser('~'), os.path.expanduser('~'),
+            ]
+        
+        elif level == SandboxLevel.STANDARD:
+            # Standard terminal isolation
+            self.bwrap_args = [
+                '--share-net',
+                '--ro-bind', '/etc', '/etc',
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
+                '--ro-bind', '/bin', '/bin',
+                '--proc', '/proc',
+                '--dev', '/dev',
+                '--tmpfs', '/tmp',
+                '--bind', os.path.expanduser('~'), os.path.expanduser('~'),
             ]
 
 
@@ -285,14 +227,15 @@ class SandboxManager:
     
     @classmethod
     def get_sandbox_command(cls, base_cmd: List[str], profile: SandboxProfile,
-                           sandbox_type: str = "firejail") -> List[str]:
+                           sandbox_type: str = "bwrap", allow_network: bool = False) -> List[str]:
         """
         Wrap a command with appropriate sandbox.
         
         Args:
             base_cmd: Original command
             profile: Sandbox profile to use
-            sandbox_type: Type of sandbox (firejail or bwrap)
+            sandbox_type: Type of sandbox (bwrap)
+            allow_network: Override to allow network access
             
         Returns:
             Sandboxed command
@@ -300,10 +243,15 @@ class SandboxManager:
         if profile.level == SandboxLevel.NONE:
             return base_cmd
         
-        if sandbox_type == "firejail":
-            sandbox_cmd = ['firejail'] + profile.get_firejail_args() + ['--'] + base_cmd
-        elif sandbox_type == "bwrap":
-            sandbox_cmd = ['bwrap'] + profile.get_bwrap_args() + base_cmd
+        if sandbox_type == "bwrap":
+            sandbox_cmd = ['bwrap'] + profile.get_bwrap_args()
+            
+            # Add network access if requested
+            if allow_network and '--unshare-net' in sandbox_cmd:
+                sandbox_cmd.remove('--unshare-net')
+                sandbox_cmd.extend(['--share-net'])
+            
+            sandbox_cmd.extend(base_cmd)
         else:
             logger.warning(f"Unknown sandbox type: {sandbox_type}")
             return base_cmd
@@ -330,72 +278,34 @@ class SandboxManager:
         """
         profile = SandboxProfile(name, level)
         
-        # Build Firejail arguments
-        firejail_args = ['--noprofile']
-        
-        if not network:
-            firejail_args.append('--net=none')
-        
-        if level >= SandboxLevel.STANDARD:
-            firejail_args.extend([
-                '--nosound',
-                '--nogroups', 
-                '--nonewprivs',
-                '--seccomp',
-            ])
-        
-        if level >= SandboxLevel.STRICT:
-            firejail_args.extend([
-                '--private',
-                '--private-tmp',
-                '--private-dev',
-                '--nodbus',
-                '--machine-id',
-            ])
-        
-        # Add filesystem whitelist
-        if filesystem:
-            for path in filesystem:
-                firejail_args.append(f'--whitelist={path}')
-        
-        # Handle capabilities
-        if not capabilities:
-            firejail_args.append('--caps.drop=all')
-        else:
-            dropped_caps = set([
-                'cap_sys_admin', 'cap_sys_boot', 'cap_sys_module',
-                'cap_sys_rawio', 'cap_sys_ptrace', 'cap_sys_pacct'
-            ]) - set(capabilities)
-            for cap in dropped_caps:
-                firejail_args.append(f'--caps.drop={cap}')
-        
-        profile.firejail_args = firejail_args
-        
         # Build bubblewrap arguments
         bwrap_args = []
         
+        if not network:
+            bwrap_args.append('--unshare-net')
+        else:
+            bwrap_args.extend(['--share-net'])
+        
         if level >= SandboxLevel.STANDARD:
             bwrap_args.extend([
-                '--unshare-pid',
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
                 '--proc', '/proc',
                 '--dev', '/dev',
             ])
         
         if level >= SandboxLevel.STRICT:
             bwrap_args.extend([
-                '--unshare-all',
-                '--new-session',
-                '--die-with-parent',
+                '--tmpfs', '/tmp',
+                '--tmpfs', '/var',
+                '--tmpfs', '/home',
             ])
         
-        if network:
-            bwrap_args.append('--share-net')
-        
-        # Add filesystem binds
+        # Add filesystem whitelist
         if filesystem:
             for path in filesystem:
-                if os.path.exists(path):
-                    bwrap_args.extend(['--ro-bind', path, path])
+                bwrap_args.extend(['--ro-bind', path, path])
         
         profile.bwrap_args = bwrap_args
         

@@ -880,10 +880,12 @@ class DashboardFrame(ttk.Frame):
             cache_status = "Ready"
             try:
                 if os.path.exists(cache_dir):
-                    # Count feed cache files only (URLs that start with http/https)
+                    # Count feed cache files (JSON files excluding config/history files)
                     all_files = os.listdir(cache_dir)
                     feed_files = [f for f in all_files if f.endswith('.json') and 
-                                 (f.startswith('https') or f.startswith('http'))]
+                                 not f.startswith('config') and 
+                                 not f.startswith('update_history') and
+                                 not f.startswith('security_metrics')]
                     if feed_files:
                         cache_status = f"{len(feed_files)} cached feeds"
                     else:

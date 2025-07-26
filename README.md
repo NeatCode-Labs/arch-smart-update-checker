@@ -137,7 +137,8 @@ ASUC implements enterprise-grade security with multiple layers of protection:
 
 #### Advanced Security
 - **MAC Profiles** - AppArmor and SELinux policies included
-- **Sandboxing** - Bubblewrap/Firejail integration for isolation
+- **Sandboxing** - Bubblewrap integration for isolation
+- **AppArmor Support** - Comprehensive security profiles available
 - **Security Logging** - Complete audit trail of security events
 - **Single Instance Lock** - Prevents concurrent execution
 - **HTTPS Enforcement** - Secure communication for all feeds

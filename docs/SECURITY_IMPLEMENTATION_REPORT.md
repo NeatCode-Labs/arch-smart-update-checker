@@ -62,7 +62,7 @@ This report documents the comprehensive security improvements implemented for th
 #### 3. Enhanced Subprocess Sandboxing
 - **Status:** Completed
 - **Implementation:**
-  - Added support for Bubblewrap and Firejail sandboxing
+  - Added support for Bubblewrap sandboxing (built-in) and AppArmor profiles (external)
   - Automatic detection and selection of available sandbox tool
   - Configurable sandbox profiles for different command types
   - Security event logging for sandboxed operations
@@ -266,7 +266,7 @@ Based on additional security review:
 #### 1. Expanded Sandbox Usage
 - **Implemented**: Secure URL and file opening with sandboxing
 - **Features**:
-  - `open_url_securely()` method with firejail sandboxing
+  - `open_url_securely()` method with bubblewrap sandboxing
   - `open_file_securely()` method with restricted filesystem access
   - Automatic fallback to standard methods if sandboxing unavailable
   - All GUI components updated to use secure opening methods
