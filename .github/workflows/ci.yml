@@ -250,7 +250,6 @@ jobs:
           # Generate SBOM in multiple formats
           pip freeze > requirements.txt
           cyclonedx-py requirements -o sbom.json
-          cyclonedx-py requirements -o sbom.xml -F xml
           
           echo "✅ SBOM generated successfully"
           
@@ -272,7 +271,6 @@ jobs:
           name: sbom-artifacts
           path: |
             sbom.json
-            sbom.xml
           retention-days: 30
       
       - name: Upload coverage reports
