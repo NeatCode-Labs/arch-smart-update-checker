@@ -138,7 +138,9 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
     def test_concurrent_operations(self):
         """Test performance under concurrent load."""
-        cache = CacheManager(ttl_hours=5)
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache = CacheManager(cache_dir=temp_dir, ttl_hours=5)
         
         # Since threads are mocked in tests, simulate concurrent access directly
         start = time.time()
