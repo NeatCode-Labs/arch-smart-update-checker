@@ -338,12 +338,18 @@ class SecurityMetricsCollector:
             Report content as string
         """
         try:
+            # Get report data with explicit typing
+            summary_24h: Dict[str, Any] = self.get_event_summary(24)
+            summary_7d: Dict[str, Any] = self.get_event_summary(24 * 7)
+            summary_30d: Dict[str, Any] = self.get_event_summary(24 * 30)
+            trending_threats: List[Dict[str, Any]] = self.get_trending_threats()
+            
             report_data = {
                 'generated_at': datetime.now().isoformat(),
-                'summary_24h': self.get_event_summary(24),
-                'summary_7d': self.get_event_summary(24 * 7),
-                'summary_30d': self.get_event_summary(24 * 30),
-                'trending_threats': self.get_trending_threats(),
+                'summary_24h': summary_24h,
+                'summary_7d': summary_7d,
+                'summary_30d': summary_30d,
+                'trending_threats': trending_threats,
                 'database_path': str(self.db_path)
             }
             

@@ -2686,8 +2686,8 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                  pady=8,
                                  cursor='hand2',
                                  command=lambda link=news_item['link']: (
-                                     SecureSubprocess.open_url_securely(link, sandbox=True) 
-                                     or webbrowser.open(link)
+                                     SecureSubprocess.open_url_securely(str(link), sandbox=True) 
+                                     or webbrowser.open(str(link))
                                  ))
             open_btn.pack(side='left', padx=(0, 10))
 

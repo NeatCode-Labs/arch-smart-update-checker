@@ -166,7 +166,6 @@ auditallow asuc_t shadow_t:file read;
 #
 
 # Basic domain transition
-domtrans_pattern(unconfined_t, asuc_exec_t, asuc_t)
 domtrans_pattern(user_t, asuc_exec_t, asuc_t)
 
 ########################################
