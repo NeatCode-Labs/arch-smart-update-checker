@@ -977,6 +977,9 @@ class TestGUIPerformance(unittest.TestCase):
 
     def test_gui_startup_time(self):
         """Test that GUI components start up within reasonable time."""
+        # Skip GUI test in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         import time
         start_time = time.time()
         root = tk.Tk()
@@ -1029,6 +1032,9 @@ class TestGUIPerformance(unittest.TestCase):
 
     def test_memory_usage(self):
         """Test that GUI components don't cause excessive memory usage."""
+        # Skip GUI test in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         import gc
         gc.collect()
         root = tk.Tk()
