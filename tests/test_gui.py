@@ -80,8 +80,8 @@ class MockThread:
         return self._alive
 
 
-# Patch threading globally for all tests
-threading.Thread = MockThread
+# Don't patch threading globally - this conflicts with pytest-timeout
+# Instead, patch it only where needed in individual tests
 
 
 @pytest.mark.gui

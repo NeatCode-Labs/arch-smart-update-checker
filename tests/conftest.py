@@ -63,48 +63,8 @@ def pytest_configure(config):
         else:
             raise
     
-    # Mock threading globally to prevent background threads in tests
-    class MockThread:
-        def __init__(self, target=None, daemon=False, args=(), kwargs={}, *extra_args, **extra_kwargs):
-            self.target = target
-            self.daemon = daemon
-            self.args = args
-            self.kwargs = kwargs
-            self._started = False
-            self._alive = False
-        
-        def start(self):
-            self._started = True
-            self._alive = True
-            # Run target synchronously to prevent hanging
-            if self.target:
-                try:
-                    # Add timeout to prevent infinite loops
-                    import signal
-                    
-                    def timeout_handler(signum, frame):
-                        raise TimeoutError("Mock thread execution timed out")
-                    
-                    # Set a timeout for thread execution
-                    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
-                    signal.alarm(30)  # 30 second timeout
-                    
-                    try:
-                        self.target(*self.args, **self.kwargs)
-                    finally:
-                        signal.alarm(0)
-                        signal.signal(signal.SIGALRM, old_handler)
-                        
-                except (TimeoutError, Exception):
-                    pass
-                finally:
-                    self._alive = False
-        
-        def join(self, timeout=None):
-            pass
-        
-        def is_alive(self):
-            return self._alive
+    # Store original thread class for restoration later
+    _original_thread_class = threading.Thread
     
     # Mock ThreadPoolExecutor to run tasks synchronously
     class MockThreadPoolExecutor:
@@ -146,9 +106,6 @@ def pytest_configure(config):
             
         def __exit__(self, exc_type, exc_val, exc_tb):
             pass
-    
-    _original_thread_class = threading.Thread
-    threading.Thread = MockThread
     
     # Patch ThreadPoolExecutor globally and in specific modules
     import concurrent.futures
@@ -213,7 +170,7 @@ def pytest_unconfigure(config):
     """Clean up after all tests."""
     global _global_root, _original_thread_class
     
-    # Restore original threading
+    # Restore original threading if we had patched it
     if _original_thread_class:
         threading.Thread = _original_thread_class
     
