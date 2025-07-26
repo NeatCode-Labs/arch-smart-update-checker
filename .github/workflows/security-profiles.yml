@@ -105,12 +105,14 @@ jobs:
         run: |
           echo "=== Checking SELinux policy syntax ==="
           
-          # Check .te file
-          checkpolicy -M -o asuc.mod asuc.te
-          if [ $? -eq 0 ]; then
-            echo "✅ SELinux .te file syntax is valid"
+          # Use make to check syntax instead of direct checkpolicy
+          make -f /usr/share/selinux/devel/Makefile clean
+          make -f /usr/share/selinux/devel/Makefile
+          
+          if [ -f asuc.pp ]; then
+            echo "✅ SELinux policy syntax is valid"
           else
-            echo "❌ SELinux .te file has syntax errors"
+            echo "❌ SELinux policy has syntax errors"
             exit 1
           fi
           

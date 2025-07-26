@@ -2675,20 +2675,22 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         btn_frame.pack(fill='x', pady=(20, 0))
 
         if news_item.get('link'):
+            # Create a function for the button command
+            def open_link_command() -> None:
+                link = news_item['link']
+                SecureSubprocess.open_url_securely(str(link), sandbox=True) or webbrowser.open(str(link))
+            
             open_btn = tk.Button(btn_frame,
-                                 text="Open in Browser",
-                                 font=('Segoe UI', 11, 'normal'),
-                                 fg=self.main_window.colors['primary'],
-                                 bg=self.main_window.colors['surface'],
-                                 bd=1,
-                                 relief='solid',
+                                 text="Open Link",
+                                 bg=self.dims.button_bg,
+                                 fg=self.dims.button_fg,
+                                 font=self.dims.button_font,
+                                 relief=self.dims.button_relief,
+                                 bd=self.dims.button_border,
                                  padx=15,
                                  pady=8,
                                  cursor='hand2',
-                                 command=lambda link=news_item['link']: (
-                                     SecureSubprocess.open_url_securely(str(link), sandbox=True) 
-                                     or webbrowser.open(str(link))
-                                 ))
+                                 command=open_link_command)
             open_btn.pack(side='left', padx=(0, 10))
 
         close_btn = tk.Button(btn_frame,
