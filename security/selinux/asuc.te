@@ -122,14 +122,11 @@ optional_policy(`
 ')
 
 # Allow reading theme and icon files
-gnome_read_generic_home_content(asuc_t)
-gnome_read_usr_config(asuc_t)
-xdg_read_config_files(asuc_t)
-xdg_read_data_files(asuc_t)
+files_read_usr_files(asuc_t)
+userdom_read_user_home_content_files(asuc_t)
 
 # Allow executing terminal emulators and editors
 corecmd_exec_bin(asuc_t)
-application_exec_all(asuc_t)
 
 # Process management
 allow asuc_t self:process { signal signull setsched getpgid setpgid getcap setcap getsched };
@@ -163,26 +160,20 @@ auditallow asuc_t shadow_t:file read;
 # Transitions
 #
 
-# Domain transition from user domain
-userdom_spec_domtrans_all_users(asuc_t)
-
-# Allow user to execute the application
-userdom_exec_user_home_content_files(user_t)
+# Basic domain transition
+domtrans_pattern(unconfined_t, asuc_exec_t, asuc_t)
 domtrans_pattern(user_t, asuc_exec_t, asuc_t)
-
-# Allow sudo/pkexec transitions
-sudo_role_template(asuc, asuc_t, asuc_exec_t)
 
 ########################################
 # Elevated operations policy
 #
 
-# Define domain for elevated operations
+# Define domain for elevated operations  
 type asuc_elevated_t;
 application_domain(asuc_elevated_t, asuc_exec_t)
 
-# Transition to elevated domain via sudo
-sudo_domtrans(asuc_t, asuc_elevated_t)
+# Basic transition to elevated domain
+domtrans_pattern(asuc_t, asuc_exec_t, asuc_elevated_t)
 
 # Allow elevated domain to perform package operations
 allow asuc_elevated_t pacman_exec_t:file { read execute open execute_no_trans };
