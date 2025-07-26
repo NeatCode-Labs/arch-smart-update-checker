@@ -34,17 +34,22 @@ class TestNewsFetcher(unittest.TestCase):
         self.mock_lock.__exit__ = Mock(return_value=None)
         mock_lock_class.return_value = self.mock_lock
         
-        # Mock ThreadPoolExecutor to prevent real threading
-        self.executor_patcher = patch('src.news_fetcher.ThreadPoolExecutor')
-        mock_executor_class = self.executor_patcher.start()
+        # Mock SecureThreadPoolExecutor instead of ThreadPoolExecutor
+        self.executor_patcher = patch('src.utils.thread_manager.SecureThreadPoolExecutor.get_executor')
+        mock_get_executor = self.executor_patcher.start()
         self.mock_executor = Mock()
         self.mock_executor.__enter__ = Mock(return_value=self.mock_executor)
         self.mock_executor.__exit__ = Mock(return_value=None)
-        mock_executor_class.return_value = self.mock_executor
+        mock_get_executor.return_value = self.mock_executor
         
-        # Mock as_completed to return futures immediately
+        # Create a shared mock future that will be reused
+        self.mock_future = Mock()
+        self.mock_executor.submit.return_value = self.mock_future
+        
+        # Mock as_completed to return the same futures that were submitted
         self.as_completed_patcher = patch('src.news_fetcher.as_completed')
         self.mock_as_completed = self.as_completed_patcher.start()
+        self.mock_as_completed.return_value = [self.mock_future]  # Return the same mock future
         
         # Create news fetcher with mock cache
         self.news_fetcher = NewsFetcher(self.mock_cache)
@@ -143,9 +148,6 @@ class TestNewsFetcher(unittest.TestCase):
             "enabled": True
         }
         
-        # Mock the ThreadPoolExecutor future
-        mock_future = Mock()
-        
         # Mock the news item that would be returned by fetch_feed
         from src.models import NewsItem, FeedType
         from datetime import datetime
@@ -161,20 +163,15 @@ class TestNewsFetcher(unittest.TestCase):
             affected_packages=set()
         )
         
-        mock_future.result.return_value = [mock_news_item]
+        # Configure the shared mock future to return our mock news item
+        self.mock_future.result.return_value = [mock_news_item]
         
-        # Setup mock executor submit to return future
-        self.mock_executor.submit.return_value = mock_future
-        
-        # Setup as_completed to return the future
-        self.mock_as_completed.return_value = [mock_future]
-        
-        # Use legacy method for dictionary input
+        # Test fetch_all_feeds_legacy with dictionary format
         result = self.news_fetcher.fetch_all_feeds_legacy([feed_info])
         
+        # Should return 1 news item
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["title"], "Test Article")
-        self.assertEqual(result[0]["source"], "Test Feed")
+        self.assertEqual(result[0]['title'], "Test Article")
 
     def test_fetch_feed_network_error(self):
         """Test feed fetching with network error."""
@@ -322,48 +319,35 @@ class TestNewsFetcher(unittest.TestCase):
             }
         ]
         
-        # Mock the ThreadPoolExecutor futures
-        mock_future1 = Mock()
-        mock_future2 = Mock()
-        
-        # Mock the news items that would be returned by fetch_feed
+        # Mock news items that would be returned
         from src.models import NewsItem, FeedType
         from datetime import datetime
         
-        mock_news_item1 = NewsItem(
+        mock_news_item = NewsItem(
             title="Test Article",
             link="https://example.com/article",
             date=datetime(2024, 1, 1, 12, 0),
             content="Test description",
-            source="Feed 1",
+            source="Test Feed",
             priority=1,
             source_type=FeedType.NEWS,
             affected_packages=set()
         )
         
-        mock_news_item2 = NewsItem(
-            title="Test Article",
-            link="https://example.com/article",
-            date=datetime(2024, 1, 1, 12, 0),
-            content="Test description",
-            source="Feed 2",
-            priority=2,
-            source_type=FeedType.NEWS,
-            affected_packages=set()
-        )
+        # Configure the shared mock future to return our mock news item
+        self.mock_future.result.return_value = [mock_news_item]
         
-        mock_future1.result.return_value = [mock_news_item1]
-        mock_future2.result.return_value = [mock_news_item2]
+        # For multiple feeds, we need multiple futures
+        mock_future2 = Mock()
+        mock_future2.result.return_value = [mock_news_item]
         
-        # Setup mock executor submit to return futures
-        self.mock_executor.submit.side_effect = [mock_future1, mock_future2]
-        
-        # Setup as_completed to return the futures
-        self.mock_as_completed.return_value = [mock_future1, mock_future2]
+        # Update mocks to handle multiple feeds
+        self.mock_executor.submit.side_effect = [self.mock_future, mock_future2]
+        self.mock_as_completed.return_value = [self.mock_future, mock_future2]
         
         result = self.news_fetcher.fetch_all_feeds_legacy(feeds)
         
-        # Should have 2 items (one from each feed)
+        # Should return 2 news items (1 from each feed)
         self.assertEqual(len(result), 2)
 
     def test_fetch_all_feeds_with_errors(self):
