@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation Improvements**:
   - Consolidated README.md with unified security/testing sections
   - Professional tone and structure
-  - Updated badges to reflect current test count (266)
+  - Updated badges to reflect current test count (269)
   - Reorganized for better navigation
 
 ### Fixed
