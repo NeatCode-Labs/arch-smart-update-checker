@@ -2831,7 +2831,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         universal_newlines=True
                     )
 
-                    status_label.config(text="Installing packages...")
+                    self.main_window.root.after(0, lambda: status_label.config(text="Installing packages..."))
 
                     # Read output line by line
                     full_output = []
@@ -2881,7 +2881,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
                     # Update UI based on result
                     if success:
-                        status_label.config(text="✅ Installation completed successfully!", foreground='green')
+                        self.main_window.root.after(0, lambda: status_label.config(text="✅ Installation completed successfully!", foreground='green'))
                         self.main_window.update_status(
                             f"✅ Successfully installed {len(selected)} package(s)", "success")
 
@@ -2897,11 +2897,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                     else:
                         if exit_code == 126 or exit_code == 127:
                             # Authentication cancelled or pkexec not found
-                            status_label.config(
-                                text="❌ Authentication cancelled or pkexec not available", foreground='red')
+                            self.main_window.root.after(0, lambda: status_label.config(
+                                text="❌ Authentication cancelled or pkexec not available", foreground='red'))
                             self.main_window.update_status("Update cancelled", "warning")
                         else:
-                            status_label.config(text="❌ Installation failed", foreground='red')
+                            self.main_window.root.after(0, lambda: status_label.config(text="❌ Installation failed", foreground='red'))
                             self.main_window.update_status(f"❌ Update failed with exit code {exit_code}", "error")
 
                     # Record update history if enabled
@@ -3063,7 +3063,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                             logger.info("No update history recorded - all packages were reinstalls")
 
                 except subprocess.TimeoutExpired:
-                    status_label.config(text="❌ Installation timed out", foreground='red')
+                    self.main_window.root.after(0, lambda: status_label.config(text="❌ Installation timed out", foreground='red'))
                     self.main_window.update_status("Update timed out", "error")
                     try:
                         process.kill()
@@ -3071,11 +3071,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                         pass
                 except Exception as e:
                     logger.error(f"Error during pkexec update: {e}")
-                    status_label.config(text=f"❌ Error: {str(e)}", foreground='red')
+                    self.main_window.root.after(0, lambda e=e: status_label.config(text=f"❌ Error: {str(e)}", foreground='red'))
                     self.main_window.update_status(f"Update error: {str(e)}", "error")
 
-                # Enable close button
-                close_btn.config(state='normal')
+                # Enable close button (schedule on main thread)
+                self.main_window.root.after(0, lambda: close_btn.config(state='normal'))
 
                 # Don't auto-close - let users read the output and close manually
                 # This was previously auto-closing after 3 seconds which was too fast
