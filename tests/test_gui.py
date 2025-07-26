@@ -794,6 +794,9 @@ class TestGUIIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        # Skip GUI setup in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         self.root = tk.Tk()
         self.root.withdraw()
 
