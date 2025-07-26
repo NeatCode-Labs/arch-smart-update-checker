@@ -5,7 +5,7 @@ Advanced sandboxing profiles for different security contexts.
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from typing import List, Dict, Any, Optional
-from enum import Enum
+from enum import IntEnum
 import os
 
 from .logger import get_logger
@@ -13,13 +13,13 @@ from .logger import get_logger
 logger = get_logger(__name__)
 
 
-class SandboxLevel(Enum):
+class SandboxLevel(IntEnum):
     """Security levels for sandboxing."""
-    NONE = "none"
-    BASIC = "basic"
-    STANDARD = "standard"
-    STRICT = "strict"
-    PARANOID = "paranoid"
+    NONE = 0
+    BASIC = 1
+    STANDARD = 2
+    STRICT = 3
+    PARANOID = 4
 
 
 class SandboxProfile:
@@ -275,7 +275,7 @@ class SandboxManager:
             # Create new profile with custom level if requested
             if custom_level and custom_level != profile.level:
                 profile_class = type(profile)
-                return profile_class(custom_level)
+                return profile_class(profile.name, custom_level)
             
             return profile
         else:
@@ -313,8 +313,8 @@ class SandboxManager:
     @classmethod
     def create_custom_profile(cls, name: str, level: SandboxLevel,
                             network: bool = False,
-                            filesystem: List[str] = None,
-                            capabilities: List[str] = None) -> SandboxProfile:
+                            filesystem: Optional[List[str]] = None,
+                            capabilities: Optional[List[str]] = None) -> SandboxProfile:
         """
         Create a custom sandbox profile.
         
