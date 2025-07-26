@@ -443,17 +443,23 @@ class TestAsucCLI:
         # Mock available updates
         mock_updates = [PackageUpdate('kernel', '6.1.0', '6.2.0')]
         
-        # Mock news items
-        mock_news = [Mock()]
-        mock_news[0].feed_type = 'news'
-        mock_news[0].affected_packages = {'kernel'}
-        mock_news[0].title = "Kernel Security Update"
-        mock_news[0].url = "http://example.com"
-        mock_news[0].published = "2024-01-15"
-        mock_news[0].content = "Important kernel update"
+        # Create a properly structured mock news item
+        mock_news_item = Mock()
+        mock_news_item.source_type = Mock()
+        mock_news_item.source_type.__ne__ = lambda self, other: True  # Not a package feed
+        mock_news_item.affected_packages = {'kernel'}
+        mock_news_item.title = "Kernel Security Update"
+        mock_news_item.link = "http://example.com"
+        mock_news_item.date = "2024-01-15"
+        mock_news_item.content = "Important kernel update"
+        
+        # Mock news items list
+        mock_news = [mock_news_item]
         
         with patch.object(cli.package_manager, 'check_for_updates', return_value=mock_updates), \
-             patch.object(cli.checker.news_fetcher, 'fetch_all_feeds', return_value=mock_news):
+             patch.object(cli.checker.news_fetcher, 'fetch_all_feeds', return_value=mock_news), \
+             patch.object(cli.config, 'get_feeds', return_value=[]), \
+             patch.object(cli.config, 'get_max_news_items', return_value=10):
             
             args = Mock()
             args.command = 'news'

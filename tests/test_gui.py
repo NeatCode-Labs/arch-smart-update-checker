@@ -432,6 +432,9 @@ class TestNewsBrowserFrame(unittest.TestCase):
     """Test the news browser frame functionality."""
 
     def setUp(self) -> None:
+        # Skip GUI setup in headless environment
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         self.root = tk.Tk()
         self.root.withdraw()
         # Create a fully mocked main window to avoid real threads
