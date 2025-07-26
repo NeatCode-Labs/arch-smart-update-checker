@@ -20,6 +20,8 @@ def get_or_create_root():
     """Get or create a singleton Tk root to prevent memory leaks."""
     global _test_root
     if _test_root is None:
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            return None
         _test_root = tk.Tk()
         _test_root.withdraw()
     return _test_root
@@ -30,6 +32,8 @@ class TestThemeSystemIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
         self.root.withdraw()
@@ -235,6 +239,8 @@ class TestThemePersistence(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
         self.root.withdraw()
@@ -301,6 +307,8 @@ class TestThemeUIIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
         self.root.withdraw()

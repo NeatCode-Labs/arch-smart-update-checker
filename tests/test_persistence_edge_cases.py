@@ -470,6 +470,8 @@ class TestConcurrentAccess(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         parent = get_or_create_root()
         self.root = tk.Toplevel(parent)
         self.root.withdraw()

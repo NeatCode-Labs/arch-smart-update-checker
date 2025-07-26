@@ -22,6 +22,8 @@ class TestUserWorkflows(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+        if os.environ.get('ASUC_HEADLESS') or os.environ.get('CI'):
+            self.skipTest("Skipping GUI test in headless environment")
         self.root = tk.Tk()
         self.root.withdraw()  # Hide window during tests
 
