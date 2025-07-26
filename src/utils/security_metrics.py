@@ -361,22 +361,22 @@ class SecurityMetricsCollector:
                 "## Executive Summary",
                 "",
                 "### Last 24 Hours",
-                f"- Total Events: {report_data['summary_24h'].get('total_events', 0)}",
-                f"- Critical Events: {report_data['summary_24h'].get('events_by_severity', {}).get('critical', 0)}",
-                f"- Warning Events: {report_data['summary_24h'].get('events_by_severity', {}).get('warning', 0)}",
+                f"- Total Events: {summary_24h.get('total_events', 0)}",
+                f"- Critical Events: {summary_24h.get('events_by_severity', {}).get('critical', 0)}",
+                f"- Warning Events: {summary_24h.get('events_by_severity', {}).get('warning', 0)}",
                 "",
                 "### Last 7 Days",
-                f"- Total Events: {report_data['summary_7d'].get('total_events', 0)}",
+                f"- Total Events: {summary_7d.get('total_events', 0)}",
                 "",
                 "### Last 30 Days",
-                f"- Total Events: {report_data['summary_30d'].get('total_events', 0)}",
+                f"- Total Events: {summary_30d.get('total_events', 0)}",
                 "",
                 "## Trending Threats",
                 ""
             ]
             
-            if report_data['trending_threats']:
-                for threat in report_data['trending_threats'][:5]:
+            if trending_threats:
+                for threat in trending_threats[:5]:
                     report_lines.extend([
                         f"### {threat['event_type']}",
                         f"- Severity: {threat['severity']}",
@@ -393,7 +393,7 @@ class SecurityMetricsCollector:
                 ""
             ])
             
-            for event_type, count in report_data['summary_24h'].get('events_by_type', {}).items():
+            for event_type, count in summary_24h.get('events_by_type', {}).items():
                 report_lines.append(f"- {event_type}: {count}")
             
             report_content = "\n".join(report_lines)

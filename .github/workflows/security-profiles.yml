@@ -106,7 +106,7 @@ jobs:
           echo "=== Checking SELinux policy syntax ==="
           
           # Check .te file
-          checkpolicy -M -m -o asuc.mod asuc.te
+          checkpolicy -M -o asuc.mod asuc.te
           if [ $? -eq 0 ]; then
             echo "✅ SELinux .te file syntax is valid"
           else
