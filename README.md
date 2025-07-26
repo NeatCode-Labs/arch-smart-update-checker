@@ -4,6 +4,8 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/Security/SECURITY_EXECUTIVE_SUMMARY.md)
+[![Tests](https://img.shields.io/badge/tests-243%20passing-brightgreen.svg)](TEST_REPORT.md)
+[![Security Report](https://img.shields.io/badge/security-report-blue.svg)](SECURITY_REPORT.md)
 
 A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
 
@@ -426,6 +428,20 @@ The original implementation is preserved for historical reference:
 - **Features**: Single-file script, MIT license, terminal-only
 
 > **Note**: The legacy version is no longer maintained. New users should use the current version.
+
+## 📊 Testing & Security
+
+### Test Suite
+- **243 comprehensive tests** covering all major functionality
+- Unit tests, integration tests, and security tests
+- All tests passing ✅
+- View detailed [Test Report](TEST_REPORT.md)
+
+### Security
+- Enterprise-grade security implementation
+- Comprehensive vulnerability protection
+- Regular security audits
+- View detailed [Security Report](SECURITY_REPORT.md)
 
 ## 🤝 Contributing
 

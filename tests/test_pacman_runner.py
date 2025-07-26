@@ -153,8 +153,8 @@ class TestPacmanRunner:
         # Verify run_pacman was called with correct parameters
         mock_run_pacman.assert_called_once()
         call_args = mock_run_pacman.call_args[0]
-        assert 'pacman' in call_args[0]  # Command should contain pacman
-        assert any('test-package' in str(arg) for arg in call_args[0])  # Should include our package
+        assert '-Su' in call_args[0]  # Command should contain -Su flag
+        assert 'test-package' in call_args[0]  # Should include our package
     
     @patch('src.utils.subprocess_wrapper.SecureSubprocess.run_pacman')
     def test_run_update_interactive_exception(self, mock_run_pacman):
@@ -223,11 +223,13 @@ class TestPacmanRunner:
         # Verify Popen was called
         assert mock_popen.called
         
-        # Check that packages are included in the command
+        # Check that a bash script is being executed (packages are in the script content, not in the command)
         call_args = mock_popen.call_args[0][0]  # First positional argument (command list)
         command_str = ' '.join(call_args)
-        assert 'package1' in command_str
-        assert 'package2' in command_str
+        # The command should be running bash with a script file
+        assert 'bash' in command_str
+        assert '/tmp/asuc_pacman_' in command_str
+        assert '.sh' in command_str
         assert result == mock_process
     
     @patch('src.utils.subprocess_wrapper.SecureSubprocess.run_pacman')

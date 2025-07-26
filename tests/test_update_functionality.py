@@ -154,16 +154,20 @@ class TestUpdateFunctionality(unittest.TestCase):
             
             frame.apply_updates()
             
-            # Verify subprocess.Popen was called with pkexec command
-            mock_popen.assert_called_once()
-            cmd = mock_popen.call_args[0][0]
+            # Find the pkexec call among all Popen calls
+            pkexec_call = None
+            for call in mock_popen.call_args_list:
+                if call[0][0] and call[0][0][0] == 'pkexec':
+                    pkexec_call = call[0][0]
+                    break
             
-            # Check that it's a pkexec command with pacman -S
-            self.assertEqual(cmd[0], 'pkexec')
-            self.assertEqual(cmd[1], 'pacman')
-            self.assertEqual(cmd[2], '-S')
-            self.assertIn('vim', cmd)
-            self.assertIn('git', cmd)
+            # Verify pkexec command was called
+            self.assertIsNotNone(pkexec_call, "No pkexec command found")
+            self.assertEqual(pkexec_call[0], 'pkexec')
+            self.assertEqual(pkexec_call[1], 'pacman')
+            self.assertEqual(pkexec_call[2], '-S')
+            self.assertIn('vim', pkexec_call)
+            self.assertIn('git', pkexec_call)
     
     def test_show_update_error_solutions_mirror_sync(self):
         """Test error solutions dialog for mirror sync issues."""

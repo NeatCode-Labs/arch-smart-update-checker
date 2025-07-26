@@ -323,7 +323,9 @@ class TestThemeUIIntegration(unittest.TestCase):
             main_window.checker = Mock()
             main_window.frames = {}  # Add missing attribute
             main_window.nav_buttons = {}  # Add missing attribute
-            main_window.current_frame = tk.StringVar(value='dashboard')  # Add missing attribute
+            main_window.current_frame = tk.StringVar(self.root, value='dashboard')  # Pass root to StringVar
+            main_window.update_summary_frame = Mock()  # Add missing attribute
+            main_window.logging_status_label = Mock()  # Add missing attribute
             
             # Mock the setup_sidebar method to track calls
             with patch.object(main_window, 'setup_sidebar') as mock_setup_sidebar:

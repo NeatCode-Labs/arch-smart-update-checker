@@ -42,14 +42,29 @@ class MockThread:
     def __init__(self, target=None, daemon=False, *args, **kwargs):
         self.target = target
         self.daemon = daemon
+        self._started = False
+        self._alive = False
     
     def start(self):
         """No-op start method."""
-        pass
+        self._started = True
+        self._alive = True
+        # Run target synchronously if provided
+        if self.target:
+            try:
+                self.target()
+            except:
+                pass
+            finally:
+                self._alive = False
     
     def join(self, timeout=None):
         """No-op join method."""
         pass
+    
+    def is_alive(self):
+        """Return whether thread is alive."""
+        return self._alive
 
 
 # Patch threading globally for all tests

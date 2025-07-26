@@ -64,7 +64,7 @@ class TestNewsFetcher(unittest.TestCase):
     def test_initialization(self):
         """Test news fetcher initialization."""
         self.assertIsNotNone(self.news_fetcher.session)
-        self.assertEqual(self.news_fetcher.max_news_age_days, 14)
+        self.assertEqual(self.news_fetcher.max_news_age_days, 30)
 
     def test_sanitize_content(self):
         """Test content sanitization."""

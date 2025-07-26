@@ -112,30 +112,13 @@ jobs:
         run: |
           mypy src/
       
-      # Temporarily disabled - will re-enable tests incrementally once baseline is stable
-      # - name: Test with pytest
-      #   timeout-minutes: 5
-      #   run: |
-      #     export DISPLAY=:99
-      #     pytest tests/test_patterns.py tests/test_utils.py -v --timeout=30 --tb=short
-      #     echo '<?xml version="1.0"?><coverage version="7.0.1"></coverage>' > coverage.xml
-      
-      - name: Validate Python imports and syntax
+      - name: Test with pytest
+        timeout-minutes: 10
         run: |
-          echo "✅ Validating core Python imports..."
-          python -c "
-          import src.main
-          import src.config  
-          import src.models
-          import src.checker
-          import src.package_manager
-          import src.news_fetcher
-          print('✅ All core modules import successfully')
-          print('✅ Python syntax validation passed')
-          "
-          
-          # Create basic coverage file for workflow completion
-          echo '<?xml version="1.0"?><coverage version="7.0.1"><sources><source>src</source></sources></coverage>' > coverage.xml
+          export DISPLAY=:99
+          pytest tests/ -v --tb=short --cov=src --cov-report=xml --cov-report=term-missing
+      
+
       
       - name: Upload coverage reports
         if: matrix.python-version == '3.11'  

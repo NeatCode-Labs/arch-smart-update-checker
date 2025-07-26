@@ -50,6 +50,7 @@ class TestUserWorkflows(unittest.TestCase):
             dashboard.dots_count = 0
             dashboard.start_checking_animation = Mock()
             dashboard.update_button = Mock()
+            dashboard.db_sync_time_label = Mock()  # Add missing label
             
             # Simulate button click
             dashboard.check_updates()
@@ -219,9 +220,12 @@ class TestUserWorkflows(unittest.TestCase):
             settings.debug_var = Mock()
             settings.verbose_var = Mock()
             settings.news_age_var = Mock()
+            settings.max_items_var = Mock()
+            settings.history_enabled_var = Mock()
+            settings.retention_var = Mock()
             
             # User modifies settings but doesn't save
-            settings.interval_var.get.return_value = '7200'
+            settings.auto_refresh_var.get.return_value = False
             settings.theme_var.get.return_value = 'dark'
             
             # User hits "Reset" instead of "Save" 
@@ -232,14 +236,14 @@ class TestUserWorkflows(unittest.TestCase):
                 mock_confirm.assert_called_once()
                 
                 # Should reset variables to defaults (not save to config)
-                settings.interval_var.set.assert_called_with("60")
+                settings.auto_refresh_var.set.assert_called_with(True)
                 settings.theme_var.set.assert_called_with("light")
                 settings.debug_var.set.assert_called_with(False)
                 settings.verbose_var.set.assert_called_with(False)
                 
                 # Config should be updated with default values after reset
                 self.assertEqual(mock_main_window.config.config['theme'], 'light')
-                self.assertEqual(mock_main_window.config.config['auto_check_interval'], 60)
+                self.assertEqual(mock_main_window.config.config['auto_refresh_feeds'], True)
                 self.assertEqual(mock_main_window.config.config['debug_mode'], False)
                 self.assertEqual(mock_main_window.config.config['verbose_logging'], False)
 
@@ -272,8 +276,10 @@ class TestUserWorkflows(unittest.TestCase):
             # Test view logs when log file exists
             settings.view_logs()
             
-            # Should attempt to open with xdg-open
-            mock_popen.assert_called_with(['xdg-open', '/tmp/test.log'])
+            # Should attempt to open with xdg-open (with stdin/stdout/stderr parameters)
+            mock_popen.assert_called_once()
+            call_args = mock_popen.call_args[0][0]
+            assert call_args == ['xdg-open', '/tmp/test.log']
 
     @patch('src.utils.logger.get_current_log_file')
     @patch('src.utils.logger.set_global_config')
