@@ -49,10 +49,9 @@ All contributions must be compatible with the GPL-3.0-or-later license. By contr
    pytest
    ```
 
-4. **Run linting:**
+4. **Check code style:**
    ```bash
    flake8 src/
-   black --check src/
    mypy src/
    ```
 
@@ -71,10 +70,26 @@ All Python source files must include the SPDX license identifier:
 ```
 
 ### Security
-- Preserve all existing security measures [[memory:3821470]]
+- Preserve all existing security measures
 - Do not compromise input validation, path sanitization, or secure temp file handling
 - Follow the principle of least privilege
 - Validate all user inputs
+- **Review [Security Guidelines](docs/SECURITY_GUIDELINES.md) for detailed requirements**
+
+## Security Guidelines
+
+**Important**: All contributors must follow our security guidelines to maintain the high security standards of this project.
+
+Please review the [Security Guidelines for Contributors](docs/SECURITY_GUIDELINES.md) before making any code changes. Key points:
+
+- Always validate user input using existing validators
+- Use `SecureSubprocess` for all external command execution
+- Never use `subprocess` directly or with `shell=True`
+- Log security events with `log_security_event()`
+- Write security tests for any new features
+- Report vulnerabilities privately to neatcodelabs@gmail.com
+
+For the complete security checklist and examples, see [docs/SECURITY_GUIDELINES.md](docs/SECURITY_GUIDELINES.md).
 
 ## Submitting Changes
 

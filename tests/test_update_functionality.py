@@ -7,7 +7,7 @@ Tests the changes made to update process including:
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import Mock, patch, MagicMock, call, mock_open
 import tkinter as tk
 import tempfile
 import os
@@ -137,7 +137,7 @@ class TestUpdateFunctionality(unittest.TestCase):
         frame.pkg_vars['git'].get.return_value = True
         
         with patch('subprocess.Popen') as mock_popen, \
-             patch('src.utils.thread_manager.create_managed_thread') as mock_thread:
+             patch('src.utils.thread_manager.ThreadResourceManager.create_managed_thread') as mock_thread:
             
             # Mock successful pkexec process
             mock_process = Mock()
@@ -154,7 +154,11 @@ class TestUpdateFunctionality(unittest.TestCase):
             
             mock_thread.side_effect = execute_thread
             
-            frame.apply_updates()
+            # Also need to mock tempfile.mkstemp for the output file
+            with patch('tempfile.mkstemp') as mock_mkstemp:
+                mock_mkstemp.return_value = (1, '/tmp/test_output.log')
+                with patch('os.close'), patch('os.chmod'), patch('builtins.open', mock_open()):
+                    frame.apply_updates()
             
             # Find the pkexec call among all Popen calls
             pkexec_call = None
@@ -325,7 +329,7 @@ class TestUpdateFunctionality(unittest.TestCase):
         frame.selected_packages = {'vim', 'git'}
         
         with patch('subprocess.Popen') as mock_popen, \
-             patch('src.utils.thread_manager.create_managed_thread') as mock_thread:
+             patch('src.utils.thread_manager.ThreadResourceManager.create_managed_thread') as mock_thread:
             
             # Mock pkexec authentication failure (exit code 126 or 127)
             mock_process = Mock()

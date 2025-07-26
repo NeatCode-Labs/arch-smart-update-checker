@@ -1,0 +1,195 @@
+name: Security Profile Testing
+
+on:
+  push:
+    paths:
+      - 'security/**'
+      - '.github/workflows/security-profiles.yml'
+  pull_request:
+    paths:
+      - 'security/**'
+      - '.github/workflows/security-profiles.yml'
+
+jobs:
+  apparmor-test:
+    name: Test AppArmor Profile
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install AppArmor utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apparmor-utils apparmor-profiles
+          
+      - name: Check AppArmor profile syntax
+        run: |
+          echo "=== Checking AppArmor profile syntax ==="
+          sudo apparmor_parser -dd security/apparmor/usr.bin.asuc 2>&1 | tee apparmor-check.log
+          
+          if grep -q "error" apparmor-check.log; then
+            echo "❌ AppArmor profile has syntax errors"
+            cat apparmor-check.log
+            exit 1
+          fi
+          
+          echo "✅ AppArmor profile syntax is valid"
+          
+      - name: Test profile loading
+        run: |
+          echo "=== Testing AppArmor profile loading ==="
+          
+          # Copy profile to temp location
+          sudo cp security/apparmor/usr.bin.asuc /tmp/usr.bin.asuc.test
+          
+          # Try to load in complain mode (safe for testing)
+          sudo apparmor_parser -C -d /tmp/usr.bin.asuc.test
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ AppArmor profile loads successfully"
+          else
+            echo "❌ Failed to load AppArmor profile"
+            exit 1
+          fi
+          
+      - name: Validate profile permissions
+        run: |
+          echo "=== Validating AppArmor profile permissions ==="
+          
+          # Check for overly permissive rules
+          if grep -E "^\s*capability\s+.*," security/apparmor/usr.bin.asuc | grep -v "sys_admin"; then
+            echo "⚠️  Warning: Profile contains broad capability rules"
+          fi
+          
+          # Check for network access
+          if grep -E "^\s*network\s+" security/apparmor/usr.bin.asuc; then
+            echo "✓ Network access is properly defined"
+          fi
+          
+          # Check for file access patterns
+          echo "File access rules:"
+          grep -E "^\s*(\/|@)" security/apparmor/usr.bin.asuc | head -20
+          
+          echo "✅ Profile permissions validated"
+
+  selinux-test:
+    name: Test SELinux Policy
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+      options: --privileged
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install SELinux tools
+        run: |
+          dnf install -y selinux-policy-devel make policycoreutils checkpolicy
+          
+      - name: Compile SELinux policy
+        working-directory: security/selinux
+        run: |
+          echo "=== Compiling SELinux policy ==="
+          make -f /usr/share/selinux/devel/Makefile
+          
+          if [ -f asuc.pp ]; then
+            echo "✅ SELinux policy compiled successfully"
+          else
+            echo "❌ Failed to compile SELinux policy"
+            exit 1
+          fi
+          
+      - name: Check policy syntax
+        working-directory: security/selinux
+        run: |
+          echo "=== Checking SELinux policy syntax ==="
+          
+          # Check .te file
+          checkpolicy -M -m -o asuc.mod asuc.te
+          if [ $? -eq 0 ]; then
+            echo "✅ SELinux .te file syntax is valid"
+          else
+            echo "❌ SELinux .te file has syntax errors"
+            exit 1
+          fi
+          
+      - name: Analyze policy rules
+        working-directory: security/selinux
+        run: |
+          echo "=== Analyzing SELinux policy rules ==="
+          
+          # Extract and analyze allow rules
+          sesearch --allow -s asuc_t asuc.pp 2>/dev/null | head -20 || true
+          
+          # Check for dangerous permissions
+          if sesearch --allow -s asuc_t -p write -c file asuc.pp 2>/dev/null | grep -E "(etc_t|shadow_t|admin_home_t)"; then
+            echo "⚠️  Warning: Policy allows writing to sensitive files"
+          fi
+          
+          echo "✅ SELinux policy analysis complete"
+
+  profile-security-scan:
+    name: Security Scan of Profiles
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for security anti-patterns
+        run: |
+          echo "=== Scanning for security anti-patterns ==="
+          
+          # Check AppArmor profile
+          echo "Checking AppArmor profile..."
+          
+          # Check for ptrace (debugging) capability
+          if grep -q "capability.*ptrace" security/apparmor/usr.bin.asuc; then
+            echo "⚠️  Warning: AppArmor profile allows ptrace capability"
+          fi
+          
+          # Check for owner-only restrictions
+          if ! grep -q "owner" security/apparmor/usr.bin.asuc; then
+            echo "⚠️  Warning: AppArmor profile may not have owner restrictions"
+          fi
+          
+          # Check SELinux files
+          echo "Checking SELinux policy..."
+          
+          # Check for permissive domains
+          if grep -q "permissive asuc_t" security/selinux/asuc.te; then
+            echo "❌ SELinux domain is marked as permissive!"
+            exit 1
+          fi
+          
+          # Check for unconfined access
+          if grep -q "unconfined_domain" security/selinux/asuc.te; then
+            echo "❌ SELinux policy grants unconfined access!"
+            exit 1
+          fi
+          
+          echo "✅ No critical security anti-patterns found"
+          
+      - name: Generate profile report
+        run: |
+          echo "# Security Profile Test Report" > profile-report.md
+          echo "Generated: $(date)" >> profile-report.md
+          echo "" >> profile-report.md
+          
+          echo "## AppArmor Profile" >> profile-report.md
+          echo "- Lines: $(wc -l < security/apparmor/usr.bin.asuc)" >> profile-report.md
+          echo "- Capabilities: $(grep -c "capability" security/apparmor/usr.bin.asuc || echo 0)" >> profile-report.md
+          echo "- File rules: $(grep -cE "^\s*(\/|@)" security/apparmor/usr.bin.asuc || echo 0)" >> profile-report.md
+          echo "" >> profile-report.md
+          
+          echo "## SELinux Policy" >> profile-report.md
+          echo "- Lines (.te): $(wc -l < security/selinux/asuc.te)" >> profile-report.md
+          echo "- Types defined: $(grep -c "^type" security/selinux/asuc.te || echo 0)" >> profile-report.md
+          echo "- Allow rules: $(grep -c "^allow" security/selinux/asuc.te || echo 0)" >> profile-report.md
+          
+      - name: Upload profile report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-profile-report
+          path: profile-report.md
+          retention-days: 30 

@@ -1,0 +1,239 @@
+# SELinux Interface definitions for Arch Smart Update Checker
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+## <summary>Arch Smart Update Checker - Package update management tool</summary>
+
+########################################
+## <summary>
+##      Execute asuc in the asuc domain.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed to transition.
+##      </summary>
+## </param>
+#
+interface(`asuc_domtrans',`
+        gen_require(`
+                type asuc_t, asuc_exec_t;
+        ')
+
+        corecmd_search_bin($1)
+        domtrans_pattern($1, asuc_exec_t, asuc_t)
+')
+
+########################################
+## <summary>
+##      Execute asuc in the asuc domain and
+##      allow the calling domain to use the file descriptor.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed to transition.
+##      </summary>
+## </param>
+#
+interface(`asuc_run',`
+        gen_require(`
+                type asuc_t, asuc_exec_t;
+        ')
+
+        asuc_domtrans($1)
+        allow asuc_t $1:fd use;
+        allow asuc_t $1:fifo_file rw_fifo_file_perms;
+        allow asuc_t $1:process sigchld;
+')
+
+########################################
+## <summary>
+##      Read asuc configuration files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_read_config',`
+        gen_require(`
+                type asuc_config_t;
+        ')
+
+        files_search_home($1)
+        allow $1 asuc_config_t:dir list_dir_perms;
+        allow $1 asuc_config_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##      Manage asuc configuration files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_manage_config',`
+        gen_require(`
+                type asuc_config_t;
+        ')
+
+        files_search_home($1)
+        manage_dirs_pattern($1, asuc_config_t, asuc_config_t)
+        manage_files_pattern($1, asuc_config_t, asuc_config_t)
+')
+
+########################################
+## <summary>
+##      Read asuc log files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_read_log',`
+        gen_require(`
+                type asuc_log_t;
+        ')
+
+        logging_search_logs($1)
+        allow $1 asuc_log_t:dir list_dir_perms;
+        allow $1 asuc_log_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##      Manage asuc log files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_manage_log',`
+        gen_require(`
+                type asuc_log_t;
+        ')
+
+        logging_search_logs($1)
+        manage_dirs_pattern($1, asuc_log_t, asuc_log_t)
+        manage_files_pattern($1, asuc_log_t, asuc_log_t)
+')
+
+########################################
+## <summary>
+##      Read asuc cache files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_read_cache',`
+        gen_require(`
+                type asuc_cache_t;
+        ')
+
+        files_search_var($1)
+        allow $1 asuc_cache_t:dir list_dir_perms;
+        allow $1 asuc_cache_t:file read_file_perms;
+')
+
+########################################
+## <summary>
+##      Manage asuc cache files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_manage_cache',`
+        gen_require(`
+                type asuc_cache_t;
+        ')
+
+        files_search_var($1)
+        manage_dirs_pattern($1, asuc_cache_t, asuc_cache_t)
+        manage_files_pattern($1, asuc_cache_t, asuc_cache_t)
+')
+
+########################################
+## <summary>
+##      Execute asuc with elevated privileges.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed to transition.
+##      </summary>
+## </param>
+#
+interface(`asuc_elevated_run',`
+        gen_require(`
+                type asuc_elevated_t, asuc_exec_t;
+        ')
+
+        sudo_domtrans($1, asuc_elevated_t)
+        allow asuc_elevated_t $1:fd use;
+        allow asuc_elevated_t $1:fifo_file rw_fifo_file_perms;
+        allow asuc_elevated_t $1:process sigchld;
+')
+
+########################################
+## <summary>
+##      Send and receive messages from asuc
+##      over dbus.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_dbus_chat',`
+        gen_require(`
+                type asuc_t;
+                class dbus send_msg;
+        ')
+
+        allow $1 asuc_t:dbus send_msg;
+        allow asuc_t $1:dbus send_msg;
+')
+
+########################################
+## <summary>
+##      All rules necessary for a user role to use asuc.
+## </summary>
+## <param name="role">
+##      <summary>
+##      User role allowed access.
+##      </summary>
+## </param>
+## <param name="domain">
+##      <summary>
+##      User domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`asuc_role',`
+        gen_require(`
+                type asuc_t, asuc_exec_t;
+                type asuc_config_t, asuc_log_t, asuc_cache_t;
+        ')
+
+        role $1 types asuc_t;
+
+        asuc_domtrans($2)
+        ps_process_pattern($2, asuc_t)
+        allow $2 asuc_t:process { ptrace signal_perms };
+
+        asuc_manage_config($2)
+        asuc_manage_log($2)
+        asuc_manage_cache($2)
+') 

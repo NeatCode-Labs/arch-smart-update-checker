@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Optional, Union, Dict, Any, TextIO
 from contextlib import contextmanager
 
-from .logger import get_logger
+from .logger import get_logger, log_security_event
 
 logger = get_logger(__name__)
 
@@ -157,6 +157,16 @@ class InstanceLock:
 
                         self._close_lock_file()
                         existing_pid = self._get_existing_pid()
+                        log_security_event(
+                            "MULTIPLE_INSTANCE_ATTEMPT",
+                            {
+                                "app_name": self.app_name,
+                                "mode": self.mode,
+                                "existing_pid": existing_pid,
+                                "current_pid": self.pid
+                            },
+                            severity="warning"
+                        )
                         raise InstanceAlreadyRunningError(
                             f"Another instance of {self.app_name} ({self.mode}) is already running "
                             f"(PID: {existing_pid or 'unknown'})"

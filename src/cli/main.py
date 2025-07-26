@@ -21,7 +21,7 @@ from ..package_manager import PackageManager
 from ..utils.update_history import UpdateHistoryManager, UpdateHistoryEntry
 from ..utils.pacman_runner import PacmanRunner
 from ..models import FeedConfig, FeedType
-from ..constants import get_cache_dir
+from ..constants import get_cache_dir, APP_VERSION
 from .output import OutputFormatter
 from ..ui.pager import Pager
 
@@ -767,6 +767,11 @@ def create_parser() -> argparse.ArgumentParser:
         '--debug',
         action='store_true',
         help='Enable debug logging'
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'%(prog)s {APP_VERSION}'
     )
 
     # Create sub-commands

@@ -74,11 +74,59 @@ jobs:
           fi
           echo "LICENSE file verified ✓"
 
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-and-quality
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+      
+      - name: Run Bandit Security Scan
+        run: |
+          pip install bandit
+          # Run bandit with comprehensive checks
+          bandit -r src/ -f json -o bandit-report.json || true
+          
+          # Parse and display results
+          if [ -f bandit-report.json ]; then
+            echo "=== Bandit Security Scan Results ==="
+            python3 << 'EOF'
+          import json
+          with open('bandit-report.json', 'r') as f:
+              data = json.load(f)
+              print(f'Total issues: {len(data["results"])}')
+              for issue in data['results']:
+                  print(f"{issue['severity']}: {issue['test_name']} - {issue['filename']}:{issue['line_number']}")
+          EOF
+            
+            # Fail if high severity issues found
+            HIGH_SEVERITY=$(python -c "import json; data=json.load(open('bandit-report.json')); print(sum(1 for r in data['results'] if r['severity'] == 'HIGH'))")
+            if [ "$HIGH_SEVERITY" -gt 0 ]; then
+              echo "❌ Found $HIGH_SEVERITY high severity security issues"
+              exit 1
+            fi
+          fi
+
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Add overall job timeout
-    needs: [dco-check, license-check]
+    timeout-minutes: 30
+    needs: [dco-check, license-check, security-scan]
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
@@ -96,6 +144,80 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev]
           sudo apt-get update && sudo apt-get install -y python3-tk
+      
+      - name: Scan for vulnerable dependencies
+        run: |
+          echo "=== Dependency Vulnerability Scan ==="
+          pip install pip-audit
+          
+          # Run pip-audit with JSON output for better parsing
+          pip-audit --desc --format json --output pip-audit-report.json || true
+          
+          # Parse and display results
+          if [ -f pip-audit-report.json ]; then
+            python3 << 'EOF'
+          import json
+          import sys
+          
+          with open('pip-audit-report.json', 'r') as f:
+              data = json.load(f)
+              vulnerabilities = data.get('vulnerabilities', [])
+              
+              if not vulnerabilities:
+                  print("✅ No known vulnerabilities in dependencies")
+                  sys.exit(0)
+              
+              print(f"❌ Found {len(vulnerabilities)} vulnerable dependencies")
+              
+              # Categorize by severity
+              high_severity = []
+              medium_severity = []
+              low_severity = []
+              
+              for vuln in vulnerabilities:
+                  name = vuln.get('name', 'Unknown')
+                  version = vuln.get('version', 'Unknown')
+                  vulns = vuln.get('vulns', [])
+                  
+                  for v in vulns:
+                      severity = v.get('severity', 'UNKNOWN').upper()
+                      id = v.get('id', 'Unknown')
+                      desc = v.get('description', '')[:100]
+                      
+                      entry = f"{name}=={version}: {id} - {desc}..."
+                      
+                      if severity in ['CRITICAL', 'HIGH']:
+                          high_severity.append(entry)
+                      elif severity == 'MEDIUM':
+                          medium_severity.append(entry)
+                      else:
+                          low_severity.append(entry)
+              
+              # Display vulnerabilities by severity
+              if high_severity:
+                  print("\n🚨 HIGH/CRITICAL Severity:")
+                  for item in high_severity:
+                      print(f"  - {item}")
+              
+              if medium_severity:
+                  print("\n⚠️  MEDIUM Severity:")
+                  for item in medium_severity:
+                      print(f"  - {item}")
+              
+              if low_severity:
+                  print("\n📌 LOW Severity:")
+                  for item in low_severity:
+                      print(f"  - {item}")
+              
+              # Fail build on high severity vulnerabilities
+              if high_severity:
+                  print(f"\n❌ Build failed due to {len(high_severity)} high/critical severity vulnerabilities")
+                  sys.exit(1)
+              else:
+                  print("\n⚠️  WARNING: Please update vulnerable dependencies")
+                  sys.exit(0)
+          EOF
+          fi
       
       - name: Lint with flake8
         run: |
@@ -115,7 +237,38 @@ jobs:
           export ASUC_HEADLESS=1
           pytest tests/ -v --tb=short --timeout=60 --timeout-method=thread --cov=src --cov-report=xml --cov-report=term-missing -x -m "not gui" || pytest tests/ -v --tb=short --timeout=30 --timeout-method=thread --cov=src --cov-report=xml --cov-report=term-missing -x --maxfail=3
       
-
+      - name: Generate SBOM
+        if: matrix.python-version == '3.11'
+        run: |
+          echo "=== Generating Software Bill of Materials (SBOM) ==="
+          pip install cyclonedx-bom
+          
+          # Generate SBOM in multiple formats
+          cyclonedx-py -e -o sbom.json -format json
+          cyclonedx-py -e -o sbom.xml -format xml
+          
+          echo "✅ SBOM generated successfully"
+          
+          # Display summary
+          echo "=== SBOM Summary ==="
+          python3 << 'EOF'
+          import json
+          with open('sbom.json', 'r') as f:
+              data = json.load(f)
+              print(f"Total components: {len(data.get('components', []))}")
+              print(f"SBOM Format: {data.get('bomFormat', 'Unknown')}")
+              print(f"Spec Version: {data.get('specVersion', 'Unknown')}")
+          EOF
+      
+      - name: Upload SBOM artifacts
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-artifacts
+          path: |
+            sbom.json
+            sbom.xml
+          retention-days: 30
       
       - name: Upload coverage reports
         if: matrix.python-version == '3.11'  

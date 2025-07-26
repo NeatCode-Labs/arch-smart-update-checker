@@ -372,6 +372,13 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
     def load_packages(self) -> None:
         """Load installed packages."""
+        # Check if widget is still valid
+        try:
+            self.winfo_exists()
+        except tk.TclError:
+            logger.warning("PackageManagerFrame widget no longer exists, skipping load")
+            return
+            
         # Disable buttons during loading
         for child in self.winfo_children():
             if isinstance(child, tk.Button):
@@ -387,33 +394,42 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         def load_thread():
             try:
                 # Get installed packages
-                self.main_window.root.after(50,
-                                            lambda: self.stats_label.config(text="🔄 Fetching package list..."))
                 packages = self.package_manager.get_installed_packages()
 
                 # Get critical packages
                 critical_packages = set(self._config.get_critical_packages())
 
-                # Update UI in main thread
-                self.main_window.root.after(0, lambda: self.display_packages(packages, critical_packages))
+                # Update UI in main thread with proper error handling
+                def update_ui():
+                    try:
+                        # Check if widget still exists before updating
+                        if self.winfo_exists():
+                            self.display_packages(packages, critical_packages)
+                    except tk.TclError:
+                        logger.warning("Widget destroyed during package display update")
+                    except Exception as e:
+                        logger.error(f"Error updating package display: {e}")
+                        self._handle_load_error("Display Error", f"Failed to display packages: {str(e)}")
+                
+                # Schedule UI update
+                self.main_window.root.after_idle(update_ui)
 
             except subprocess.CalledProcessError as e:
                 logger.error(f"Pacman command failed: {e}")
-                self.main_window.root.after(
-                    0, lambda: self._handle_load_error(
+                self.main_window.root.after_idle(
+                    lambda: self._handle_load_error(
                         "Pacman command failed", "Failed to retrieve package list.\n\n"
                         "Please ensure pacman is properly installed and accessible."))
             except PermissionError as e:
                 logger.error(f"Permission denied: {e}")
-                self.main_window.root.after(0,
+                self.main_window.root.after_idle(
                                             lambda: self._handle_load_error("Permission Denied",
                                                                             "Cannot access package database.\n\n"
                                                                             "Please check your system permissions."))
             except Exception as e:
                 logger.error(f"Error loading packages: {e}")
                 error_msg = str(e)
-                self.main_window.root.after(
-                    0,
+                self.main_window.root.after_idle(
                     lambda: self._handle_load_error(
                         "Error Loading Packages",
                         f"An unexpected error occurred:\n\n{error_msg}"))
@@ -426,7 +442,8 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         import uuid
 
         thread_id = f"pkg_load_{uuid.uuid4().hex[:8]}"
-        thread = create_managed_thread(thread_id, load_thread, is_background=True)
+        thread = create_managed_thread(thread_id, load_thread, is_background=True, 
+                                       component_id=self._component_id)
         if thread is None:
             self._handle_load_error("Thread Error",
                                     "Unable to start package loading: thread limit reached")
@@ -449,6 +466,17 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
 
     def display_packages(self, packages: List[Dict[str, str]], critical_packages: set[str]) -> None:
         """Display packages in the treeview."""
+        logger.debug(f"Displaying {len(packages)} packages")
+        
+        # Check if widget still exists
+        try:
+            if not self.winfo_exists():
+                logger.warning("Widget no longer exists, cannot display packages")
+                return
+        except tk.TclError:
+            logger.warning("Widget error during existence check")
+            return
+            
         # Clear existing items
         for item in self.package_tree.get_children():
             self.package_tree.delete(item)
@@ -496,6 +524,10 @@ class PackageManagerFrame(ttk.Frame, WindowPositionMixin):
         # Store for filtering
         self.all_packages = packages
         self.critical_packages = critical_packages
+        
+        # Force UI update
+        self.update_idletasks()
+        logger.debug("Package display completed")
 
     def filter_packages(self) -> None:
         """Filter displayed packages based on search and filter criteria."""

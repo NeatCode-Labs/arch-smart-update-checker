@@ -249,13 +249,15 @@ class TestUserWorkflows(unittest.TestCase):
                 self.assertEqual(mock_main_window.config.config['debug_mode'], False)
                 self.assertEqual(mock_main_window.config.config['verbose_logging'], False)
 
+    @patch('src.utils.subprocess_wrapper.SecureSubprocess.popen')
+    @patch('src.utils.subprocess_wrapper.SecureSubprocess.check_command_exists')
     @patch('src.utils.logger.get_current_log_file')
     @patch('src.utils.logger.set_global_config')
-    @patch('subprocess.Popen')
-    def test_view_logs_functionality(self, mock_popen, mock_set_global_config, mock_get_log_file):
-        """Test the View Logs button functionality."""
-        # Mock a log file exists
+    def test_view_logs_functionality(self, mock_set_global_config, mock_get_log_file, mock_check_cmd, mock_popen):
+        """Test View Logs functionality with security wrapper."""
+        # Mock log file exists
         mock_get_log_file.return_value = '/tmp/test.log'
+        mock_check_cmd.return_value = True
         
         mock_main_window = Mock()
         mock_main_window.colors = {'background': '#F5F7FA', 'surface': '#FFFFFF', 'secondary': '#6B7280'}
@@ -264,8 +266,7 @@ class TestUserWorkflows(unittest.TestCase):
         
         with patch('src.gui.settings.SettingsFrame.setup_ui'), \
              patch('os.path.exists', return_value=True), \
-             patch('platform.system', return_value='Linux'), \
-             patch('os.system', return_value=0):  # Mock xdg-open exists
+             patch('platform.system', return_value='Linux'):
             
             settings = SettingsFrame(self.root, mock_main_window)
             
@@ -278,9 +279,10 @@ class TestUserWorkflows(unittest.TestCase):
             # Test view logs when log file exists
             settings.view_logs()
             
-            # Should attempt to open with xdg-open (with stdin/stdout/stderr parameters)
+            # Should attempt to open with xdg-open via SecureSubprocess
             mock_popen.assert_called_once()
             call_args = mock_popen.call_args[0][0]
+            # SecureSubprocess resolves command to full path
             assert call_args == ['xdg-open', '/tmp/test.log']
 
     @patch('src.utils.logger.get_current_log_file')

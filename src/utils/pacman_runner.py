@@ -14,7 +14,7 @@ from typing import List, Tuple, Optional
 from datetime import datetime
 from pathlib import Path
 
-from ..utils.logger import get_logger
+from ..utils.logger import get_logger, log_security_event
 from ..utils.update_history import UpdateHistoryEntry
 from .subprocess_wrapper import SecureSubprocess
 
@@ -85,6 +85,17 @@ class PacmanRunner:
 
         # Use -Su to upgrade selected packages
         cmd_args = ["sudo", "pacman", "-Su", "--noconfirm"] + packages
+        
+        # Log package update operation for security auditing
+        log_security_event(
+            "PACKAGE_UPDATE_INITIATED",
+            {
+                "packages": packages[:10],  # Log first 10 packages
+                "package_count": len(packages),
+                "update_type": "selected_packages"
+            },
+            severity="info"
+        )
 
         # Create a secure temporary file to capture output
         import stat

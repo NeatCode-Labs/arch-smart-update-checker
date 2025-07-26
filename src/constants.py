@@ -8,7 +8,7 @@ from pathlib import Path
 
 # Application info
 APP_NAME = "Arch Smart Update Checker"
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
 APP_USER_AGENT = f"{APP_NAME}/{APP_VERSION}"
 
 # File permissions (octal)

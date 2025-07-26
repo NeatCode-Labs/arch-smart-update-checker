@@ -499,9 +499,10 @@ class TestNewsBrowserFrame(unittest.TestCase):
 
     def test_open_link(self):
         """Test link opening functionality."""
-        with patch('webbrowser.open') as mock_open:
-            self.news_browser.open_link("http://example.com")
-            mock_open.assert_called_once_with("http://example.com")
+        with patch('src.utils.subprocess_wrapper.SecureSubprocess.open_url_securely') as mock_open:
+            mock_open.return_value = True
+            self.news_browser.open_link("https://example.com")
+            mock_open.assert_called_once_with("https://example.com", sandbox=True)
 
     def test_show_packages(self):
         """Test package display functionality."""

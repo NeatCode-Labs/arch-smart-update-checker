@@ -880,10 +880,12 @@ class DashboardFrame(ttk.Frame):
             cache_status = "Ready"
             try:
                 if os.path.exists(cache_dir):
-                    # Count cache files
-                    cache_files = [f for f in os.listdir(cache_dir) if f.endswith('.json')]
-                    if cache_files:
-                        cache_status = f"{len(cache_files)} cached feeds"
+                    # Count feed cache files only (URLs that start with http/https)
+                    all_files = os.listdir(cache_dir)
+                    feed_files = [f for f in all_files if f.endswith('.json') and 
+                                 (f.startswith('https') or f.startswith('http'))]
+                    if feed_files:
+                        cache_status = f"{len(feed_files)} cached feeds"
                     else:
                         cache_status = "Empty"
             except Exception:
@@ -951,8 +953,12 @@ class DashboardFrame(ttk.Frame):
 
     def open_link(self, url):
         """Open a link in the default web browser."""
-        import webbrowser
-        webbrowser.open(url)
+        # Use secure URL opening with sandboxing
+        from ..utils.subprocess_wrapper import SecureSubprocess
+        if not SecureSubprocess.open_url_securely(url, sandbox=True):
+            # Fallback to webbrowser if secure method fails
+            import webbrowser
+            webbrowser.open(url)
 
     def refresh_news(self):
         """No-op placeholder kept for test compatibility (news feature removed)."""
@@ -991,9 +997,15 @@ class DashboardFrame(ttk.Frame):
                             card.value_label.config(text="Just now")
                     elif 'Cache Status' in title and 'last_check_timestamp' in stats:
                         cache_dir = os.path.expanduser("~/.cache/arch-smart-update-checker")
-                        cache_files = [f for f in os.listdir(cache_dir) if f.endswith('.json')]
-                        if cache_files:
-                            card.value_label.config(text=f"{len(cache_files)} cached feeds")
+                        if os.path.exists(cache_dir):
+                            # Count feed cache files only (URLs that start with http/https)
+                            all_files = os.listdir(cache_dir)
+                            feed_files = [f for f in all_files if f.endswith('.json') and 
+                                         (f.startswith('https') or f.startswith('http'))]
+                            if feed_files:
+                                card.value_label.config(text=f"{len(feed_files)} cached feeds")
+                            else:
+                                card.value_label.config(text="Empty")
                         else:
                             card.value_label.config(text="Empty")
                     elif 'Config File' in title and 'config_file' in stats:

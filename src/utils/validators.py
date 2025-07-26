@@ -19,7 +19,7 @@ from ..constants import (
     FEED_URL_PATTERN,
     TRUSTED_FEED_DOMAINS
 )
-from ..utils.logger import get_logger
+from ..utils.logger import get_logger, log_security_event
 
 logger = get_logger(__name__)
 
@@ -212,11 +212,21 @@ def validate_package_name(name: str) -> bool:
 
     except ValidationError as e:
         logger.warning(f"Package name validation failed: {e}")
+        log_security_event(
+            "PACKAGE_NAME_VALIDATION_FAILED",
+            {"name": name[:50], "error": str(e)},  # Truncate name for safety
+            severity="warning"
+        )
         return False
 
     # Check against enhanced pattern
     if not re.match(PACKAGE_NAME_PATTERN, name):
         logger.warning(f"Invalid package name format: {name}")
+        log_security_event(
+            "PACKAGE_NAME_FORMAT_INVALID", 
+            {"name": name[:50]},
+            severity="warning"
+        )
         return False
 
     # Additional security checks
@@ -448,9 +458,36 @@ def validate_file_path_enhanced(path: str,
         logger.warning(f"Invalid file path: {e}")
         return False
 
-    # Check for path traversal
-    if '..' in path or abs_path != os.path.normpath(abs_path):
+    # Enhanced path traversal checks
+    # Check for multiple path traversal techniques
+    path_traversal_patterns = [
+        '..',  # Basic traversal
+        '..\\', '../',  # Windows/Unix traversal
+        '..%2f', '..%2F',  # URL encoded
+        '..%252f', '..%252F',  # Double URL encoded
+        '..%c0%af', '..%c1%9c',  # Unicode encoded
+        '..\\..\\', '../../',  # Multiple traversals
+        '.%2e', '%2e.',  # Encoded dots
+        '%252e%252e',  # Double encoded dots
+        '..;', '..',  # Semicolon bypass
+        '..%00', '..%0a',  # Null byte injection
+    ]
+    
+    path_lower = path.lower()
+    for pattern in path_traversal_patterns:
+        if pattern in path_lower:
+            logger.warning(f"Path traversal pattern detected: {pattern} in {path}")
+            return False
+
+    # Check for normalized path equality
+    if abs_path != os.path.normpath(abs_path):
         logger.warning(f"Path traversal detected: {path}")
+        return False
+    
+    # Additional check: ensure resolved path doesn't contain any '..' components
+    path_components = abs_path.split(os.sep)
+    if '..' in path_components:
+        logger.warning(f"Path contains parent directory references after normalization: {path}")
         return False
 
     # Check against dangerous characters
@@ -465,16 +502,24 @@ def validate_file_path_enhanced(path: str,
         abs_path_obj = pathlib.Path(abs_path).resolve()
         home_dir = pathlib.Path.home().resolve()
         temp_dir = pathlib.Path('/tmp').resolve()
+        
+        # Also allow config directory
+        from ..constants import get_config_dir
+        config_dir = get_config_dir().resolve()
 
         # Check if path is under allowed directories
-        try:
-            abs_path_obj.relative_to(home_dir)
-        except ValueError:
+        allowed = False
+        for allowed_dir in [home_dir, temp_dir, config_dir]:
             try:
-                abs_path_obj.relative_to(temp_dir)
+                abs_path_obj.relative_to(allowed_dir)
+                allowed = True
+                break
             except ValueError:
-                logger.warning(f"Path outside allowed directories: {abs_path}")
-                return False
+                continue
+        
+        if not allowed:
+            logger.warning(f"Path outside allowed directories: {abs_path}")
+            return False
 
     except (OSError, ValueError) as e:
         logger.warning(f"Path resolution failed: {e}")

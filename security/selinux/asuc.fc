@@ -1,0 +1,24 @@
+# SELinux File Context definitions for Arch Smart Update Checker
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Executable files
+/usr/bin/asuc-cli      --  gen_context(system_u:object_r:asuc_exec_t,s0)
+/usr/bin/asuc-gui      --  gen_context(system_u:object_r:asuc_exec_t,s0)
+
+# Python package files
+/usr/lib/python[0-9]*/site-packages/asuc(/.*)?    gen_context(system_u:object_r:bin_t,s0)
+
+# Configuration directory
+HOME_DIR/\.config/asuc(/.*)?    gen_context(system_u:object_r:asuc_config_t,s0)
+
+# Cache directory  
+HOME_DIR/\.cache/asuc(/.*)?     gen_context(system_u:object_r:asuc_cache_t,s0)
+
+# Log files
+HOME_DIR/\.config/asuc/logs(/.*)?    gen_context(system_u:object_r:asuc_log_t,s0)
+
+# Lock files
+/tmp/\.asuc_lock.*    --    gen_context(system_u:object_r:asuc_lock_t,s0)
+
+# Temporary files
+/tmp/asuc_.*          gen_context(system_u:object_r:asuc_tmp_t,s0) 

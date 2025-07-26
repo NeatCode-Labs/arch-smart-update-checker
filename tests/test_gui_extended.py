@@ -324,8 +324,15 @@ Required By     : None
         
         self.pkg_frame.main_window.root.after = Mock(side_effect=mock_after)
         
+        # Mock ThreadResourceManager to execute thread target immediately
+        def mock_create_thread(thread_id, target, is_background=True):
+            # Execute the target immediately for testing
+            target()
+            return Mock()
+        
         # Mock the show_package_info method to avoid creating actual dialog
-        with patch.object(self.pkg_frame, 'show_package_info') as mock_show:
+        with patch.object(self.pkg_frame, 'show_package_info') as mock_show, \
+             patch('src.utils.thread_manager.ThreadResourceManager.create_managed_thread', side_effect=mock_create_thread):
             # Test info display
             self.pkg_frame.view_package_details()
             
@@ -695,11 +702,10 @@ class TestInputValidation(unittest.TestCase):
             pass
 
     def test_package_name_validation(self):
-        """Test package name validation prevents command injection."""
-        from src.gui.main_window import UpdatesNewsFrame
-        
-        # Create mock main window
+        """Test validation of invalid package names."""
+        # Mock main window with required attributes
         mock_main_window = Mock()
+        mock_main_window.root = self.root
         mock_main_window.colors = {
             'primary': '#2563eb',
             'primary_hover': '#1d4ed8',
@@ -723,18 +729,22 @@ class TestInputValidation(unittest.TestCase):
         
         frame = UpdatesNewsFrame(self.root, mock_main_window, ['valid-package', 'invalid;package'], [])
         
-        # Set up package selection
-        frame.selected_packages = {'valid-package', 'invalid;package'}
+        # Set up package selection using the actual pkg_vars that apply_updates checks
+        # Create BooleanVar objects for the packages
+        import tkinter as tk
+        frame.pkg_vars = {
+            'valid-package': tk.BooleanVar(value=True),
+            'invalid;package': tk.BooleanVar(value=True)  # This should trigger validation error
+        }
         
         # Test validation
         with patch('tkinter.messagebox.showerror') as mock_error:
             frame.apply_updates()
             
-            # Verify error was shown - either for invalid package or execution error
+            # Verify error was shown for invalid package name
             mock_error.assert_called_once()
             error_msg = mock_error.call_args[0][1]
-            # Accept either validation error or execution error
-            self.assertTrue('Invalid package name' in error_msg or 'Failed to execute update' in error_msg)
+            self.assertIn('Invalid package name: invalid;package', error_msg)
 
     def test_feed_url_validation(self):
         """Test feed URL validation logic."""

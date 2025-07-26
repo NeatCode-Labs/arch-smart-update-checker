@@ -14,9 +14,10 @@ from typing import List, Tuple, Optional, Union, Dict, Any
 import logging
 from pathlib import Path
 import threading
+import re
 
 from ..exceptions import PackageManagerError
-from ..utils.logger import get_logger
+from ..utils.logger import get_logger, log_security_event
 
 logger = get_logger(__name__)
 
@@ -47,6 +48,18 @@ class SecureSubprocess:
             'required': False,
             'search_paths': ['/usr/bin', '/usr/local/bin'],
             'alternatives': [],
+        },
+        'bwrap': {
+            'description': 'Bubblewrap sandboxing tool',
+            'required': False,
+            'search_paths': ['/usr/bin', '/usr/local/bin'],
+            'alternatives': ['firejail'],
+        },
+        'firejail': {
+            'description': 'Firejail sandboxing tool',
+            'required': False,
+            'search_paths': ['/usr/bin', '/usr/local/bin'],
+            'alternatives': ['bwrap'],
         },
         'paccache': {
             'description': 'Package cache management',
@@ -102,7 +115,8 @@ class SecureSubprocess:
     }
 
     # Commands that are allowed to run with privilege escalation
-    PRIVILEGE_ALLOWED = {'pacman', 'paccache', 'systemctl', 'mount', 'umount'}
+    # Note: systemctl, mount, and umount now have dedicated secure wrappers
+    PRIVILEGE_ALLOWED = {'pacman', 'paccache'}
 
     # Cache for validated command paths and system info
     _command_path_cache: Dict[str, str] = {}
@@ -376,6 +390,226 @@ class SecureSubprocess:
             return True  # Allow by default, but log the error
 
     @classmethod
+    def run_systemctl(
+        cls,
+        action: str,
+        service: str,
+        user_mode: bool = False,
+        timeout: int = 30,
+        **kwargs: Any
+    ) -> subprocess.CompletedProcess:
+        """
+        Run systemctl command with strict validation.
+
+        Args:
+            action: Action to perform (start, stop, enable, disable, is-active, is-enabled)
+            service: Service name to act on
+            user_mode: Whether to use --user flag
+            timeout: Command timeout
+            **kwargs: Additional arguments for subprocess.run
+
+        Returns:
+            CompletedProcess instance
+
+        Raises:
+            ValueError: If action or service is invalid
+        """
+        # Whitelist of allowed systemctl actions
+        ALLOWED_ACTIONS = {
+            'start', 'stop', 'restart', 'enable', 'disable',
+            'is-active', 'is-enabled', 'status', 'show'
+        }
+        
+        # Whitelist of allowed services (extend as needed)
+        ALLOWED_SERVICES = {
+            'apparmor', 'apparmor.service',
+            'arch-smart-update-checker.service',
+            'arch-smart-update-checker.timer',
+            # Add more services as needed
+        }
+        
+        # Validate action
+        if action not in ALLOWED_ACTIONS:
+            raise ValueError(f"Systemctl action '{action}' not allowed")
+        
+        # Validate service name
+        if not re.match(r'^[a-zA-Z0-9\-_.]+$', service):
+            raise ValueError(f"Invalid service name format: {service}")
+        
+        # For non-query actions, enforce service whitelist
+        if action not in {'is-active', 'is-enabled', 'status', 'show'}:
+            if service not in ALLOWED_SERVICES:
+                log_security_event(
+                    "SYSTEMCTL_SERVICE_NOT_WHITELISTED",
+                    {"service": service, "action": action},
+                    severity="warning"
+                )
+                raise ValueError(f"Service '{service}' not in allowed list")
+        
+        # Build command
+        cmd = ['systemctl']
+        if user_mode:
+            cmd.append('--user')
+        cmd.extend([action, service])
+        
+        # Log the action
+        log_security_event(
+            "SYSTEMCTL_COMMAND",
+            {
+                "action": action,
+                "service": service,
+                "user_mode": user_mode
+            },
+            severity="info"
+        )
+        
+        return cls.run(cmd, timeout=timeout, **kwargs)
+
+    @classmethod
+    def run_mount(
+        cls,
+        source: str,
+        target: str,
+        mount_type: Optional[str] = None,
+        options: Optional[List[str]] = None,
+        bind: bool = False,
+        timeout: int = 30,
+        **kwargs: Any
+    ) -> subprocess.CompletedProcess:
+        """
+        Run mount command with strict validation.
+
+        Args:
+            source: Source device or directory
+            target: Target mount point
+            mount_type: Filesystem type
+            options: Mount options
+            bind: Whether this is a bind mount
+            timeout: Command timeout
+            **kwargs: Additional arguments for subprocess.run
+
+        Returns:
+            CompletedProcess instance
+
+        Raises:
+            ValueError: If arguments are invalid
+        """
+        # Validate paths
+        if not os.path.isabs(source) or not os.path.isabs(target):
+            raise ValueError("Mount paths must be absolute")
+        
+        # Validate mount type if specified
+        if mount_type:
+            ALLOWED_FS_TYPES = {
+                'ext4', 'ext3', 'ext2', 'xfs', 'btrfs', 'vfat', 'ntfs',
+                'tmpfs', 'proc', 'sysfs', 'devtmpfs', 'overlay'
+            }
+            if mount_type not in ALLOWED_FS_TYPES:
+                raise ValueError(f"Filesystem type '{mount_type}' not allowed")
+        
+        # Validate mount options
+        if options:
+            ALLOWED_OPTIONS = {
+                'ro', 'rw', 'noexec', 'nosuid', 'nodev', 'relatime',
+                'noatime', 'nodiratime', 'sync', 'async', 'defaults'
+            }
+            for opt in options:
+                if opt not in ALLOWED_OPTIONS:
+                    raise ValueError(f"Mount option '{opt}' not allowed")
+        
+        # Build command
+        cmd = ['sudo', 'mount']
+        
+        if bind:
+            cmd.append('--bind')
+        
+        if mount_type:
+            cmd.extend(['-t', mount_type])
+        
+        if options:
+            cmd.extend(['-o', ','.join(options)])
+        
+        cmd.extend([source, target])
+        
+        # Log the action
+        log_security_event(
+            "MOUNT_COMMAND",
+            {
+                "source": source,
+                "target": target,
+                "type": mount_type,
+                "options": options,
+                "bind": bind
+            },
+            severity="info"
+        )
+        
+        return cls.run(cmd, timeout=timeout, **kwargs)
+
+    @classmethod
+    def run_umount(
+        cls,
+        target: str,
+        force: bool = False,
+        lazy: bool = False,
+        timeout: int = 30,
+        **kwargs: Any
+    ) -> subprocess.CompletedProcess:
+        """
+        Run umount command with strict validation.
+
+        Args:
+            target: Mount point to unmount
+            force: Force unmount
+            lazy: Lazy unmount
+            timeout: Command timeout
+            **kwargs: Additional arguments for subprocess.run
+
+        Returns:
+            CompletedProcess instance
+
+        Raises:
+            ValueError: If arguments are invalid
+        """
+        # Validate path
+        if not os.path.isabs(target):
+            raise ValueError("Unmount path must be absolute")
+        
+        # Additional safety check - prevent unmounting critical paths
+        PROTECTED_PATHS = {
+            '/', '/boot', '/home', '/usr', '/var', '/etc', '/dev',
+            '/proc', '/sys', '/run', '/tmp'
+        }
+        
+        normalized_target = os.path.normpath(target)
+        if normalized_target in PROTECTED_PATHS:
+            raise ValueError(f"Cannot unmount protected path: {target}")
+        
+        # Build command
+        cmd = ['sudo', 'umount']
+        
+        if force:
+            cmd.append('-f')
+        
+        if lazy:
+            cmd.append('-l')
+        
+        cmd.append(target)
+        
+        # Log the action
+        log_security_event(
+            "UMOUNT_COMMAND",
+            {
+                "target": target,
+                "force": force,
+                "lazy": lazy
+            },
+            severity="info"
+        )
+        
+        return cls.run(cmd, timeout=timeout, **kwargs)
+
+    @classmethod
     def validate_command(cls, cmd: List[str]) -> bool:
         """
         Validate that a command is safe to execute with enhanced security checks.
@@ -397,11 +631,21 @@ class SecureSubprocess:
         if actual_cmd == 'sudo' and len(cmd) > 1:
             actual_cmd = cmd[1]
             if actual_cmd not in cls.PRIVILEGE_ALLOWED:
+                log_security_event(
+                    "UNAUTHORIZED_SUDO_COMMAND",
+                    {"command": actual_cmd, "full_command": ' '.join(cmd)},
+                    severity="warning"
+                )
                 raise ValueError(f"Command '{actual_cmd}' not allowed with sudo")
 
         # Check if command is in whitelist
         cmd_name = os.path.basename(actual_cmd)
         if cmd_name not in cls.ESSENTIAL_COMMANDS and cmd_name not in cls.OPTIONAL_COMMANDS:
+            log_security_event(
+                "UNAUTHORIZED_COMMAND",
+                {"command": actual_cmd, "full_command": ' '.join(cmd)},
+                severity="warning"
+            )
             raise ValueError(f"Command '{actual_cmd}' not in allowed list")
 
         # Validate command path exists and is secure
@@ -475,6 +719,95 @@ class SecureSubprocess:
         return name
 
     @classmethod
+    def _create_sandbox_command(cls, cmd: List[str], sandbox_type: str, cwd: Optional[str] = None) -> List[str]:
+        """
+        Create a sandboxed command using bubblewrap or firejail.
+
+        Args:
+            cmd: Original command to sandbox
+            sandbox_type: Type of sandbox ('bwrap' or 'firejail')
+            cwd: Working directory for the command
+
+        Returns:
+            Sandboxed command list
+        """
+        if sandbox_type not in ['bwrap', 'firejail']:
+            raise ValueError(f"Unsupported sandbox type: {sandbox_type}")
+
+        # Check if sandbox tool is available
+        sandbox_path = cls._find_command_path(sandbox_type)
+        if not sandbox_path:
+            logger.warning(f"Sandbox tool {sandbox_type} not found, running without sandbox")
+            return cmd
+
+        # Extract the actual command for analysis
+        actual_cmd = cmd[0]
+        if actual_cmd == 'sudo' and len(cmd) > 1:
+            # Don't sandbox sudo commands directly
+            return cmd
+
+        if sandbox_type == 'bwrap':
+            # Bubblewrap configuration
+            sandbox_cmd = [sandbox_path]
+            
+            # Basic isolation
+            sandbox_cmd.extend([
+                '--ro-bind', '/usr', '/usr',
+                '--ro-bind', '/lib', '/lib',
+                '--ro-bind', '/lib64', '/lib64',
+                '--ro-bind', '/bin', '/bin',
+                '--ro-bind', '/sbin', '/sbin',
+                '--ro-bind', '/etc', '/etc',
+                '--proc', '/proc',
+                '--dev', '/dev',
+                '--tmpfs', '/tmp',
+            ])
+            
+            # Allow access to package database (read-only)
+            sandbox_cmd.extend(['--ro-bind', '/var/lib/pacman', '/var/lib/pacman'])
+            sandbox_cmd.extend(['--ro-bind', '/var/cache/pacman/pkg', '/var/cache/pacman/pkg'])
+            
+            # If running package management commands, allow more access
+            cmd_name = os.path.basename(actual_cmd)
+            if cmd_name in ['pacman', 'checkupdates', 'paccache']:
+                # Allow network access for package downloads
+                sandbox_cmd.extend(['--share-net'])
+                # Allow DNS resolution
+                sandbox_cmd.extend(['--ro-bind', '/etc/resolv.conf', '/etc/resolv.conf'])
+            
+            # Set working directory if specified
+            if cwd:
+                sandbox_cmd.extend(['--chdir', cwd])
+            
+            # Add the original command
+            sandbox_cmd.extend(['--'] + cmd)
+            
+        else:  # firejail
+            # Firejail configuration
+            sandbox_cmd = [sandbox_path]
+            
+            # Basic isolation
+            sandbox_cmd.extend([
+                '--noprofile',  # Don't use default profiles
+                '--quiet',      # Reduce output
+            ])
+            
+            # For package management commands
+            cmd_name = os.path.basename(actual_cmd)
+            if cmd_name in ['pacman', 'checkupdates', 'paccache']:
+                # Allow network for package operations
+                pass  # Network is allowed by default
+            else:
+                # Restrict network for other commands
+                sandbox_cmd.append('--net=none')
+            
+            # Add the original command
+            sandbox_cmd.extend(['--'] + cmd)
+        
+        logger.debug(f"Created sandboxed command using {sandbox_type}")
+        return sandbox_cmd
+
+    @classmethod
     def run(
         cls,
         cmd: Union[List[str], str],
@@ -484,6 +817,8 @@ class SecureSubprocess:
         timeout: Optional[int] = None,
         cwd: Optional[str] = None,
         env: Optional[Dict[str, str]] = None,
+        sandbox: Optional[str] = None,
+        sandbox_profile: Optional[str] = None,
         **kwargs: Any
     ) -> subprocess.CompletedProcess:
         """
@@ -497,6 +832,8 @@ class SecureSubprocess:
             timeout: Timeout in seconds
             cwd: Working directory
             env: Environment variables
+            sandbox: Sandbox type ('bwrap' or 'firejail')
+            sandbox_profile: Name of sandbox profile to use
             **kwargs: Additional arguments for subprocess.run
 
         Returns:
@@ -512,6 +849,39 @@ class SecureSubprocess:
 
         # Validate command
         cls.validate_command(cmd)
+        
+        # Apply sandboxing if requested
+        if sandbox:
+            original_cmd = cmd.copy()
+            
+            # Get sandbox profile
+            if sandbox_profile:
+                from .sandbox_profiles import SandboxManager
+                profile = SandboxManager.get_profile(sandbox_profile)
+                cmd = SandboxManager.get_sandbox_command(cmd, profile, sandbox)
+            else:
+                # Use legacy sandboxing method
+                cmd = cls._create_sandbox_command(cmd, sandbox, cwd)
+                
+            if cmd != original_cmd:
+                log_security_event(
+                    "SANDBOXED_COMMAND_EXECUTION",
+                    {
+                        "sandbox_type": sandbox,
+                        "profile": sandbox_profile or "legacy",
+                        "command": original_cmd[0],
+                        "sandboxed": True
+                    },
+                    severity="info"
+                )
+        
+        # Log successful validation for security auditing
+        if cmd[0] == 'sudo' or (len(cmd) > 1 and cmd[1] in ['pacman', 'paccache']):
+            log_security_event(
+                "PRIVILEGED_COMMAND_EXECUTION",
+                {"command": cmd[0] if cmd[0] != 'sudo' else cmd[1], "args_count": len(cmd)},
+                severity="info"
+            )
 
         # Log the command for debugging (sanitized)
         from .logger import sanitize_debug_message
@@ -557,6 +927,7 @@ class SecureSubprocess:
         args: List[str],
         require_sudo: bool = False,
         timeout: int = 30,
+        use_sandbox: bool = True,
         **kwargs: Any
     ) -> subprocess.CompletedProcess:
         """
@@ -593,8 +964,16 @@ class SecureSubprocess:
         env['LC_ALL'] = 'C'
         env['LC_TIME'] = 'C'
         kwargs['env'] = env
+        
+        # Determine sandbox type based on availability
+        sandbox = None
+        if use_sandbox and not require_sudo:  # Don't sandbox sudo commands
+            if cls.check_command_exists('bwrap'):
+                sandbox = 'bwrap'
+            elif cls.check_command_exists('firejail'):
+                sandbox = 'firejail'
 
-        return cls.run(cmd, timeout=timeout, **kwargs)
+        return cls.run(cmd, timeout=timeout, sandbox=sandbox, **kwargs)
 
     @classmethod
     def check_command_exists(cls, command: str) -> bool:
@@ -816,3 +1195,140 @@ class SecureSubprocess:
         logger.debug(f"Creating Popen for: {' '.join(cmd)}")
 
         return subprocess.Popen(cmd, **kwargs)
+
+    @classmethod
+    def open_url_securely(
+        cls,
+        url: str,
+        sandbox: bool = True,
+        timeout: int = 10
+    ) -> bool:
+        """
+        Open a URL in the default browser with security validation and sandboxing.
+
+        Args:
+            url: URL to open
+            sandbox: Whether to use sandboxing
+            timeout: Command timeout
+
+        Returns:
+            True if successful, False otherwise
+
+        Raises:
+            ValueError: If URL is invalid
+        """
+        from ..utils.validators import validate_url_enhanced
+        
+        # Validate URL
+        if not validate_url_enhanced(url, require_https=True, allow_private=False):
+            raise ValueError(f"Invalid or unsafe URL: {url}")
+        
+        # Log the action
+        log_security_event(
+            "OPEN_URL",
+            {"url": url, "sandboxed": sandbox},
+            severity="info"
+        )
+        
+        # Find the appropriate command for opening URLs
+        xdg_open = cls._find_command_path('xdg-open')
+        if not xdg_open:
+            logger.warning("xdg-open not found, falling back to webbrowser module")
+            try:
+                import webbrowser
+                return webbrowser.open(url)
+            except Exception as e:
+                logger.error(f"Failed to open URL with webbrowser: {e}")
+                return False
+        
+        # Build command
+        cmd = [xdg_open, url]
+        
+        try:
+            # Run the command with advanced sandboxing
+            if sandbox and cls.check_command_exists('firejail'):
+                result = cls.run(
+                    cmd, 
+                    timeout=timeout, 
+                    capture_output=True, 
+                    check=False,
+                    sandbox='firejail',
+                    sandbox_profile='url_open'
+                )
+            else:
+                result = cls.run(cmd, timeout=timeout, capture_output=True, check=False)
+                
+            return result.returncode == 0
+        except Exception as e:
+            logger.error(f"Failed to open URL: {e}")
+            return False
+
+    @classmethod
+    def open_file_securely(
+        cls,
+        filepath: str,
+        sandbox: bool = True,
+        timeout: int = 10
+    ) -> bool:
+        """
+        Open a file with the default application using security validation and sandboxing.
+
+        Args:
+            filepath: Path to file to open
+            sandbox: Whether to use sandboxing
+            timeout: Command timeout
+
+        Returns:
+            True if successful, False otherwise
+
+        Raises:
+            ValueError: If file path is invalid
+        """
+        from ..utils.validators import validate_file_path_enhanced
+        
+        # Validate file path
+        if not validate_file_path_enhanced(filepath, must_exist=True):
+            raise ValueError(f"Invalid or unsafe file path: {filepath}")
+        
+        # Log the action
+        log_security_event(
+            "OPEN_FILE",
+            {"filepath": filepath, "sandboxed": sandbox},
+            severity="info"
+        )
+        
+        # Find the appropriate command for opening files
+        xdg_open = cls._find_command_path('xdg-open')
+        if not xdg_open:
+            logger.warning("xdg-open not found, cannot open file")
+            return False
+        
+        # Build command
+        cmd = [xdg_open, filepath]
+        
+        try:
+            # Run the command with advanced sandboxing
+            if sandbox and cls.check_command_exists('firejail'):
+                # Create custom file access profile
+                from .sandbox_profiles import FileAccessProfile, SandboxLevel
+                profile = FileAccessProfile(
+                    level=SandboxLevel.STRICT,
+                    allowed_paths=[filepath]
+                )
+                
+                from .sandbox_profiles import SandboxManager
+                sandboxed_cmd = SandboxManager.get_sandbox_command(cmd, profile, 'firejail')
+                
+                result = subprocess.run(
+                    sandboxed_cmd,
+                    timeout=timeout,
+                    capture_output=True,
+                    check=False
+                )
+            else:
+                result = cls.run(cmd, timeout=timeout, capture_output=True, check=False)
+                
+            return result.returncode == 0
+        except Exception as e:
+            logger.error(f"Failed to open file: {e}")
+            return False

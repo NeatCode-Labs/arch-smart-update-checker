@@ -1,0 +1,200 @@
+# SELinux Type Enforcement policy for Arch Smart Update Checker
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+policy_module(asuc, 1.0.0)
+
+########################################
+# Declarations
+#
+
+# Main application domain
+type asuc_t;
+type asuc_exec_t;
+application_domain(asuc_t, asuc_exec_t)
+
+# Configuration files
+type asuc_config_t;
+files_config_file(asuc_config_t)
+
+# Log files
+type asuc_log_t;
+logging_log_file(asuc_log_t)
+
+# Cache files
+type asuc_cache_t;
+files_type(asuc_cache_t)
+
+# Temporary files
+type asuc_tmp_t;
+files_tmp_file(asuc_tmp_t)
+
+# Lock files
+type asuc_lock_t;
+files_lock_file(asuc_lock_t)
+
+########################################
+# Application policy
+#
+
+# Allow the application to execute Python
+require {
+    type python_exec_t;
+}
+allow asuc_t python_exec_t:file { read execute open execute_no_trans };
+
+# Allow reading system information
+kernel_read_system_state(asuc_t)
+kernel_read_kernel_sysctls(asuc_t)
+fs_getattr_all_fs(asuc_t)
+files_read_etc_files(asuc_t)
+miscfiles_read_generic_certs(asuc_t)
+
+# Allow network access for RSS feeds
+corenet_tcp_connect_http_port(asuc_t)
+corenet_tcp_connect_https_port(asuc_t)
+sysnet_dns_name_resolve(asuc_t)
+sysnet_read_config(asuc_t)
+
+# Allow executing package management commands
+require {
+    type pacman_exec_t;
+    type sudo_exec_t;
+}
+allow asuc_t pacman_exec_t:file { read execute open execute_no_trans };
+allow asuc_t sudo_exec_t:file { read execute open execute_no_trans };
+
+# Allow reading pacman database
+require {
+    type pacman_db_t;
+    type pacman_cache_t;
+}
+allow asuc_t pacman_db_t:dir { read search open getattr };
+allow asuc_t pacman_db_t:file { read open getattr };
+allow asuc_t pacman_cache_t:dir { read search open getattr };
+allow asuc_t pacman_cache_t:file { read open getattr };
+
+# Configuration file management
+allow asuc_t asuc_config_t:dir { create read write add_name remove_name search open getattr };
+allow asuc_t asuc_config_t:file { create read write append unlink open getattr };
+files_search_home(asuc_t)
+userdom_user_home_dir_filetrans(asuc_t, asuc_config_t, dir, ".config")
+
+# Log file management
+allow asuc_t asuc_log_t:dir { create read write add_name search open getattr };
+allow asuc_t asuc_log_t:file { create read write append open getattr };
+logging_log_filetrans(asuc_t, asuc_log_t, { file dir })
+
+# Cache file management
+allow asuc_t asuc_cache_t:dir { create read write add_name remove_name search open getattr };
+allow asuc_t asuc_cache_t:file { create read write append unlink open getattr };
+
+# Temporary file management
+allow asuc_t asuc_tmp_t:dir { create read write add_name remove_name search open getattr };
+allow asuc_t asuc_tmp_t:file { create read write append unlink open getattr };
+files_tmp_filetrans(asuc_t, asuc_tmp_t, { file dir })
+
+# Lock file management
+allow asuc_t asuc_lock_t:file { create read write unlink open getattr };
+files_lock_filetrans(asuc_t, asuc_lock_t, file)
+
+# Terminal access
+userdom_use_user_terminals(asuc_t)
+term_use_all_ptys(asuc_t)
+term_use_all_ttys(asuc_t)
+
+# GUI permissions
+require {
+    type xserver_t;
+    type user_t;
+}
+xserver_user_x_domain_template(asuc, asuc_t, asuc_tmpfs_t)
+allow asuc_t xserver_t:unix_stream_socket connectto;
+allow asuc_t user_t:unix_stream_socket connectto;
+
+# DBus access for GUI
+dbus_session_bus_client(asuc_t)
+optional_policy(`
+    gen_require(`
+        type session_dbusd_t;
+    ')
+    allow asuc_t session_dbusd_t:dbus send_msg;
+')
+
+# Allow reading theme and icon files
+gnome_read_generic_home_content(asuc_t)
+gnome_read_usr_config(asuc_t)
+xdg_read_config_files(asuc_t)
+xdg_read_data_files(asuc_t)
+
+# Allow executing terminal emulators and editors
+corecmd_exec_bin(asuc_t)
+application_exec_all(asuc_t)
+
+# Process management
+allow asuc_t self:process { signal signull setsched getpgid setpgid getcap setcap getsched };
+allow asuc_t self:fifo_file { read write };
+allow asuc_t self:unix_stream_socket { create connect };
+
+# File descriptor inheritance
+allow asuc_t self:fd use;
+
+# Standard file permissions
+files_read_usr_files(asuc_t)
+libs_use_ld_so(asuc_t)
+libs_use_shared_libs(asuc_t)
+
+# Python-specific permissions
+corecmd_exec_shell(asuc_t)
+dev_read_urand(asuc_t)
+miscfiles_read_localization(asuc_t)
+
+# Deny access to sensitive areas
+files_dontaudit_search_home(asuc_t)
+auth_dontaudit_read_shadow(asuc_t)
+selinux_dontaudit_getattr_fs(asuc_t)
+selinux_dontaudit_read_fs(asuc_t)
+
+# Audit rules
+auditallow asuc_t self:capability { setuid setgid };
+auditallow asuc_t shadow_t:file read;
+
+########################################
+# Transitions
+#
+
+# Domain transition from user domain
+userdom_spec_domtrans_all_users(asuc_t)
+
+# Allow user to execute the application
+userdom_exec_user_home_content_files(user_t)
+domtrans_pattern(user_t, asuc_exec_t, asuc_t)
+
+# Allow sudo/pkexec transitions
+sudo_role_template(asuc, asuc_t, asuc_exec_t)
+
+########################################
+# Elevated operations policy
+#
+
+# Define domain for elevated operations
+type asuc_elevated_t;
+application_domain(asuc_elevated_t, asuc_exec_t)
+
+# Transition to elevated domain via sudo
+sudo_domtrans(asuc_t, asuc_elevated_t)
+
+# Allow elevated domain to perform package operations
+allow asuc_elevated_t pacman_exec_t:file { read execute open execute_no_trans };
+allow asuc_elevated_t pacman_db_t:dir { read write add_name remove_name search open getattr };
+allow asuc_elevated_t pacman_db_t:file { read write create unlink open getattr };
+allow asuc_elevated_t pacman_cache_t:dir { read write add_name remove_name search open getattr };
+allow asuc_elevated_t pacman_cache_t:file { read write create unlink open getattr };
+
+# Allow system modifications for package management
+files_manage_etc_files(asuc_elevated_t)
+files_manage_usr(asuc_elevated_t)
+libs_domtrans_ldconfig(asuc_elevated_t)
+
+# Network access for package downloads
+corenet_tcp_connect_all_ports(asuc_elevated_t)
+sysnet_dns_name_resolve(asuc_elevated_t) 

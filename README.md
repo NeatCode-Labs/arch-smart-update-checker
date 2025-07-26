@@ -1,28 +1,25 @@
 # Arch Smart Update Checker
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/Security/SECURITY_EXECUTIVE_SUMMARY.md)
-[![Tests](https://img.shields.io/badge/tests-243%20passing-brightgreen.svg)](TEST_REPORT.md)
-[![Security Report](https://img.shields.io/badge/security-report-blue.svg)](SECURITY_REPORT.md)
+[![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/SECURITY.md)
+[![Tests](https://img.shields.io/badge/tests-266%20passing-brightgreen.svg)](docs/TEST_REPORT.md)
 
-A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
+A professional replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
 
-**Version 2.1.0** - Complete rewrite with modern GUI, enhanced CLI, enterprise-grade security, and comprehensive features!
+## 🌟 Overview
 
-## 🌟 What's New in v2.0+
+Arch Smart Update Checker (ASUC) is an enterprise-grade update management tool for Arch Linux and its derivatives. It intelligently filters Arch news and security advisories to show only what's relevant to your system, preventing update-related breakage and improving system stability.
 
-From a simple 833-line script to a full-featured application:
+### Key Features
 
-- **🎨 Beautiful GUI Application** - Modern Tkinter interface with dashboard, news browser, package manager, and settings
-- **🔧 Advanced CLI Tool** - `asuc-cli` with multiple commands and JSON output support
-- **🔒 Enterprise-Grade Security** - 12 security vulnerabilities fixed, comprehensive protection
-- **📜 Update History Tracking** - Record, view, and export your update history
-- **🖥️ Adaptive Layout** - Automatically scales to different screen sizes (12.5" minimum)
-- **🚀 Performance** - Multi-threaded operations, concurrent RSS fetching
-- **📦 Multiple Installation Methods** - pipx, pip, virtual environment, or system-wide
-- **🎯 Smart Distribution Detection** - Works on all Arch derivatives
+- **🎨 Modern GUI & CLI** - Choose between a beautiful Tkinter interface or powerful command-line tool
+- **📰 Smart News Filtering** - Shows only news relevant to your installed packages
+- **🔒 Enterprise Security** - Comprehensive protection with AppArmor/SELinux profiles
+- **📜 Update History** - Complete audit trail of all system updates
+- **🌐 Multi-Distribution** - Automatic detection and support for all Arch derivatives
+- **⚡ High Performance** - Multi-threaded operations with intelligent caching
 
 ## 📸 Screenshots
 
@@ -30,83 +27,15 @@ From a simple 833-line script to a full-featured application:
   <img src="./screenshots/Screenshot from 2025-07-25 12-32-57.png" alt="Dashboard">
 </p>
 
-### GUI Application
-- **Dashboard** - Real-time system overview with update status
-- **News Browser** - View relevant Arch news and security advisories
-- **Package Manager** - Monitor critical packages and available updates
-- **Update History** - Track all updates with export capabilities
-- **Settings** - Configure feeds, themes, and application behavior
+## 🚀 Quick Start
 
-### CLI Tool
-```bash
-# Check for updates and news (default)
-asuc-cli
+### System Requirements
 
-# List updates only
-asuc-cli updates
+- **OS**: Arch Linux or derivatives (Manjaro, EndeavourOS, etc.)
+- **Python**: 3.8 or higher
+- **Display**: 1366×768 minimum (GUI only)
 
-# View relevant news
-asuc-cli news
-
-# Show update history
-asuc-cli history
-
-# Manage configuration
-asuc-cli config get
-asuc-cli config set theme dark
-```
-
-## 🚀 Features
-
-### Core Functionality
-- **📰 Smart News Filtering** - Only shows news relevant to your installed packages
-- **🔍 Package Analysis** - Intelligent pattern matching reduces false positives
-- **📡 Multiple RSS Feeds** - Arch news, security advisories, and distribution-specific feeds
-- **⚡ Caching** - Intelligent caching reduces network requests
-- **🌐 Cross-Distribution** - Works on Arch Linux and all derivatives
-
-### Distribution Support
-ASUC automatically detects your Arch derivative and configures appropriate news feeds:
-
-- **Arch Linux** - Base feeds for news and security advisories
-- **Manjaro** - Adds Manjaro Stable Updates announcements feed  
-- **EndeavourOS** - Adds EndeavourOS News feed
-- **Other Derivatives** - Detects Garuda, ArcoLinux, Artix, Parabola, and Hyperbola
-
-Distribution-specific feeds are added alongside Arch Linux's base feeds, ensuring you see both upstream Arch news and distribution-specific announcements. All feeds can be customized in Settings.
-
-### GUI Features
-- **Modern Design** - Professional interface with light/dark themes
-- **Real-time Updates** - Dashboard shows live system status
-- **Thread-Safe** - All operations run in background threads
-- **Responsive Layout** - Adapts to different screen sizes
-- **TTY Preservation** - See pacman's progress bars and animations
-
-### CLI Features
-- **Multiple Commands** - check, updates, news, history, config, clear-cache
-- **JSON Output** - Machine-readable output for scripting
-- **Pagination** - Automatic pagination for long lists
-- **Non-Interactive Mode** - Perfect for scripts and automation
-- **Exit Codes** - Meaningful exit codes for scripting
-
-### Security Features
-- **Command Injection Prevention** - Secure command generation with validation
-- **Path Traversal Protection** - Comprehensive path validation
-- **Input Sanitization** - All user inputs validated and sanitized
-- **Secure Subprocess Execution** - No shell execution, timeout protection
-- **Memory Protection** - Secure handling of sensitive data
-
-## 📦 Installation
-
-### 📋 System Requirements
-
-**Minimum Requirements:**
-- **Operating System**: Arch Linux or derivatives only
-- **Python**: Version 3.8 or higher
-- **Screen Size**: 12.5" diagonal, 1366×768 resolution (GUI only)
-- **Dependencies**: python, python-pip, tk (for GUI)
-
-### 🔧 Quick Install (Recommended)
+### Installation
 
 ```bash
 # Clone the repository
@@ -117,364 +46,212 @@ cd arch-smart-update-checker
 ./install.sh
 ```
 
-The installer will:
-- ✅ Verify you're on Arch Linux or derivative
-- ✅ Check Python version and dependencies
-- ✅ Offer multiple installation methods
-- ✅ Install required Python packages
-- ✅ Create convenient command shortcuts
-
-### 📚 Installation Methods
-
-| Method | Command | Best For | Location |
-|--------|---------|----------|----------|
-| **pipx** (Recommended) | `./install.sh` | Most users | `~/.local/pipx/` |
-| **pip --user** | `./install.sh --user` | Single user | `~/.local/` |
-| **Virtual Environment** | `./install.sh --venv` | Development | `./venv/` |
-| **System-wide** | `sudo ./install.sh --system` | All users | `/usr/local/` |
-
-### 🎯 First-Time Setup
-
-1. **Install system dependencies** (if not already installed):
-   ```bash
-   sudo pacman -S python python-pip tk
-   ```
-
-2. **Clone and install**:
-   ```bash
-   git clone https://github.com/NeatCode-Labs/arch-smart-update-checker.git
-   cd arch-smart-update-checker
-   ./install.sh
-   ```
-
-3. **Run the application**:
-   ```bash
-   # GUI version
-   asuc-gui
-   
-   # CLI version
-   asuc-cli
-   ```
-
-## 📖 Usage
-
-### GUI Application
+### Basic Usage
 
 ```bash
+# GUI Application
 asuc-gui
+
+# CLI Tool
+asuc-cli                    # Check updates and news
+asuc-cli updates            # List available updates
+asuc-cli news               # Show relevant news
+asuc-cli history            # View update history
 ```
 
-The GUI provides:
-- **Dashboard**: Overview of system status and available updates
-- **Quick Actions**: Check updates, view critical packages, refresh news
-- **Navigation**: Easy access to all features via sidebar
+## 📖 Documentation
+
+### User Guide
+
+#### GUI Application
+The GUI provides an intuitive interface with:
+- **Dashboard**: Real-time system status and update overview
+- **News Browser**: Filtered Arch news and security advisories
+- **Package Manager**: Monitor critical packages and updates
+- **Update History**: Complete audit trail with export capabilities
 - **Settings**: Configure feeds, themes, and behavior
 
-### CLI Tool
-
+#### CLI Tool
+Comprehensive command-line interface:
 ```bash
-# Default: Check for updates and news
+# Check for updates with news (default)
 asuc-cli
 
-# Show available updates only
-asuc-cli updates
+# List updates only
+asuc-cli updates [--json]
 
-# Show relevant news only
-asuc-cli news
+# Show relevant news
+asuc-cli news [--all] [--json]
 
 # View update history
-asuc-cli history
-asuc-cli history --limit 10
-asuc-cli history --export history.csv
+asuc-cli history [--limit N] [--export FILE]
 
 # Manage configuration
-asuc-cli config get
-asuc-cli config set cache_ttl_hours 2
-asuc-cli config set theme dark
+asuc-cli config get [KEY]
+asuc-cli config set KEY VALUE
+asuc-cli config edit
 
 # Clear caches
 asuc-cli clear-cache
-
-# JSON output for scripting
-asuc-cli --json
-asuc-cli updates --json
 ```
 
-### Exit Codes
-
+#### Exit Codes
 - `0`: Success, no updates available
 - `10`: Updates available
 - `20`: Error occurred
-- `30`: Update failed (when using upgrade command)
+- `30`: Update failed
 
-## ⚙️ Configuration
+### Configuration
 
-Configuration file: `~/.config/arch-smart-update-checker/config.json`
+Configuration is stored in `~/.config/arch-smart-update-checker/config.json`
 
-### Key Settings
+Key settings:
+- `cache_ttl_hours`: Cache lifetime (default: 1)
+- `max_news_age_days`: Maximum age for news items (default: 30)
+- `theme`: Application theme (light/dark)
+- `update_history_enabled`: Enable update tracking
+- `critical_packages`: Packages to monitor closely
+- `feeds`: RSS feed configuration
 
-```json
-{
-  "cache_ttl_hours": 1,
-  "max_news_items": 10,
-  "max_news_age_days": 30,
-  "theme": "light",
-  "update_history_enabled": false,
-  "update_history_retention_days": 365,
-  "critical_packages": ["linux", "nvidia", "xorg", "systemd"],
-  "feeds": [
-    {
-      "name": "Arch Linux News",
-      "url": "https://archlinux.org/feeds/news/",
-      "priority": 1
-    }
-  ]
-}
-```
+### Distribution Support
 
-### GUI Settings
+ASUC automatically detects and configures feeds for:
+- **Arch Linux** - Official news and security advisories
+- **Manjaro** - Stable update announcements
+- **EndeavourOS** - Distribution news
+- **Garuda, ArcoLinux, Artix** - Distribution-specific feeds
+- **Other derivatives** - Automatic detection
 
-Access via Settings panel:
-- Enable/disable update history
-- Change themes (light/dark)
-- Configure RSS feeds
-- Set critical packages
-- Adjust cache settings
+## 🔒 Security & Testing
 
-### CLI Configuration
+### Security Features
 
-```bash
-# View all settings
-asuc-cli config get
+ASUC implements enterprise-grade security with multiple layers of protection:
 
-# Change specific setting
-asuc-cli config set theme dark
-asuc-cli config set update_history_enabled true
+#### Core Security
+- **Input Validation** - All user inputs sanitized and validated
+- **Command Injection Prevention** - Secure command generation with validation
+- **Path Traversal Protection** - Comprehensive file system access controls
+- **Secure Subprocess Execution** - No shell execution, timeout protection
+- **Memory Protection** - Secure handling and clearing of sensitive data
 
-# Edit config file directly
-asuc-cli config edit
-```
+#### Advanced Security
+- **MAC Profiles** - AppArmor and SELinux policies included
+- **Sandboxing** - Bubblewrap/Firejail integration for isolation
+- **Security Logging** - Complete audit trail of security events
+- **Single Instance Lock** - Prevents concurrent execution
+- **HTTPS Enforcement** - Secure communication for all feeds
 
-## 🗑️ Uninstallation
-
-To completely remove Arch Smart Update Checker and all its data:
-
-### Automated Uninstall
-
-Use the provided uninstall script:
-
-```bash
-# Basic uninstall (with confirmation prompt)
-./uninstall.sh
-
-# Skip confirmation prompt
-./uninstall.sh --force
-
-# Preview what will be removed (dry run)
-./uninstall.sh --dry-run
-
-# If you used a custom config location
-./uninstall.sh --config /path/to/custom/config.json
-```
-
-The uninstall script will remove:
-- Configuration directory: `~/.config/arch-smart-update-checker/`
-- Cache directory: `~/.cache/arch-smart-update-checker/`
-- Update history data
-- Custom log files (if configured)
-- Systemd user service files
-- Desktop entries
-- Temporary files
-
-**Note**: The script does NOT remove the executables (`asuc-cli` and `asuc-gui`). To remove them:
-- If installed via `install.sh`: Remove the installation directory
-- If installed via AUR: Use your package manager (`yay -R arch-smart-update-checker`)
-
-### Manual Uninstall
-
-If you prefer manual removal:
-
-```bash
-# Remove configuration and cache
-rm -rf ~/.config/arch-smart-update-checker
-rm -rf ~/.cache/arch-smart-update-checker
-
-# Remove executables (location depends on installation method)
-# For pipx:
-pipx uninstall arch-smart-update-checker
-
-# For pip --user:
-pip uninstall arch-smart-update-checker
-
-# For system-wide installation:
-sudo pip uninstall arch-smart-update-checker
-
-# Remove from virtual environment:
-# Simply delete the venv directory
-```
-
-## 🔒 Security
-
-This application implements enterprise-grade security:
-
-### Protections
-- ✅ **Command Injection Prevention** - All commands validated
-- ✅ **Path Traversal Protection** - File access restricted
-- ✅ **Input Validation** - Comprehensive sanitization
-- ✅ **Secure Subprocess** - No shell execution
-- ✅ **Memory Protection** - Sensitive data handling
-
-### Audit Results
-- **12 vulnerabilities fixed** (3 critical, 4 high, 4 medium, 1 low)
-- **95% risk reduction** achieved
-- **OWASP Top 10** compliant
-- **Ready for production** use
-
-
-
-## 🛠️ Technical Details
-
-### Architecture
-
-The application uses a modular architecture:
-
-```
-src/
-├── checker.py          # Core update checking logic
-├── config.py           # Configuration management
-├── news_fetcher.py     # RSS feed handling
-├── package_manager.py  # Package operations
-├── cli/                # CLI implementation
-├── gui/                # GUI implementation
-├── utils/              # Shared utilities
-└── models.py          # Data models
-```
-
-### Key Technologies
-
-- **GUI**: Tkinter with modern theming
-- **CLI**: Colorama for colored output
-- **Networking**: Requests with SSL verification
-- **RSS Parsing**: Feedparser with security hardening
-- **Concurrency**: ThreadPoolExecutor for parallel operations
-- **Process Management**: Secure subprocess execution
-
-### Performance Features
-
-- **Concurrent RSS Fetching** - All feeds fetched in parallel
-- **Smart Caching** - Reduces network requests
-- **Thread-Safe Operations** - GUI remains responsive
-- **Efficient Pattern Matching** - Optimized package detection
-- **Memory Management** - Automatic cleanup and limits
+#### Security Documentation
+- [Security Overview](docs/SECURITY.md) - Main security policy
+- [Security Index](docs/SECURITY_INDEX.md) - Complete security documentation guide
+- [Implementation Report](docs/SECURITY_IMPLEMENTATION_REPORT.md) - Technical details
+- [Security Guidelines](docs/SECURITY_GUIDELINES.md) - For contributors
 
 ### Testing
 
-Full test suite with 62+ tests:
+Comprehensive test suite with 266+ tests ensuring reliability:
 
 ```bash
 # Run all tests
 python -m pytest
 
-# With coverage
-python -m pytest --cov=src
+# Run with coverage report
+python -m pytest --cov=src --cov-report=html
 
-# Specific test file
-python -m pytest tests/test_checker.py
+# Run specific test categories
+python -m pytest tests/test_security.py    # Security tests
+python -m pytest tests/test_gui.py         # GUI tests
+python -m pytest tests/test_cli.py         # CLI tests
 ```
 
-## 🆘 Troubleshooting
+Test coverage includes:
+- ✅ Unit tests for all core functionality
+- ✅ Integration tests for package operations
+- ✅ Security tests for vulnerability protection
+- ✅ Performance tests for optimization
+- ✅ GUI tests for user interface
 
-### Common Issues
+View the detailed [Test Report](docs/TEST_REPORT.md) for comprehensive results.
 
-**"Command not found: asuc-gui"**
-- Run `./install.sh` to create command shortcuts
-- Or use: `python -m src.gui_app`
+## 🛠️ Technical Architecture
 
-**"Screen size not supported"**
-- Minimum 12.5" diagonal, 1366×768 resolution required
-- CLI version works on any screen: `asuc-cli`
+### Project Structure
+```
+arch-smart-update-checker/
+├── src/                    # Source code
+│   ├── checker.py         # Core update logic
+│   ├── cli/               # CLI implementation
+│   ├── gui/               # GUI implementation
+│   └── utils/             # Shared utilities
+├── tests/                  # Test suite
+├── security/               # MAC profiles
+│   ├── apparmor/          # AppArmor profile
+│   └── selinux/           # SELinux policy
+└── docs/                   # Documentation
+```
 
-**"Permission denied"**
-- Don't use sudo with pip install
-- For system-wide: `sudo ./install.sh --system`
+### Technology Stack
+- **GUI**: Tkinter with modern theming
+- **CLI**: Colorama for enhanced output
+- **Networking**: Requests with SSL verification
+- **RSS**: Feedparser with security hardening
+- **Concurrency**: ThreadPoolExecutor
+- **Testing**: Pytest with comprehensive coverage
 
-**"No module named 'tkinter'"**
-- Install: `sudo pacman -S tk`
-- Or use CLI version: `asuc-cli`
+### Performance Optimizations
+- Concurrent RSS feed fetching
+- Intelligent caching system
+- Thread-safe GUI operations
+- Optimized pattern matching
+- Automatic memory management
 
-### Diagnostics
+## 🗑️ Uninstallation
+
+Complete removal with the uninstall script:
 
 ```bash
-# Check installation
-./install.sh --check-only
+# Standard uninstall
+./uninstall.sh
 
-# Verify dependencies
-python -c "import tkinter, requests, feedparser, colorama, psutil"
+# Skip confirmation
+./uninstall.sh --force
 
-# Test configuration
-asuc-cli config path
-asuc-cli config get
+# Preview what will be removed
+./uninstall.sh --dry-run
 ```
-
-## 📚 Version History
-
-### Current Version (v2.1.0)
-The current version is a complete rewrite with modular architecture, GUI, and enterprise features.
-
-### Legacy Version (v1.0)
-The original implementation is preserved for historical reference:
-- **Browse code**: [v1.0-legacy branch](https://github.com/NeatCode-Labs/arch-smart-update-checker/tree/v1.0-legacy)
-- **Download**: [v1.0 release](https://github.com/NeatCode-Labs/arch-smart-update-checker/releases/tag/v1.0)
-- **Features**: Single-file script, MIT license, terminal-only
-
-> **Note**: The legacy version is no longer maintained. New users should use the current version.
-
-## 📊 Testing & Security
-
-### Test Suite
-- **243 comprehensive tests** covering all major functionality
-- Unit tests, integration tests, and security tests
-- All tests passing ✅
-- View detailed [Test Report](TEST_REPORT.md)
-
-### Security
-- Enterprise-grade security implementation
-- Comprehensive vulnerability protection
-- Regular security audits
-- View detailed [Security Report](SECURITY_REPORT.md)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please note:
+We welcome contributions! Please ensure:
 
-- All commits must include DCO sign-off: `git commit -s`
-- Code must pass security validation
-- Tests must pass: `python -m pytest`
-- Follow existing code style
+1. All commits include DCO sign-off: `git commit -s`
+2. Code passes security validation
+3. Tests pass: `python -m pytest`
+4. Follow existing code style
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 
-This project is licensed under GPL-3.0-or-later. See [LICENSE](LICENSE) for details.
-
+Licensed under GPL-3.0-or-later. See [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
 - Inspired by [informant](https://github.com/bradford-smith94/informant)
+- Built for the Arch Linux community
 - Thanks to all contributors and testers
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/NeatCode-Labs/arch-smart-update-checker/issues)
-
+- **Security**: See [SECURITY.md](docs/SECURITY.md) for vulnerability reporting
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for the Arch Linux community**  
-Visit us for more useful tools and projects!
+**Made with ❤️ for the Arch Linux community**
 
 [![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)

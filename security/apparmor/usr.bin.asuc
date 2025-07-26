@@ -1,0 +1,225 @@
+# AppArmor profile for Arch Smart Update Checker
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This profile restricts the application to only access necessary resources
+
+#include <tunables/global>
+
+# Profile for the main executables
+profile asuc /usr/bin/asuc-{cli,gui} flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  #include <abstractions/python>
+  #include <abstractions/nameservice>
+  #include <abstractions/ssl_certs>
+  
+  # Allow reading system information
+  /etc/os-release r,
+  /etc/arch-release r,
+  /etc/lsb-release r,
+  /proc/sys/kernel/osrelease r,
+  /sys/devices/system/cpu/** r,
+  /proc/meminfo r,
+  /proc/stat r,
+  
+  # Python interpreter and libraries
+  /usr/bin/python3* ix,
+  /usr/lib/python3*/ r,
+  /usr/lib/python3*/** r,
+  /usr/local/lib/python3*/** r,
+  
+  # Application code (installed location)
+  /usr/lib/python*/site-packages/asuc/ r,
+  /usr/lib/python*/site-packages/asuc/** r,
+  /usr/local/lib/python*/site-packages/asuc/ r,
+  /usr/local/lib/python*/site-packages/asuc/** r,
+  
+  # Configuration directory
+  owner @{HOME}/.config/asuc/ rw,
+  owner @{HOME}/.config/asuc/** rw,
+  
+  # Log directory
+  owner @{HOME}/.config/asuc/logs/ rw,
+  owner @{HOME}/.config/asuc/logs/** rw,
+  
+  # Cache directory
+  owner @{HOME}/.cache/asuc/ rw,
+  owner @{HOME}/.cache/asuc/** rw,
+  
+  # Temporary files
+  /tmp/ r,
+  owner /tmp/asuc_* rw,
+  owner /tmp/asuc_*/ rw,
+  owner /tmp/asuc_*/** rw,
+  owner /tmp/.asuc_lock* rw,
+  
+  # Package management tools (read and execute only)
+  /usr/bin/pacman rix,
+  /usr/bin/checkupdates rix,
+  /usr/bin/paccache rix,
+  /usr/bin/sudo rix,
+  /usr/bin/pkexec rix,
+  
+  # Shell access for subprocess execution (restricted)
+  /bin/sh rix,
+  /bin/bash rix,
+  /usr/bin/sh rix,
+  /usr/bin/bash rix,
+  
+  # System utilities (read-only access)
+  /usr/bin/which rix,
+  /usr/bin/whereis rix,
+  /usr/bin/uname rix,
+  /usr/bin/locale rix,
+  /usr/bin/getconf rix,
+  
+  # Terminal emulators (for opening terminal)
+  /usr/bin/gnome-terminal rix,
+  /usr/bin/konsole rix,
+  /usr/bin/xfce4-terminal rix,
+  /usr/bin/xterm rix,
+  /usr/bin/alacritty rix,
+  /usr/bin/kitty rix,
+  
+  # Text editors (for opening files)
+  /usr/bin/xdg-open rix,
+  /usr/bin/gedit rix,
+  /usr/bin/kate rix,
+  /usr/bin/mousepad rix,
+  /usr/bin/nano rix,
+  /usr/bin/vim rix,
+  
+  # Pacman database and cache (read-only)
+  /var/lib/pacman/ r,
+  /var/lib/pacman/** r,
+  /var/cache/pacman/pkg/ r,
+  /var/cache/pacman/pkg/*.pkg.tar.* r,
+  
+  # System package files (read-only)
+  /usr/share/licenses/** r,
+  /usr/share/doc/** r,
+  
+  # Network access for RSS feeds and updates
+  network inet stream,
+  network inet dgram,
+  network inet6 stream,
+  network inet6 dgram,
+  
+  # DNS resolution
+  /etc/resolv.conf r,
+  /etc/hosts r,
+  /etc/nsswitch.conf r,
+  /etc/services r,
+  
+  # SSL/TLS certificates
+  /etc/ssl/certs/ r,
+  /etc/ssl/certs/** r,
+  /etc/ca-certificates/ r,
+  /etc/ca-certificates/** r,
+  
+  # GUI-specific permissions (for asuc-gui)
+  #include <abstractions/dbus-session-strict>
+  #include <abstractions/gtk>
+  #include <abstractions/fonts>
+  #include <abstractions/freedesktop.org>
+  
+  # X11 access for GUI
+  #include <abstractions/X>
+  owner @{HOME}/.Xauthority r,
+  
+  # GTK and Qt theme access
+  owner @{HOME}/.config/gtk-3.0/** r,
+  owner @{HOME}/.config/gtk-4.0/** r,
+  owner @{HOME}/.gtkrc-2.0 r,
+  owner @{HOME}/.config/qt5ct/** r,
+  owner @{HOME}/.config/qt6ct/** r,
+  
+  # Desktop integration
+  /usr/share/applications/ r,
+  /usr/share/applications/** r,
+  /usr/share/icons/ r,
+  /usr/share/icons/** r,
+  /usr/share/pixmaps/ r,
+  /usr/share/pixmaps/** r,
+  
+  # Sound notifications (optional)
+  #include <abstractions/audio>
+  
+  # Deny access to sensitive areas
+  deny @{HOME}/.ssh/** rwx,
+  deny @{HOME}/.gnupg/** rwx,
+  deny @{HOME}/.password-store/** rwx,
+  deny /etc/shadow rwx,
+  deny /etc/gshadow rwx,
+  deny /etc/sudoers rwx,
+  deny /etc/sudoers.d/** rwx,
+  deny /root/** rwx,
+  deny /boot/** rwx,
+  deny /sys/firmware/** rwx,
+  deny /sys/kernel/security/** rwx,
+  
+  # Prevent writing to system directories
+  deny /usr/** w,
+  deny /etc/** w,
+  deny /bin/** w,
+  deny /sbin/** w,
+  deny /lib/** w,
+  deny /lib64/** w,
+  deny /var/** w,
+  
+  # Signal permissions
+  signal send set=(term, kill) peer=asuc,
+  signal receive set=(term, kill) peer=asuc,
+  
+  # Ptrace permissions (for subprocess management)
+  ptrace read peer=asuc,
+  
+  # DBus communication (for GUI)
+  dbus send
+       bus=session
+       path=/org/freedesktop/Notifications
+       interface=org.freedesktop.Notifications
+       member={Notify,CloseNotification}
+       peer=(name=org.freedesktop.Notifications),
+  
+  dbus receive
+       bus=session
+       path=/org/freedesktop/Notifications
+       interface=org.freedesktop.Notifications
+       member=NotificationClosed
+       peer=(name=org.freedesktop.Notifications),
+}
+
+# Child profile for elevated pacman operations
+profile asuc-pacman {
+  #include <abstractions/base>
+  
+  # Allow pacman full access (when running with sudo/pkexec)
+  /usr/bin/pacman rix,
+  /var/lib/pacman/** rwk,
+  /var/cache/pacman/** rwk,
+  /etc/pacman.conf r,
+  /etc/pacman.d/** r,
+  
+  # Network for downloading packages
+  network inet stream,
+  network inet dgram,
+  network inet6 stream,
+  network inet6 dgram,
+  
+  # Package operations
+  /usr/** rw,
+  /etc/** rw,
+  /opt/** rw,
+  /var/** rw,
+  
+  # Temporary files
+  /tmp/** rw,
+  
+  # Required capabilities for package management
+  capability dac_override,
+  capability chown,
+  capability fowner,
+  capability fsetid,
+  capability setuid,
+  capability setgid,
+} 

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arch-smart-update-checker"
-version = "2.1.0"
-description = "A smart replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating."
+version = "2.2.0"
+description = "Smart update checker for Arch Linux that shows relevant news before updating"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
 authors = [

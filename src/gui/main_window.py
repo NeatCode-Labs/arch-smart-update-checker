@@ -15,6 +15,11 @@ import webbrowser
 import os
 import tempfile
 import logging
+import json
+import platform
+from pathlib import Path
+import importlib.util
+import shutil
 
 from .dashboard import DashboardFrame
 from .news_browser import NewsBrowserFrame
@@ -26,12 +31,16 @@ from .window_mixin import WindowPositionMixin
 from .layout_manager import get_layout_manager
 from ..config import Config
 from ..checker import UpdateChecker
-from ..utils.logger import set_global_config, get_logger
+from ..utils.logger import set_global_config, get_logger, log_security_event
 from ..utils.update_history import UpdateHistoryManager, UpdateHistoryEntry
 from ..utils.thread_manager import ThreadResourceManager
 from ..utils.file_monitor import SecureProcessMonitor
 from ..utils.window_geometry import get_geometry_manager
 from datetime import datetime
+from ..utils.subprocess_wrapper import SecureSubprocess
+from ..constants import APP_VERSION
+from ..news_fetcher import NewsFetcher
+from .dimensions import get_dimensions
 
 logger = get_logger(__name__)
 
@@ -48,14 +57,15 @@ class MainWindow(WindowPositionMixin):
     def __init__(self, config_file: Optional[str] = None) -> None:
         """Initialize the main window."""
         self.root = tk.Tk()
+        
+        # Get dimensions for all components BEFORE setup_window
+        from .dimensions import get_dimensions
+        self.dims = get_dimensions()
+        
         self.setup_window()
 
         # Initialize secure callback manager for memory protection
         self.callback_manager = create_secure_callback_manager("main_window")
-
-        # Get dimensions for all components
-        from .dimensions import get_dimensions
-        self.dims = get_dimensions()
 
         # Initialize configuration and backend components first
         self.config = Config(config_file)
@@ -186,7 +196,9 @@ class MainWindow(WindowPositionMixin):
         text_widget.tag_configure('link', foreground=self.colors['primary'], underline=True)
 
         # Make links clickable
-        text_widget.tag_bind('link', '<Button-1>', lambda e: webbrowser.open("https://archlinux.org/news/"))
+        text_widget.tag_bind('link', '<Button-1>', 
+                           lambda e: SecureSubprocess.open_url_securely("https://archlinux.org/news/", sandbox=True) 
+                           or webbrowser.open("https://archlinux.org/news/"))
 
         # Make read-only
         text_widget.configure(state='disabled')
@@ -307,7 +319,10 @@ class MainWindow(WindowPositionMixin):
             tags = text_widget.tag_names(text_widget.index(f"@{event.x},{event.y}"))
             for tag in tags:
                 if isinstance(tag, tuple) and tag[0] == 'link':
-                    webbrowser.open(tag[1])
+                    # Use secure URL opening with sandboxing
+                    if not SecureSubprocess.open_url_securely(tag[1], sandbox=True):
+                        # Fallback to webbrowser if secure method fails
+                        webbrowser.open(tag[1])
                     return "break"  # Prevent text selection
 
         # Register secure link click handler
@@ -367,7 +382,13 @@ class MainWindow(WindowPositionMixin):
         """Setup the main window properties with adaptive size."""
         from ..constants import get_config_dir
 
-        self.root.title("Arch Smart Update Checker v2.1.0")
+        # Set minimum window size based on detected screen dimensions
+        window_width, window_height = self.dims.window_size
+        window_min_width = min(window_width - 50, window_width)
+        window_min_height = min(window_height - 50, window_height)
+        self.root.minsize(window_min_width, window_min_height)
+
+        self.root.title(f"Arch Smart Update Checker v{APP_VERSION}")
 
         # Initialize layout manager
         self.layout_manager = get_layout_manager()
@@ -822,7 +843,7 @@ class MainWindow(WindowPositionMixin):
         # Version info
         version_label = tk.Label(
             info_frame,
-            text="Version 2.1.0",
+            text=f"Version {APP_VERSION}",
             font=self.dims.font('Segoe UI', 'tiny'),
             fg=self.colors['text_secondary'],
             bg=self.colors['surface']
@@ -2664,7 +2685,10 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
                                  padx=15,
                                  pady=8,
                                  cursor='hand2',
-                                 command=lambda: webbrowser.open(news_item['link']))
+                                 command=lambda link=news_item['link']: (
+                                     SecureSubprocess.open_url_securely(link, sandbox=True) 
+                                     or webbrowser.open(link)
+                                 ))
             open_btn.pack(side='left', padx=(0, 10))
 
         close_btn = tk.Button(btn_frame,

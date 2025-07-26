@@ -14,6 +14,7 @@ from typing import Optional, Dict, Any
 import sys
 from datetime import datetime
 import re  # Added for sanitize_log_message
+import json  # Added for security log formatting
 
 
 class ColoredFormatter(logging.Formatter):
@@ -42,9 +43,15 @@ class ColoredFormatter(logging.Formatter):
 # Global configuration for logging with thread synchronization
 _global_config: Optional[Dict[str, Any]] = None
 _log_file_path: Optional[str] = None
+_security_log_path: Optional[str] = None  # Dedicated security log
 _configured_loggers: set[str] = set()  # Track configured loggers to prevent duplicates
 _logger_instances: Dict[str, logging.Logger] = {}  # Cache logger instances
 _global_state_lock = threading.RLock()  # Reentrant lock for global state synchronization
+
+# Rate limiting for security events
+_security_event_counts: Dict[str, Dict[str, Any]] = {}  # event_type -> {count, first_time, last_time}
+_security_rate_limit_window = 60  # seconds
+_security_rate_limit_max = 10  # max events per window
 
 # Configure root logger to prevent interference
 logging.getLogger().handlers = []
@@ -59,7 +66,7 @@ def set_global_config(config: Dict[str, Any]) -> None:
     Args:
         config: Configuration dictionary
     """
-    global _global_config, _log_file_path
+    global _global_config, _log_file_path, _security_log_path
     with _global_state_lock:
         _global_config = config
 
@@ -72,6 +79,16 @@ def set_global_config(config: Dict[str, Any]) -> None:
             # Create timestamped log file
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             _log_file_path = str(log_dir / f'asuc_{timestamp}.log')
+            
+            # Create dedicated security log file
+            security_log_dir = Path('/var/log/asuc')
+            try:
+                # Try to create system security log directory
+                security_log_dir.mkdir(parents=True, exist_ok=True)
+                _security_log_path = str(security_log_dir / f'security_{timestamp}.log')
+            except (OSError, PermissionError):
+                # Fall back to user log directory
+                _security_log_path = str(log_dir / f'security_{timestamp}.log')
 
             # Create a symlink to latest log with race condition protection
             latest_log = log_dir / 'latest.log'
@@ -568,15 +585,62 @@ def create_secure_debug_logger(name: str, enable_debug: bool = False) -> Any:
 
 def log_security_event(event_type: str, details: Optional[dict[str, Any]] = None, severity: str = "warning") -> None:
     """
-    Log security events with proper sanitization.
+    Log security events with proper sanitization, rate limiting, and enriched context.
 
     Args:
         event_type: Type of security event
         details: Event details (will be sanitized)
         severity: Log severity level
     """
+    global _security_event_counts, _security_log_path
+    
+    # Check rate limiting
+    with _global_state_lock:
+        current_time = datetime.now()
+        event_info = _security_event_counts.get(event_type, {})
+        
+        if event_info:
+            time_since_first = (current_time - event_info['first_time']).total_seconds()
+            
+            # Reset window if expired
+            if time_since_first > _security_rate_limit_window:
+                event_info = {'count': 0, 'first_time': current_time, 'last_time': current_time}
+            
+            # Check if rate limit exceeded
+            if event_info['count'] >= _security_rate_limit_max:
+                if event_info.get('rate_limit_logged', False) is False:
+                    # Log once that we're rate limiting
+                    security_logger = get_logger("security")
+                    security_logger.warning(
+                        f"RATE_LIMIT: Suppressing further {event_type} events for {_security_rate_limit_window}s"
+                    )
+                    event_info['rate_limit_logged'] = True
+                return
+        else:
+            event_info = {'count': 0, 'first_time': current_time, 'last_time': current_time}
+        
+        # Update event count
+        event_info['count'] += 1
+        event_info['last_time'] = current_time
+        _security_event_counts[event_type] = event_info
+    
     security_logger = get_logger("security")
 
+    # Gather enriched context
+    context = {
+        'timestamp': datetime.now().isoformat(),
+        'event_type': event_type,
+        'severity': severity,
+        'pid': os.getpid(),
+        'uid': os.getuid() if hasattr(os, 'getuid') else 'N/A',
+        'user': os.environ.get('USER', 'unknown'),
+    }
+    
+    # Add thread info if in multi-threaded context
+    current_thread = threading.current_thread()
+    if current_thread.name != 'MainThread':
+        context['thread'] = current_thread.name
+    
     # Sanitize event details
     if details:
         sanitized_details = {}
@@ -588,11 +652,15 @@ def log_security_event(event_type: str, details: Optional[dict[str, Any]] = None
     else:
         sanitized_details = {}
 
-    # Create secure log message
+    # Create structured log message
     log_msg = f"SECURITY_EVENT: {event_type}"
     if sanitized_details:
         detail_str = ", ".join(f"{k}={v}" for k, v in sanitized_details.items())
         log_msg += f" - {detail_str}"
+    
+    # Add context to message
+    context_str = f" [pid={context['pid']}, uid={context['uid']}, user={context['user']}]"
+    log_msg += context_str
 
     # Log with appropriate severity
     if severity == "critical":
@@ -603,6 +671,33 @@ def log_security_event(event_type: str, details: Optional[dict[str, Any]] = None
         security_logger.warning(log_msg)
     else:
         security_logger.info(log_msg)
+    
+    # Also write to dedicated security log if available
+    if _security_log_path:
+        try:
+            with open(_security_log_path, 'a') as f:
+                # Write JSON formatted entry for easier parsing
+                security_entry = {
+                    **context,
+                    'message': log_msg,
+                    'details': sanitized_details
+                }
+                f.write(json.dumps(security_entry) + '\n')
+        except (OSError, IOError) as e:
+            # Don't fail if we can't write to security log
+            security_logger.debug(f"Failed to write to security log: {e}")
+    
+    # Record metrics
+    try:
+        from .security_metrics import record_security_metric
+        record_security_metric(
+            event_type=event_type,
+            severity=severity,
+            details=sanitized_details
+        )
+    except Exception as e:
+        # Don't fail if metrics recording fails
+        security_logger.debug(f"Failed to record security metric: {e}")
 
 
 class ContextualSanitizer:

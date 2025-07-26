@@ -21,31 +21,15 @@ def create_parser() -> argparse.ArgumentParser:
         Configured argument parser
     """
     parser = argparse.ArgumentParser(
-        prog="asuc-gui",
-        description="Arch Smart Update Checker GUI - Graphical interface for update checking",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  asuc-gui                    # Launch GUI with default config
-  asuc-gui --config /path/to/config.json  # Use custom config file
-        """,
+        description='Arch Smart Update Checker GUI - Modern graphical interface'
     )
-
-    parser.add_argument("--config", type=str, help="Use custom configuration file")
-
-    parser.add_argument("--version", action="version", version="%(prog)s 2.1.0")
-
-    return parser
-
-
-def main() -> int:
-    """
-    Main entry point for GUI application.
-
-    Returns:
-        Exit code
-    """
-    parser = create_parser()
+    parser.add_argument(
+        '--config',
+        type=str,
+        help='Path to custom configuration file'
+    )
+    parser.add_argument("--version", action="version", version="%(prog)s 2.2.0")
+    
     args = parser.parse_args()
 
     try:

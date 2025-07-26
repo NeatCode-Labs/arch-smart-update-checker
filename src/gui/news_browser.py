@@ -16,6 +16,7 @@ from typing import Dict, Any, List, Optional
 import threading
 from datetime import datetime
 import webbrowser
+from ..utils.subprocess_wrapper import SecureSubprocess
 
 # Add src to path for imports
 import sys
@@ -468,7 +469,11 @@ class NewsBrowserFrame(ttk.Frame, WindowPositionMixin):
     def open_link(self, url: str):
         """Open a news link in the default browser."""
         try:
-            webbrowser.open(url)
+            # Use secure URL opening with sandboxing
+            if not SecureSubprocess.open_url_securely(url, sandbox=True):
+                # Fallback to webbrowser if secure method fails
+                logger.warning("Secure URL open failed, falling back to webbrowser")
+                webbrowser.open(url)
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to open link: {exc}")
 

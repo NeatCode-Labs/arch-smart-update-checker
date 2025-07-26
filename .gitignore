@@ -197,6 +197,5 @@ config.json
 
 # Legacy and temporary files
 v1.0/
-docs/
 screensizes.md
 todo.txt 

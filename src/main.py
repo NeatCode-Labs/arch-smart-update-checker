@@ -21,57 +21,20 @@ def create_parser() -> argparse.ArgumentParser:
         Configured argument parser
     """
     parser = argparse.ArgumentParser(
-        prog="asuc",
-        description="Arch Smart Update Checker - Check for updates and relevant news",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  asuc                    # Run interactive update check
-  asuc --non-interactive  # Run without user interaction
-  asuc --all-news         # Show all news, not just relevant ones
-  asuc --clear-cache      # Clear cache before running
-  asuc --init-config      # Initialize configuration file
-  asuc --log /tmp/updates.log  # Log results to file
-        """,
+        description='Arch Smart Update Checker - Check Arch Linux news before updating'
     )
-
     parser.add_argument(
-        "--all-news",
-        action="store_true",
-        help="Show all news items, not just those relevant to installed packages",
+        '--config', 
+        type=str,
+        help='Path to custom configuration file'
     )
-
     parser.add_argument(
-        "--non-interactive",
-        action="store_true",
-        help="Run without user interaction (useful for scripts)",
+        '--gui',
+        action='store_true',
+        help='Launch graphical user interface'
     )
-
-    parser.add_argument(
-        "--clear-cache", action="store_true", help="Clear cache before running"
-    )
-
-    parser.add_argument(
-        "--init-config", action="store_true", help="Initialize configuration file"
-    )
-
-    parser.add_argument("--config", type=str, help="Use custom configuration file")
-
-    parser.add_argument("--log", type=str, help="Log results to specified file")
-
-    parser.add_argument("--version", action="version", version="%(prog)s 2.1.0")
-
-    return parser
-
-
-def main() -> int:
-    """
-    Main entry point.
-
-    Returns:
-        Exit code
-    """
-    parser = create_parser()
+    parser.add_argument("--version", action="version", version="%(prog)s 2.2.0")
+    
     args = parser.parse_args()
 
     try:
