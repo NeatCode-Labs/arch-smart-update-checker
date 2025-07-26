@@ -188,7 +188,7 @@ jobs:
           echo "- Allow rules: $(grep -c "^allow" security/selinux/asuc.te || echo 0)" >> profile-report.md
           
       - name: Upload profile report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-profile-report
           path: profile-report.md

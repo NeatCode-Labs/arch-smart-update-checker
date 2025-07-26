@@ -111,11 +111,15 @@ jobs:
               data = json.load(f)
               print(f'Total issues: {len(data["results"])}')
               for issue in data['results']:
-                  print(f"{issue['severity']}: {issue['test_name']} - {issue['filename']}:{issue['line_number']}")
+                  severity = issue.get('severity', 'UNKNOWN')
+                  test_name = issue.get('test_name', 'Unknown Test')
+                  filename = issue.get('filename', 'Unknown File')
+                  line_number = issue.get('line_number', 'Unknown Line')
+                  print(f"{severity}: {test_name} - {filename}:{line_number}")
           EOF
             
             # Fail if high severity issues found
-            HIGH_SEVERITY=$(python -c "import json; data=json.load(open('bandit-report.json')); print(sum(1 for r in data['results'] if r['severity'] == 'HIGH'))")
+            HIGH_SEVERITY=$(python -c "import json; data=json.load(open('bandit-report.json')); print(sum(1 for r in data['results'] if r.get('severity', '') == 'HIGH'))")
             if [ "$HIGH_SEVERITY" -gt 0 ]; then
               echo "❌ Found $HIGH_SEVERITY high severity security issues"
               exit 1

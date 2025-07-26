@@ -51,7 +51,8 @@ miscfiles_read_generic_certs(asuc_t)
 
 # Allow network access for RSS feeds
 corenet_tcp_connect_http_port(asuc_t)
-corenet_tcp_connect_https_port(asuc_t)
+corenet_tcp_connect_generic_port(asuc_t)
+corenet_tcp_connect_all_unreserved_ports(asuc_t)
 sysnet_dns_name_resolve(asuc_t)
 sysnet_read_config(asuc_t)
 
