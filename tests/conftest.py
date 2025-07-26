@@ -14,6 +14,7 @@ def pytest_configure(config):
     """Configure pytest with minimal setup."""
     # Set up test environment variables
     os.environ['ASUC_SKIP_PACMAN_VALIDATION'] = '1'
+    os.environ['ASUC_SKIP_PACMAN_VERIFY'] = '1'  # Used by PackageManager
     os.environ['ASUC_TEST_MODE'] = '1'
     
     # Skip GUI tests in headless environments
