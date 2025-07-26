@@ -2682,11 +2682,7 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             
             open_btn = tk.Button(btn_frame,
                                  text="Open Link",
-                                 bg=self.main_window.dims.button_bg,
-                                 fg=self.main_window.dims.button_fg,
-                                 font=self.main_window.dims.button_font,
-                                 relief=self.main_window.dims.button_relief,
-                                 bd=self.main_window.dims.button_border,
+                                 font=('Segoe UI', 11, 'normal'),
                                  padx=15,
                                  pady=8,
                                  cursor='hand2',
