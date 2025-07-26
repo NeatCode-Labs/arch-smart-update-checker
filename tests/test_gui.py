@@ -256,6 +256,7 @@ class TestMainWindow(unittest.TestCase):
             # Should not raise any exceptions
 
 
+@pytest.mark.gui
 class TestDashboardFrame(unittest.TestCase):
     """Test the dashboard frame functionality."""
 
@@ -426,6 +427,7 @@ class TestDashboardFrame(unittest.TestCase):
             mock_file.assert_called()
 
 
+@pytest.mark.gui
 class TestNewsBrowserFrame(unittest.TestCase):
     """Test the news browser frame functionality."""
 
@@ -522,6 +524,7 @@ class TestNewsBrowserFrame(unittest.TestCase):
         self.assertIsNotNone(card)
 
 
+@pytest.mark.gui
 class TestPackageManagerFrame(unittest.TestCase):
     """Test the package manager frame functionality."""
 
@@ -596,6 +599,7 @@ class TestPackageManagerFrame(unittest.TestCase):
         self.assertTrue(hasattr(self.package_manager_frame, 'view_package_details'))
 
 
+@pytest.mark.gui
 class TestSettingsFrame(unittest.TestCase):
     """Test the settings frame functionality."""
 
@@ -775,8 +779,9 @@ class TestSettingsFrame(unittest.TestCase):
             mock_info.assert_called_once_with("Info", "No feeds to remove")
 
 
+@pytest.mark.gui
 class TestGUIIntegration(unittest.TestCase):
-    """Test GUI integration and theme consistency."""
+    """Test integration between GUI components."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -954,8 +959,9 @@ class TestGUIIntegration(unittest.TestCase):
                     pass
 
 
+@pytest.mark.gui
 class TestGUIPerformance(unittest.TestCase):
-    """Test GUI performance and memory usage."""
+    """Test GUI performance characteristics."""
 
     def test_gui_startup_time(self):
         """Test that GUI components start up within reasonable time."""
