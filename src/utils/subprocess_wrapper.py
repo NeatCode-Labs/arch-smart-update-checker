@@ -1222,7 +1222,7 @@ class SecureSubprocess:
                 sandboxed_cmd = SandboxManager.get_sandbox_command(
                     cmd,
                     profile,
-                    sandbox='bwrap',
+                    sandbox_type='bwrap',
                     allow_network=True  # Browser needs network
                 )
                 
