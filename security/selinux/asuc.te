@@ -184,8 +184,8 @@ allow asuc_elevated_t pacman_cache_t:file { read write create unlink open getatt
 
 # Allow system modifications for package management
 files_manage_etc_files(asuc_elevated_t)
-files_manage_usr(asuc_elevated_t)
-libs_domtrans_ldconfig(asuc_elevated_t)
+allow asuc_elevated_t usr_t:dir { read write add_name remove_name search open getattr };
+allow asuc_elevated_t usr_t:file { read write create unlink open getattr };
 
 # Network access for package downloads
 corenet_tcp_connect_all_ports(asuc_elevated_t)
