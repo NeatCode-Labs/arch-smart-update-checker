@@ -382,15 +382,9 @@ class MainWindow(WindowPositionMixin):
         """Setup the main window properties with adaptive size."""
         from ..constants import get_config_dir
 
-        # Set minimum window size based on detected screen dimensions
-        window_width, window_height = self.dims.window_size
-        window_min_width = min(window_width - 50, window_width)
-        window_min_height = min(window_height - 50, window_height)
-        self.root.minsize(window_min_width, window_min_height)
-
         self.root.title(f"Arch Smart Update Checker v{APP_VERSION}")
 
-        # Initialize layout manager
+        # Initialize layout manager first
         self.layout_manager = get_layout_manager()
 
         # Check if screen is supported
@@ -406,9 +400,18 @@ class MainWindow(WindowPositionMixin):
             import sys
             sys.exit(1)
 
-        # Get dimensions from layout manager
+        # Get dimensions from layout manager after initialization
         self.dimensions = self.layout_manager.get_dimensions()
         width, height = self.layout_manager.get_window_size()
+        
+        # Now refresh the dimensions instance to get updated values
+        self.dims.refresh()
+        
+        # Set minimum window size based on detected screen dimensions
+        window_width, window_height = self.dims.window_size
+        window_min_width = min(window_width - 50, window_width)
+        window_min_height = min(window_height - 50, window_height)
+        self.root.minsize(window_min_width, window_min_height)
 
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
