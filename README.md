@@ -61,6 +61,8 @@ asuc-cli history            # View update history
 
 ## 📖 Documentation
 
+- [How ASUC Works (Technical Overview)](docs/HOW_ASUC_WORKS.md): A detailed technical explanation of the app's architecture, update flow, and security model for advanced users and contributors.
+
 ### User Guide
 
 #### GUI Application
