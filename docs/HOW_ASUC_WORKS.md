@@ -106,13 +106,12 @@ sequenceDiagram
 **Diagram:**
 ```mermaid
 flowchart TD
-    A[User clicks "Search for Updates"]
-    A --> B[Start background thread]
-    B --> C[Clear cache]
-    C --> D[Check for updates (pacman -Qu)]
-    D --> E[Fetch news feeds]
-    E --> F[Filter news for updated packages]
-    F --> G[Update UI with results]
+    A["User clicks Search for Updates"] --> B["Start background thread"]
+    B --> C["Clear cache"]
+    C --> D["Check for updates (pacman -Qu)"]
+    D --> E["Fetch news feeds"]
+    E --> F["Filter news for updated packages"]
+    F --> G["Update UI with results"]
 ```
 
 ---
