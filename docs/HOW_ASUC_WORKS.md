@@ -10,15 +10,15 @@ Arch Smart Update Checker (ASUC) is a security-focused update manager for Arch L
 
 ```mermaid
 flowchart TD
-    A[User Action (GUI/CLI)] --> B[ASUC Core Logic]
-    B --> C1[Distribution & Kernel Detection]
-    B --> C2[News Fetching & Filtering]
-    B --> C3[Package Manager Operations]
-    C3 --> D1[Sync Database]
-    C3 --> D2[Check for Updates]
-    C3 --> D3[Update All]
-    B --> E[Security & Validation]
-    B --> F[UI Feedback & History]
+    A["User Action (GUI/CLI)"] --> B["ASUC Core Logic"]
+    B --> C1["Distribution & Kernel Detection"]
+    B --> C2["News Fetching & Filtering"]
+    B --> C3["Package Manager Operations"]
+    C3 --> D1["Sync Database"]
+    C3 --> D2["Check for Updates"]
+    C3 --> D3["Update All"]
+    B --> E["Security & Validation"]
+    B --> F["UI Feedback & History"]
 ```
 
 ---
