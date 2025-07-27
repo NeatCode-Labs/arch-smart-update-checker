@@ -407,8 +407,14 @@ class MainWindow(WindowPositionMixin):
         # Now refresh the dimensions instance to get updated values
         self.dims.refresh()
         
-        # Set minimum window size based on detected screen dimensions
+        # Verify dimensions are consistent
         window_width, window_height = self.dims.window_size
+        if (window_width, window_height) != (width, height):
+            logger.warning(f"Dimension mismatch: layout_manager={width}x{height}, dims={window_width}x{window_height}")
+            # Use layout manager dimensions as they are authoritative
+            window_width, window_height = width, height
+        
+        # Set minimum window size based on detected screen dimensions
         window_min_width = min(window_width - 50, window_width)
         window_min_height = min(window_height - 50, window_height)
         self.root.minsize(window_min_width, window_min_height)
@@ -502,6 +508,7 @@ class MainWindow(WindowPositionMixin):
                 # No saved geometry - center the window
                 x = (screen_width // 2) - (width // 2)
                 y = (screen_height // 2) - (height // 2)
+                logger.debug(f"Centering calculation: screen={screen_width}x{screen_height}, window={width}x{height}")
                 self.root.geometry(f"{width}x{height}+{x}+{y}")
                 logger.info(f"No saved window position found, centering at {x}+{y}")
 
