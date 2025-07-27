@@ -48,6 +48,7 @@ safe_remove() {
                 if rm -rf "$path"; then
                     print_success "Removed $description directory"
                     ((ITEMS_REMOVED++))
+                    return 0
                 else
                     local exit_code=$?
                     print_error "Failed to remove $description directory: $path (exit code: $exit_code)"
@@ -65,6 +66,7 @@ safe_remove() {
                 if rm -f "$path"; then
                     print_success "Removed $description file"
                     ((ITEMS_REMOVED++))
+                    return 0
                 else
                     local exit_code=$?
                     print_error "Failed to remove $description file: $path (exit code: $exit_code)"
@@ -76,7 +78,9 @@ safe_remove() {
         fi
     else
         print_info "$description not found: $path"
+        return 0
     fi
+    return 0
 }
 
 # Function to read JSON value from config file
@@ -233,12 +237,14 @@ main() {
     CRITICAL_FAILURES=0
     
     # Remove default configuration directory
-    if ! safe_remove "$DEFAULT_CONFIG_DIR" "configuration"; then
+    safe_remove "$DEFAULT_CONFIG_DIR" "configuration"
+    if [ $? -ne 0 ]; then
         ((CRITICAL_FAILURES++))
     fi
     
     # Remove default cache directory
-    if ! safe_remove "$DEFAULT_CACHE_DIR" "cache"; then
+    safe_remove "$DEFAULT_CACHE_DIR" "cache"
+    if [ $? -ne 0 ]; then
         ((CRITICAL_FAILURES++))
     fi
     
