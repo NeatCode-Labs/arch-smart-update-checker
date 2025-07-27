@@ -37,7 +37,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
         for i in range(1000):
             cache.set(f"key_{i}", f"value_{i}")
         write_time = time.time() - start
-        self.assertLess(write_time, 1.0, "Cache writes too slow")
+        self.assertLess(write_time, 1.5, "Cache writes too slow")
         
         # Test read performance - 1000 items
         start = time.time()

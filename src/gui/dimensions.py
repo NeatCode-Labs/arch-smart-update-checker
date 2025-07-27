@@ -5,7 +5,7 @@ All GUI components should use this module to get scaled dimensions.
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from typing import Tuple
+from typing import Tuple, Optional
 from .layout_manager import get_layout_manager, LayoutDimensions
 
 
@@ -15,107 +15,179 @@ class Dimensions:
     def __init__(self):
         """Initialize with layout manager dimensions."""
         self._layout_manager = get_layout_manager()
-        self._dims: LayoutDimensions = self._layout_manager.get_dimensions()
+        self._dims: Optional[LayoutDimensions] = None
+        self._initialized = False
+
+    def _ensure_initialized(self):
+        """Ensure dimensions are initialized."""
+        if not self._initialized:
+            try:
+                self._dims = self._layout_manager.get_dimensions()
+                self._initialized = True
+            except RuntimeError:
+                # Layout manager not yet initialized, use safe defaults
+                # This should only happen during early initialization
+                pass
 
     def refresh(self):
         """Refresh dimensions from layout manager."""
-        self._dims = self._layout_manager.get_dimensions()
+        try:
+            self._dims = self._layout_manager.get_dimensions()
+            self._initialized = True
+        except RuntimeError:
+            # Layout manager not ready yet
+            self._initialized = False
 
     # Window dimensions
     @property
     def window_size(self) -> Tuple[int, int]:
         """Get window width and height."""
-        return self._dims.window_width, self._dims.window_height
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.window_width, self._dims.window_height
+        # Fallback for early initialization
+        return 1300, 850
 
     # Padding values
     @property
     def pad_small(self) -> int:
         """Small padding (5px base)."""
-        return self._dims.pad_small
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.pad_small
+        return 5
 
     @property
     def pad_medium(self) -> int:
         """Medium padding (10px base)."""
-        return self._dims.pad_medium
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.pad_medium
+        return 10
 
     @property
     def pad_large(self) -> int:
         """Large padding (20px base)."""
-        return self._dims.pad_large
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.pad_large
+        return 20
 
     # Card dimensions
     @property
     def card_height(self) -> int:
         """Dashboard card height (120px base)."""
-        return self._dims.card_height
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.card_height
+        return 120
 
     @property
     def card_padding(self) -> int:
         """Card internal padding (15px base)."""
-        return self._dims.card_padding
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.card_padding
+        return 15
 
     # Font sizes
     @property
     def font_tiny(self) -> int:
         """Tiny font size (9px base)."""
-        return self._dims.font_tiny
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_tiny
+        return 9
 
     @property
     def font_small(self) -> int:
         """Small font size (10px base)."""
-        return self._dims.font_small
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_small
+        return 10
 
     @property
     def font_normal(self) -> int:
         """Normal font size (11px base)."""
-        return self._dims.font_normal
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_normal
+        return 11
 
     @property
     def font_medium(self) -> int:
         """Medium font size (12px base)."""
-        return self._dims.font_medium
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_medium
+        return 12
 
     @property
     def font_large(self) -> int:
         """Large font size (16px base)."""
-        return self._dims.font_large
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_large
+        return 16
 
     @property
     def font_xlarge(self) -> int:
         """Extra large font size (20px base)."""
-        return self._dims.font_xlarge
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.font_xlarge
+        return 20
 
     # Component sizes
     @property
     def button_padx(self) -> int:
         """Button horizontal padding (15px base)."""
-        return self._dims.button_padx
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.button_padx
+        return 15
 
     @property
     def button_pady(self) -> int:
         """Button vertical padding (8px base)."""
-        return self._dims.button_pady
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.button_pady
+        return 8
 
     @property
     def entry_width(self) -> int:
         """Entry widget width in characters (30 base)."""
-        return self._dims.entry_width
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.entry_width
+        return 30
 
     @property
     def tree_row_height(self) -> int:
         """Treeview row height (22px base)."""
-        return self._dims.tree_row_height
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.tree_row_height
+        return 22
 
     # Dialog sizes
     @property
     def dialog_size(self) -> Tuple[int, int]:
         """Standard dialog size (600x400 base)."""
-        return self._dims.dialog_width, self._dims.dialog_height
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.dialog_width, self._dims.dialog_height
+        return 600, 400
 
     @property
     def progress_dialog_size(self) -> Tuple[int, int]:
         """Progress dialog size (500x300 base)."""
-        return self._dims.progress_dialog_width, self._dims.progress_dialog_height
+        self._ensure_initialized()
+        if self._dims:
+            return self._dims.progress_dialog_width, self._dims.progress_dialog_height
+        return 500, 300
 
     # Helper methods for common patterns
     def scale(self, value: int) -> int:
@@ -159,3 +231,9 @@ def get_dimensions() -> Dimensions:
     if _dimensions is None:
         _dimensions = Dimensions()
     return _dimensions
+
+
+def reset_dimensions() -> None:
+    """Reset the global dimensions instance. Used for re-initialization after Tk root is created."""
+    global _dimensions
+    _dimensions = None

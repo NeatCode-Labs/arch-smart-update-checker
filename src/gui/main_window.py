@@ -56,11 +56,25 @@ class MainWindow(WindowPositionMixin):
 
     def __init__(self, config_file: Optional[str] = None) -> None:
         """Initialize the main window."""
+        logger.info("MainWindow.__init__ starting")
         self.root = tk.Tk()
+        logger.info("Tk root created")
+        
+        # Check if running from AUR installation
+        if os.environ.get('ASUC_AUR_INSTALL') == '1':
+            logger.info("Detected AUR installation, forcing layout re-initialization")
+        
+        # Reset global singletons to ensure proper initialization with Tk root
+        from .dimensions import reset_dimensions
+        from .layout_manager import reset_layout_manager
+        logger.info("Resetting layout manager and dimensions singletons")
+        reset_layout_manager()
+        reset_dimensions()
         
         # Get dimensions for all components BEFORE setup_window
         from .dimensions import get_dimensions
         self.dims = get_dimensions()
+        logger.info(f"Got dimensions instance, window_size (early): {self.dims.window_size}")
         
         self.setup_window()
 
@@ -382,12 +396,15 @@ class MainWindow(WindowPositionMixin):
         """Setup the main window properties with adaptive size."""
         from ..constants import get_config_dir
 
+        logger.info("setup_window starting")
         self.root.title(f"Arch Smart Update Checker v{APP_VERSION}")
 
         # Initialize layout manager first
         self.layout_manager = get_layout_manager()
+        logger.info("Got layout manager instance")
 
         # Check if screen is supported
+        logger.info("Initializing layout manager for screen")
         if not self.layout_manager.initialize_for_screen(self.root):
             # Show error for unsupported screen size
             messagebox.showerror(
@@ -403,9 +420,11 @@ class MainWindow(WindowPositionMixin):
         # Get dimensions from layout manager after initialization
         self.dimensions = self.layout_manager.get_dimensions()
         width, height = self.layout_manager.get_window_size()
+        logger.info(f"Layout manager window size: {width}x{height}")
         
         # Now refresh the dimensions instance to get updated values
         self.dims.refresh()
+        logger.info(f"Dimensions refreshed, window_size: {self.dims.window_size}")
         
         # Verify dimensions are consistent
         window_width, window_height = self.dims.window_size
@@ -461,16 +480,17 @@ class MainWindow(WindowPositionMixin):
             if parsed:
                 w, h, x, y = parsed
                 logger.debug(f"Parsed geometry: width={w}, height={h}, x={x}, y={y}")
-                # Use adaptive size, only restore position
+                # IMPORTANT: Always use adaptive size, NEVER use saved size
                 w = width
                 h = height
+                logger.info(f"Overriding saved size {parsed[0]}x{parsed[1]} with adaptive size {w}x{h}")
                 # Validate position is still on screen
                 original_x, original_y = x, y
                 x, y = self.geometry_manager.validate_position(x, y, w, h, screen_width, screen_height, width, height)
                 if x != original_x or y != original_y:
                     logger.debug(f"Position adjusted from ({original_x}, {original_y}) to ({x}, {y})")
                 self.root.geometry(f"{w}x{h}+{x}+{y}")
-                logger.info(f"Restored window position to {x}+{y}")
+                logger.info(f"Restored window position to {x}+{y} with adaptive size {w}x{h}")
                 # Force window manager to respect our position
                 self.root.update()
                 self.root.wm_geometry(f"+{x}+{y}")  # Set position again after update

@@ -239,16 +239,15 @@ class LayoutManager:
     def get_window_size(self) -> Tuple[int, int]:
         """Get the window size for current layout."""
         if not self.current_dimensions:
-            # Fallback to minimum supported
-            return 683, 447
+            # Don't provide fallback - require proper initialization
+            raise RuntimeError("LayoutManager not initialized. Call initialize_for_screen() first.")
         return self.current_dimensions.window_width, self.current_dimensions.window_height
 
     def get_dimensions(self) -> LayoutDimensions:
         """Get all scaled dimensions for current layout."""
         if not self.current_dimensions:
-            # Return minimum supported dimensions
-            min_layout = self.SCREEN_LAYOUTS[1]  # 12.5" layout
-            return self.calculate_dimensions(min_layout)
+            # Don't provide fallback - require proper initialization
+            raise RuntimeError("LayoutManager not initialized. Call initialize_for_screen() first.")
         return self.current_dimensions
 
     def scale_value(self, base_value: int) -> int:
@@ -268,3 +267,9 @@ def get_layout_manager() -> LayoutManager:
     if _layout_manager is None:
         _layout_manager = LayoutManager()
     return _layout_manager
+
+
+def reset_layout_manager() -> None:
+    """Reset the global layout manager instance. Used for re-initialization after Tk root is created."""
+    global _layout_manager
+    _layout_manager = None

@@ -83,10 +83,10 @@ class ThreadResourceManager:
     MAX_THREAD_MEMORY_MB = 100    # Memory limit per thread (increased for package operations)
 
     # Security thresholds with startup considerations
-    MAX_CPU_PERCENT = 80          # Maximum CPU usage before blocking
-    MAX_MEMORY_PERCENT = 85       # Maximum memory usage before blocking
+    MAX_CPU_PERCENT = 95          # Increased from 80 to be more lenient
+    MAX_MEMORY_PERCENT = 90       # Increased from 85 to be more lenient
     CLEANUP_INTERVAL = 30         # More frequent cleanup
-    STARTUP_GRACE_PERIOD = 30     # Seconds to be more lenient after app start
+    STARTUP_GRACE_PERIOD = 60     # Increased from 30 seconds for slower systems
 
     # Class-level tracking with enhanced monitoring
     _active_threads = 0
