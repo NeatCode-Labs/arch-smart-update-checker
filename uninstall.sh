@@ -45,11 +45,15 @@ safe_remove() {
                 ((ITEMS_REMOVED++))
             else
                 print_info "Removing $description directory: $path"
-                if rm -rf "$path" 2>/dev/null; then
+                if rm -rf "$path"; then
                     print_success "Removed $description directory"
                     ((ITEMS_REMOVED++))
                 else
-                    print_error "Failed to remove $description directory: $path"
+                    local exit_code=$?
+                    print_error "Failed to remove $description directory: $path (exit code: $exit_code)"
+                    print_error "This may be due to permission issues or files in use"
+                    print_warning "Please check the directory manually: $path"
+                    return 1
                 fi
             fi
         elif [ -f "$path" ]; then
@@ -58,11 +62,15 @@ safe_remove() {
                 ((ITEMS_REMOVED++))
             else
                 print_info "Removing $description file: $path"
-                if rm -f "$path" 2>/dev/null; then
+                if rm -f "$path"; then
                     print_success "Removed $description file"
                     ((ITEMS_REMOVED++))
                 else
-                    print_error "Failed to remove $description file: $path"
+                    local exit_code=$?
+                    print_error "Failed to remove $description file: $path (exit code: $exit_code)"
+                    print_error "This may be due to permission issues or file in use"
+                    print_warning "Please check the file manually: $path"
+                    return 1
                 fi
             fi
         fi
@@ -221,11 +229,18 @@ main() {
     print_info "Starting uninstallation..."
     echo
     
+    # Track failures
+    CRITICAL_FAILURES=0
+    
     # Remove default configuration directory
-    safe_remove "$DEFAULT_CONFIG_DIR" "configuration"
+    if ! safe_remove "$DEFAULT_CONFIG_DIR" "configuration"; then
+        ((CRITICAL_FAILURES++))
+    fi
     
     # Remove default cache directory
-    safe_remove "$DEFAULT_CACHE_DIR" "cache"
+    if ! safe_remove "$DEFAULT_CACHE_DIR" "cache"; then
+        ((CRITICAL_FAILURES++))
+    fi
     
     # Remove default logs directory if verbose logging was enabled
     DEFAULT_LOGS_DIR="$DEFAULT_CONFIG_DIR/logs"
@@ -330,7 +345,18 @@ main() {
             print_warning "No items would be removed (nothing was found)"
         fi
     else
-        print_success "Uninstallation complete!"
+        # Check for critical failures
+        if [ $CRITICAL_FAILURES -gt 0 ]; then
+            print_error "Uninstallation completed with $CRITICAL_FAILURES critical failure(s)!"
+            print_warning "Some important directories/files could not be removed."
+            print_warning "Please check the error messages above and remove them manually."
+            echo
+            print_info "Manual cleanup may be required for:"
+            echo "  - Configuration: $DEFAULT_CONFIG_DIR"
+            echo "  - Cache (including update history): $DEFAULT_CACHE_DIR"
+        else
+            print_success "Uninstallation complete!"
+        fi
         
         # Summary
         if [ $ITEMS_REMOVED -gt 0 ]; then
@@ -364,6 +390,15 @@ main() {
         echo
         print_warning "Note: The custom config file was not removed: $CONFIG_FILE"
         print_info "You may want to remove it manually if no longer needed."
+    fi
+    
+    # Exit with appropriate code
+    if [ "$DRY_RUN" = true ]; then
+        exit 0  # Dry run always succeeds
+    elif [ $CRITICAL_FAILURES -gt 0 ]; then
+        exit 1  # Critical failures occurred
+    else
+        exit 0  # Success
     fi
 }
 
