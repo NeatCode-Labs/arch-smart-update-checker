@@ -42,12 +42,12 @@ safe_remove() {
         if [ -d "$path" ]; then
             if [ "$DRY_RUN" = true ]; then
                 print_info "[DRY RUN] Would remove $description directory: $path"
-                ((ITEMS_REMOVED++))
+                ITEMS_REMOVED=$((ITEMS_REMOVED + 1))
             else
                 print_info "Removing $description directory: $path"
                 if rm -rf "$path"; then
                     print_success "Removed $description directory"
-                    ((ITEMS_REMOVED++))
+                    ITEMS_REMOVED=$((ITEMS_REMOVED + 1))
                     return 0
                 else
                     local exit_code=$?
@@ -60,12 +60,12 @@ safe_remove() {
         elif [ -f "$path" ]; then
             if [ "$DRY_RUN" = true ]; then
                 print_info "[DRY RUN] Would remove $description file: $path"
-                ((ITEMS_REMOVED++))
+                ITEMS_REMOVED=$((ITEMS_REMOVED + 1))
             else
                 print_info "Removing $description file: $path"
                 if rm -f "$path"; then
                     print_success "Removed $description file"
-                    ((ITEMS_REMOVED++))
+                    ITEMS_REMOVED=$((ITEMS_REMOVED + 1))
                     return 0
                 else
                     local exit_code=$?
@@ -239,13 +239,13 @@ main() {
     # Remove default configuration directory
     safe_remove "$DEFAULT_CONFIG_DIR" "configuration"
     if [ $? -ne 0 ]; then
-        ((CRITICAL_FAILURES++))
+        CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
     fi
     
     # Remove default cache directory
     safe_remove "$DEFAULT_CACHE_DIR" "cache"
     if [ $? -ne 0 ]; then
-        ((CRITICAL_FAILURES++))
+        CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
     fi
     
     # Remove default logs directory if verbose logging was enabled
