@@ -195,6 +195,9 @@ cython_debug/
 .cache/
 config.json
 
+# AUR packaging
+aur/
+
 # Legacy and temporary files
 v1.0/
 screensizes.md

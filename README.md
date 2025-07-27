@@ -3,6 +3,7 @@
 [![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![AUR](https://img.shields.io/aur/version/arch-smart-update-checker?color=1793d1&label=AUR&logo=arch-linux)](https://aur.archlinux.org/packages/arch-smart-update-checker)
 [![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/SECURITY.md)
 [![Tests](https://img.shields.io/badge/tests-269%20passing-brightgreen.svg)](docs/TEST_REPORT.md)
 
@@ -36,6 +37,23 @@ Arch Smart Update Checker (ASUC) is an enterprise-grade update management tool f
 - **Display**: 1366×768 minimum (GUI only)
 
 ### Installation
+
+#### 📦 AUR Package (Recommended)
+
+```bash
+# Using yay
+yay -S arch-smart-update-checker
+
+# Using paru  
+paru -S arch-smart-update-checker
+
+# Manual AUR installation
+git clone https://aur.archlinux.org/arch-smart-update-checker.git
+cd arch-smart-update-checker
+makepkg -si
+```
+
+#### 🔧 From Source
 
 ```bash
 # Clone the repository
@@ -211,6 +229,21 @@ arch-smart-update-checker/
 - Automatic memory management
 
 ## 🗑️ Uninstallation
+
+### AUR Package
+
+```bash
+# Uninstall package
+yay -Rns arch-smart-update-checker
+# or
+paru -Rns arch-smart-update-checker
+
+# Cleanup instructions will be displayed after removal
+# To remove all user data (optional):
+rm -rf ~/.config/arch-smart-update-checker ~/.cache/arch-smart-update-checker
+```
+
+### Source Installation
 
 Complete removal with the uninstall script:
 
