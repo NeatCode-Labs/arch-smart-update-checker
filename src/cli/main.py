@@ -250,6 +250,12 @@ class AsucCLI:
     def cmd_check(self, args: argparse.Namespace) -> int:
         """Handle 'check' command - perform update & news check."""
         try:
+            # Always sync database first
+            if not args.quiet and not args.json:
+                self.formatter.info("Syncing package database...")  # type: ignore[union-attr]
+            if not self.package_manager.sync_database():
+                self.formatter.warning("Database sync failed, continuing with check...")  # type: ignore[union-attr]
+                    
             # Regular comprehensive check (updates + news)
             result = self.checker.check_updates()
 
@@ -452,10 +458,16 @@ class AsucCLI:
 
     def cmd_updates(self, args: argparse.Namespace) -> int:
         """Handle 'updates' command - list available package updates only."""
-        if not args.quiet and not args.json:
-            self.formatter.info("Checking for package updates only...")  # type: ignore[union-attr]
-
         try:
+            # Always sync database first
+            if not args.quiet and not args.json:
+                self.formatter.info("Syncing package database...")  # type: ignore[union-attr]
+            if not self.package_manager.sync_database():
+                self.formatter.warning("Database sync failed, continuing with check...")  # type: ignore[union-attr]
+                    
+            if not args.quiet and not args.json:
+                self.formatter.info("Checking for package updates...")  # type: ignore[union-attr]
+                
             updates = self.package_manager.check_for_updates()
 
             if args.json:

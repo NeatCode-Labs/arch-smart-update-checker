@@ -356,6 +356,41 @@ class PackageManager:
             logger.error(f"Unexpected error during update check: {e}")
             return []
 
+    def sync_database(self) -> bool:
+        """
+        Sync pacman database by running pacman -Sy.
+
+        Returns:
+            True if sync was successful, False otherwise
+        """
+        try:
+            logger.info("Syncing pacman database...")
+            
+            # Run pacman -Sy with sudo
+            result = SecureSubprocess.run_pacman(
+                ["-Sy"],
+                require_sudo=True,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=60  # Give it more time for database sync
+            )
+
+            if result.returncode == 0:
+                logger.info("Database sync completed successfully")
+                return True
+            else:
+                error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                logger.error(f"Database sync failed: {error_msg}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            logger.error("Database sync timed out")
+            return False
+        except Exception as e:
+            logger.error(f"Error during database sync: {e}")
+            return False
+
     def _populate_update_sizes(self, updates: List[PackageUpdate]) -> None:
         """
         Populate size information for package updates.

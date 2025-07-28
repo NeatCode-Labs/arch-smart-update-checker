@@ -33,7 +33,7 @@ def create_parser() -> argparse.ArgumentParser:
         action='store_true',
         help='Launch graphical user interface'
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 2.2.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 2.2.1")
     
     args = parser.parse_args()
 

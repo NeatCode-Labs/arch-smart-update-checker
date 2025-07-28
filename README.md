@@ -95,9 +95,11 @@ The GUI provides an intuitive interface with:
 Comprehensive command-line interface:
 ```bash
 # Check for updates with news (default)
+# Note: Automatically syncs package database (sudo pacman -Sy) before checking
 asuc-cli
 
 # List updates only
+# Note: Also syncs database automatically
 asuc-cli updates [--json]
 
 # Show relevant news
@@ -116,10 +118,28 @@ asuc-cli clear-cache
 ```
 
 #### Exit Codes
-- `0`: Success, no updates available
-- `10`: Updates available
-- `20`: Error occurred
-- `30`: Update failed
+- `0`: Success - Command completed successfully, no updates available
+- `10`: Success - Command completed successfully, updates are available (NOT an error)
+- `2`: Error - Invalid command line arguments or syntax
+- `20`: Error - General error (network issues, parsing failures, etc.)
+- `30`: Error - Package upgrade failed
+- `130`: Interrupted - User pressed Ctrl+C
+
+**Note**: Exit code 10 is NOT an error! It's an informational code indicating that updates were found.
+
+##### Using Exit Codes in Scripts
+```bash
+#!/bin/bash
+asuc-cli --quiet
+case $? in
+    0)  echo "System is up to date" ;;
+    10) echo "Updates available - consider upgrading" ;;
+    2)  echo "Command syntax error" ;;
+    20) echo "Error occurred during check" ;;
+    30) echo "Update failed" ;;
+    130) echo "Operation cancelled by user" ;;
+esac
+```
 
 ### Configuration
 

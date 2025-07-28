@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arch-smart-update-checker"
-version = "2.2.0"
+version = "2.2.1"
 description = "Smart update checker for Arch Linux that shows relevant news before updating"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}

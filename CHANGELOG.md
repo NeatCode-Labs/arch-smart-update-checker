@@ -5,6 +5,19 @@ All notable changes to Arch Smart Update Checker will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-07-28
+
+### Changed
+- **Automatic Database Sync** - CLI now automatically runs `pacman -Sy` before checking for updates
+  - Ensures users always see the latest available updates
+  - No need to manually sync the database first
+  - Works for both `asuc-cli` and `asuc-cli updates` commands
+
+### Documentation
+- Added comprehensive exit code documentation to README
+- Added practical examples for using exit codes in scripts
+- Clarified that exit code 10 (updates available) is not an error
+
 ## [2.2.0] - 2025-07-26
 
 ### Added
