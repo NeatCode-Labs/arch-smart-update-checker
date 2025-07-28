@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - To two-line format with aligned numbers:
     ```
     ✓ x package(s) updated
-        y remaining
+      y remaining
     ```
   - Used plain checkmark (✓) instead of emoji for consistent rendering
   - Increased wraplength to prevent line breaking
