@@ -434,14 +434,6 @@ class DashboardFrame(ttk.Frame):
 
         # No need to update database sync time anymore since it's integrated
 
-
-
-        # Function to update progress (thread-safe)
-        def update_progress(text):
-            progress_text.insert('end', text + '\n')
-            progress_text.see('end')
-            progress_text.update_idletasks()
-
     def update_all_packages(self):
         """Update all packages on the system."""
         if messagebox.askyesno("Confirm Update",
@@ -534,9 +526,8 @@ class DashboardFrame(ttk.Frame):
                 pass
 
     def update_database_sync_time(self):
-        """Update the database sync time label (kept for compatibility)."""
-        # This is now a no-op since we track last full update instead
-        pass
+        """Update the database sync time display."""
+        # No need to update database sync time anymore since it's integrated
 
     def refresh(self):
         """Refresh all dashboard data."""

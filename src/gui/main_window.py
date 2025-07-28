@@ -1070,7 +1070,8 @@ class MainWindow(WindowPositionMixin):
                             self.root.after(0, lambda: self.update_status(f"Database sync failed: {error_msg}", "error"))
                 except Exception as e:
                     logger.error(f"Failed to sync database: {e}")
-                    self.root.after(0, lambda: self.update_status(f"Database sync error: {str(e)}", "error"))
+                    error_msg = str(e)
+                    self.root.after(0, lambda: self.update_status(f"Database sync error: {error_msg}", "error"))
                 
                 # Only continue with update check if sync was successful
                 if not sync_success:
@@ -3175,9 +3176,10 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
             except Exception as e:
                 logger.error(f"Failed to execute update with pkexec: {e}")
+                error_msg = str(e)
                 try:
                     self.main_window.root.after(0, lambda: messagebox.showerror("Update Error",
-                                         f"Failed to execute update: {str(e)}\n\n"
+                                         f"Failed to execute update: {error_msg}\n\n"
                                          "Make sure pkexec is installed (polkit package)"))
                 except Exception:
                     # In test environment, skip UI updates
