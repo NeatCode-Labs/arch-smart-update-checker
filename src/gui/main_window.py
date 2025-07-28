@@ -3229,7 +3229,9 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             
             # Mark that a full update was performed
             if 'dashboard' in self.main_window.frames:
-                self.main_window.frames['dashboard']._mark_full_update()
+                dashboard = self.main_window.frames['dashboard']
+                if hasattr(dashboard, '_mark_full_update'):
+                    dashboard._mark_full_update()
             
             # Clear the update counts in checker
             if hasattr(self.main_window.checker, 'last_updates'):
