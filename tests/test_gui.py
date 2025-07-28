@@ -245,8 +245,27 @@ class TestMainWindow(unittest.TestCase):
 
     def test_run_check(self):
         """Test update check functionality."""
-        with patch.object(self.main_window, 'update_status'):
+        # Mock the thread creation to avoid actual threading
+        with patch('src.utils.thread_manager.create_managed_thread') as mock_thread, \
+             patch.object(self.main_window, 'update_status'), \
+             patch.object(self.main_window.root, 'after'), \
+             patch.object(self.main_window, '_update_check_lock') as mock_lock, \
+             patch.object(self.main_window, '_is_checking_simple', False):
+            # Configure mock lock
+            mock_lock.__enter__ = Mock()
+            mock_lock.__exit__ = Mock()
+            
+            # Configure mock thread
+            mock_thread_instance = Mock()
+            mock_thread_instance.start = Mock()
+            mock_thread.return_value = mock_thread_instance
+            
+            # Call run_check
             self.main_window.run_check()
+            
+            # Verify thread was created and started
+            mock_thread.assert_called_once()
+            mock_thread_instance.start.assert_called_once()
             # Should not raise any exceptions
 
     def test_on_closing(self):

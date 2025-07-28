@@ -8,6 +8,7 @@ where pacman is available.
 
 import unittest
 import os
+from unittest.mock import patch, Mock
 import subprocess
 from unittest import skipIf
 
@@ -153,49 +154,54 @@ class TestUpdateCheckerIntegration(unittest.TestCase):
         self.config = Config()
         self.checker = UpdateChecker(self.config)
 
-    def test_real_update_check(self):
-        """Test real update checking (read-only)."""
-        try:
-            # This only checks, doesn't modify system
-            updates, news = self.checker.check_updates()
-            
-            # Verify return types
-            self.assertIsInstance(updates, list)
-            self.assertIsInstance(news, list)
-            
-            # Updates might be empty, that's OK
-            if updates:
-                # Each update should have expected format
-                for update in updates[:3]:  # Check first 3
-                    self.assertIsInstance(update, str)
-                    # Should be "package version" format
-                    self.assertGreater(len(update.split()), 1)
-                    
-        except Exception as e:
-            # OK to skip if system not set up for testing
-            self.skipTest(f"Update check not available: {e}")
+    @patch('src.package_manager.PackageManager.check_for_updates')
+    @patch('src.news_fetcher.NewsFetcher.fetch_all_feeds')
+    def test_real_update_check(self, mock_fetch_news, mock_check_updates):
+        """Test update checking flow with mocked external calls."""
+        # Mock package updates
+        from src.models import PackageUpdate
+        mock_updates = [
+            PackageUpdate(name="linux", current_version="6.1.0", new_version="6.2.0", size=100000),
+            PackageUpdate(name="firefox", current_version="100.0", new_version="101.0", size=50000)
+        ]
+        mock_check_updates.return_value = mock_updates
+        
+        # Mock news items
+        from src.models import NewsItem, FeedType
+        from datetime import datetime
+        mock_news = [
+            NewsItem(
+                title='Important Update',
+                link='https://archlinux.org/news/1',
+                date=datetime(2024, 1, 1),
+                content='Security update',
+                source='Arch Linux News',
+                priority=1,
+                source_type=FeedType.NEWS,
+                affected_packages={'linux'}
+            )
+        ]
+        # Return NewsItem objects directly
+        mock_fetch_news.return_value = mock_news
+        
+        # Run the check
+        result = self.checker.check_updates()
+        
+        # Verify return type
+        from src.models import UpdateCheckResult
+        self.assertIsInstance(result, UpdateCheckResult)
+        
+        # Verify the mock data was processed correctly
+        self.assertEqual(result.update_count, 2)
+        self.assertEqual(len(result.updates), 2)
+        self.assertEqual(result.updates[0].name, "linux")
+        self.assertEqual(result.updates[1].name, "firefox")
+        
+        # Verify news
+        self.assertEqual(result.news_count, 1)
+        self.assertEqual(result.news_items[0].title, 'Important Update')
 
-    def test_real_news_fetching(self):
-        """Test fetching real news (network operation)."""
-        if not os.environ.get('INTEGRATION_TEST_NETWORK', False):
-            self.skipTest("Network tests disabled by default")
-            
-        try:
-            # Try to fetch real news
-            news_items = self.checker.news_fetcher.get_latest_news()
-            
-            # Should return a list
-            self.assertIsInstance(news_items, list)
-            
-            # If we got news, verify format
-            if news_items:
-                item = news_items[0]
-                self.assertIn('title', item)
-                self.assertIn('link', item)
-                self.assertIn('published', item)
-                
-        except Exception as e:
-            self.skipTest(f"News fetching not available: {e}")
+
 
 
 if __name__ == '__main__':

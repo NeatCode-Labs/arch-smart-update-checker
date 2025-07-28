@@ -55,7 +55,7 @@
 
 - **Privilege Escalation:**
   - Uses `pkexec` (polkit) by default, with fallback to `sudo` or `doas` as needed.
-  - Password prompts handled securely (Zenity for GUI, never stores passwords).
+  - Password prompts handled securely (polkit for GUI via pkexec, terminal input for CLI).
   - Only whitelisted commands allowed with privilege escalation.
   - All privileged operations are logged as security events.
 

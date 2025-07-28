@@ -10,9 +10,10 @@ import tempfile
 import os
 import time
 import subprocess
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
+import re
 
 from ..utils.logger import get_logger, log_security_event
 from ..utils.update_history import UpdateHistoryEntry
@@ -26,43 +27,130 @@ class PacmanRunner:
 
     @staticmethod
     def get_database_last_sync_time() -> Optional[datetime]:
-        """
-        Get the last time pacman database was synced by checking the modification
-        time of sync database files.
-
-        Returns:
-            datetime of last sync or None if unable to determine
-        """
-        sync_dir = Path("/var/lib/pacman/sync")
-
+        """Get the last time the package database was synced."""
         try:
-            if not sync_dir.exists():
-                logger.warning("Pacman sync directory does not exist")
-                return None
-
-            # Check for common db files (core.db, extra.db, multilib.db, etc.)
-            db_files = list(sync_dir.glob("*.db"))
-
-            if not db_files:
-                logger.warning("No database files found in pacman sync directory")
-                return None
-
-            # Get the most recent modification time
-            latest_mtime = max(db_file.stat().st_mtime for db_file in db_files)
-
-            # Convert to datetime in local timezone
-            # The file system stores timestamps in UTC, but fromtimestamp() converts to local time
-            # This is the correct behavior - we want to display local time to the user
-            sync_time = datetime.fromtimestamp(latest_mtime)
-
-            # Log the detected time for debugging
-            logger.debug(f"Database sync time detected: {sync_time} (timestamp: {latest_mtime})")
-
-            return sync_time
-
+            # Check multiple possible locations for pacman database
+            db_paths = [
+                "/var/lib/pacman/sync/core.db",
+                "/var/lib/pacman/sync/extra.db",
+                "/var/lib/pacman/sync/multilib.db"
+            ]
+            
+            latest_time = None
+            for db_path in db_paths:
+                if os.path.exists(db_path):
+                    mtime = os.path.getmtime(db_path)
+                    db_time = datetime.fromtimestamp(mtime)
+                    if latest_time is None or db_time > latest_time:
+                        latest_time = db_time
+            
+            return latest_time
+            
         except Exception as e:
-            logger.error(f"Error getting database sync time: {e}")
+            logger.error(f"Failed to get database sync time: {e}")
             return None
+
+    @staticmethod
+    def get_last_full_update_time() -> Optional[datetime]:
+        """Get the last time a full system update was performed (from pacman log)."""
+        try:
+            pacman_log = "/var/log/pacman.log"
+            if not os.path.exists(pacman_log):
+                return None
+            
+            # We'll look for patterns that indicate a full system update
+            # Full updates typically have "starting full system upgrade" in the log
+            full_update_pattern = re.compile(r'\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4})\].*starting full system upgrade')
+            
+            last_update_time = None
+            
+            # Read the log file from the end for efficiency (most recent entries first)
+            # We'll read the last 10MB of the log to find recent updates
+            max_bytes = 10 * 1024 * 1024  # 10MB
+            
+            with open(pacman_log, 'rb') as f:
+                # Seek to the end
+                f.seek(0, 2)
+                file_size = f.tell()
+                
+                # Read from max_bytes before end, or from start if file is smaller
+                start_pos = max(0, file_size - max_bytes)
+                f.seek(start_pos)
+                
+                # Read the content
+                content = f.read().decode('utf-8', errors='ignore')
+                
+                # Find all full system upgrade entries
+                for match in full_update_pattern.finditer(content):
+                    timestamp_str = match.group(1)
+                    try:
+                        # Parse the timestamp
+                        update_time = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S%z')
+                        # Remove timezone info for comparison
+                        update_time = update_time.replace(tzinfo=None)
+                        
+                        if last_update_time is None or update_time > last_update_time:
+                            last_update_time = update_time
+                    except Exception as e:
+                        logger.debug(f"Failed to parse timestamp {timestamp_str}: {e}")
+                        continue
+            
+            return last_update_time
+            
+        except Exception as e:
+            logger.error(f"Failed to get last full update time from pacman log: {e}")
+            return None
+
+    @staticmethod
+    def sync_database(config) -> Dict[str, Any]:
+        """
+        Sync pacman database using secure subprocess execution.
+        
+        Returns:
+            Dict with 'success' (bool), 'output' (str), and 'error' (str if failed)
+        """
+        try:
+            logger.info("Syncing pacman database...")
+            
+            # Use pkexec for privilege elevation (more secure than sudo)
+            result = SecureSubprocess.run(
+                ["pkexec", "pacman", "-Sy"],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=300  # 5 minute timeout for sync
+            )
+            
+            if result.returncode == 0:
+                logger.info("Database sync completed successfully")
+                return {
+                    'success': True,
+                    'output': result.stdout,
+                    'error': None
+                }
+            else:
+                error_msg = result.stderr if result.stderr else f"Exit code: {result.returncode}"
+                logger.error(f"Database sync failed: {error_msg}")
+                return {
+                    'success': False,
+                    'output': result.stdout,
+                    'error': error_msg
+                }
+                
+        except subprocess.TimeoutExpired:
+            logger.error("Database sync timed out")
+            return {
+                'success': False,
+                'output': '',
+                'error': 'Sync operation timed out after 5 minutes'
+            }
+        except Exception as e:
+            logger.error(f"Failed to sync database: {e}")
+            return {
+                'success': False,
+                'output': '',
+                'error': str(e)
+            }
 
     @staticmethod
     def run_update_in_terminal(packages: List[str]) -> Optional[subprocess.Popen]:

@@ -52,7 +52,7 @@ class TestUserWorkflows(unittest.TestCase):
             dashboard.dots_count = 0
             dashboard.start_checking_animation = Mock()
             dashboard.update_button = Mock()
-            dashboard.db_sync_time_label = Mock()  # Add missing label
+            dashboard.last_full_update_label = Mock()  # Add missing label
             
             # Simulate button click
             dashboard.check_updates()

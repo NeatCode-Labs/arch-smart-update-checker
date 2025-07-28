@@ -280,49 +280,29 @@ class DashboardFrame(ttk.Frame):
             self.update_all_button,
             "Update all packages on the system (pacman -Syu)\n\n⚠️ WARNING: This will directly update the system without\nretrieving or displaying potentially important news items.\nConsider using 'Check for Updates' first to see news.")
 
-        # Right column for Sync Database button (expands to fill remaining space)
+        # Right column for Last full update info (expands to fill remaining space)
         right_column = ttk.Frame(buttons_container, style='Card.TFrame')
         right_column.grid(row=0, column=1, sticky='new', padx=(self.dims.pad_medium, 0))
 
-        # Sync Database button with same dimensions as Check for Updates
-        self.sync_button = tk.Button(right_column,
-                                     text="🔁 Sync Database",
-                                     font=self.dims.font('Segoe UI', 'medium'),
-                                     fg='white',
-                                     bg=self.main_window.colors['secondary'],
-                                     activebackground=self.main_window.colors['secondary'],
-                                     activeforeground='white',
-                                     bd=0,
-                                     padx=self.dims.button_padx,
-                                     pady=self.dims.button_pady,
-                                     cursor='hand2',
-                                     width=button_width,  # Same fixed width
-                                     command=self.sync_database)
-        self.sync_button.pack(pady=(0, self.dims.pad_medium))  # Match the Check for Updates button padding
-        # Add tooltip to sync button
-        self._add_tooltip(
-            self.sync_button,
-            "Refresh the package database (sudo pacman -Sy)\nRecommended: Run this before checking for updates\nAlso run if packages seem out of date or missing")
+        # Last full update container (aligned with update all button)
+        last_update_container = ttk.Frame(right_column, style='Card.TFrame')
+        last_update_container.pack(fill='x', pady=(self.dims.pad_small, 0))  # Aligned below where sync button was
 
-        # Database sync status container below sync button (aligned with sync button)
-        db_sync_container = ttk.Frame(right_column, style='Card.TFrame')
-        db_sync_container.pack(fill='x', pady=(self.dims.pad_small, 0))  # Aligned below sync button
-
-        # Database sync label (first line) - centered with sync button
-        db_sync_label_text = tk.Label(db_sync_container,
-                                      text="Database last synced:",
+        # Last full update label (first line) - centered
+        last_update_label_text = tk.Label(last_update_container,
+                                      text="Last full update:",
                                       font=self.dims.font('Segoe UI', 'small'),
                                       fg=self.main_window.colors['text_secondary'],
                                       bg=self.main_window.colors['surface'])
-        db_sync_label_text.pack()  # Centered alignment
+        last_update_label_text.pack()
 
-        # Database sync time (second line) - centered with sync button
-        self.db_sync_time_label = tk.Label(db_sync_container,
-                                           text="Checking...",
-                                           font=self.dims.font('Segoe UI', 'normal'),
+        # Last full update time value (second line) - centered
+        self.last_full_update_label = tk.Label(last_update_container,
+                                           text="Never",
+                                           font=self.dims.font('Segoe UI', 'normal', 'bold'),
                                            fg=self.main_window.colors['text'],
                                            bg=self.main_window.colors['surface'])
-        self.db_sync_time_label.pack()  # Centered alignment
+        self.last_full_update_label.pack()
 
         # Status label below buttons (second row)
         self.status_label = tk.Label(buttons_frame,
@@ -452,333 +432,24 @@ class DashboardFrame(ttk.Frame):
         # Refresh to show new last check time
         self.refresh()
 
-        # Update database sync time after check
-        self.update_database_sync_time()
+        # No need to update database sync time anymore since it's integrated
 
-    def sync_database(self) -> None:
-        """Sync package database with progress indication."""
-        if not messagebox.askyesno("Sync Database",
-                                   "This will sync the package database with the latest from mirrors.\n\n"
-                                   "Continue?"):
-            return
 
-        # Create a progress dialog first (in main thread)
-        progress_dialog = tk.Toplevel(self.main_window.root)
-        progress_dialog.title("Syncing Database")
-        dialog_w, dialog_h = self.dims.dialog_size
-        progress_dialog.geometry(f"{dialog_w}x{dialog_h}")
-        progress_dialog.transient(self.main_window.root)
-
-        # Center the dialog
-        progress_dialog.update_idletasks()
-        x = (progress_dialog.winfo_screenwidth() // 2) - (dialog_w // 2)
-        y = (progress_dialog.winfo_screenheight() // 2) - (dialog_h // 2)
-        progress_dialog.geometry(f"+{x}+{y}")
-
-        # Create UI elements
-        info_label = ttk.Label(progress_dialog,
-                               text="Syncing package database with mirrors...",
-                               font=self.dims.font('Arial', 'medium'))
-        info_label.pack(pady=self.dims.pad_medium)
-
-        # Progress text
-        text_height = self.dims.scale(8)
-        text_width = self.dims.scale(70)
-        progress_text = tk.Text(progress_dialog, height=text_height, width=text_width, wrap='word')
-        progress_text.pack(fill='both', expand=True, padx=self.dims.pad_large, pady=self.dims.pad_medium)
-
-        # Status label
-        status_label = ttk.Label(progress_dialog, text="Waiting for authentication...")
-        status_label.pack(pady=5)
-
-        # Close button (disabled initially)
-        close_btn = ttk.Button(progress_dialog, text="Close",
-                               command=progress_dialog.destroy, state='disabled')
-        close_btn.pack(pady=10)
 
         # Function to update progress (thread-safe)
-        def update_progress(line):
-            try:
-                progress_text.insert('end', line + '\n')
-                progress_text.see('end')
-                progress_dialog.update()
-            except tk.TclError:
-                pass  # Dialog was closed
-
-        # Run sync with pkexec in thread
-        def sync_thread():
-            try:
-                logger.info("=== SYNC THREAD STARTED ===")
-                print("DEBUG: sync_thread started", flush=True)
-
-                # Build secure pacman command
-                sync_cmd = ["pkexec", "pacman", "-Sy", "--noconfirm"]
-
-                # Run the command with real-time output
-                success = False
-                exit_code = -1
-
-                try:
-                    import subprocess
-
-                    logger.info(f"Starting sync with command: {sync_cmd}")
-
-                    # Check if we're on a hardened kernel
-                    uname_result = subprocess.run(["uname", "-r"], capture_output=True, text=True)
-                    is_hardened = "hardened" in uname_result.stdout.lower()
-                    logger.info(f"Kernel: {uname_result.stdout.strip()}, hardened: {is_hardened}")
-
-                    # First check if we're already root or have passwordless sudo
-                    check_cmd = ["sudo", "-n", "true"]
-                    check_result = subprocess.run(check_cmd, capture_output=True)
-
-                    if check_result.returncode == 0:
-                        # We have passwordless sudo, use it instead of pkexec
-                        sync_cmd = ["sudo", "pacman", "-Sy", "--noconfirm"]
-                        logger.info("Using sudo instead of pkexec (passwordless available)")
-                    elif is_hardened:
-                        # On hardened kernels, skip pkexec entirely and go to zenity
-                        logger.info("Hardened kernel detected, skipping pkexec")
-
-                        # Update status
-                        self.main_window.root.after(0, lambda: status_label.config(
-                            text="Using alternative authentication for hardened kernel..."))
-
-                        # Use zenity for password prompt
-                        zenity_cmd = [
-                            "zenity", "--password",
-                            "--title=Authentication Required",
-                            "--text=Enter your password to sync package database:"
-                        ]
-
-                        logger.info("Showing zenity password dialog...")
-                        zenity_result = subprocess.run(
-                            zenity_cmd,
-                            capture_output=True,
-                            text=True
-                        )
-
-                        if zenity_result.returncode == 0 and zenity_result.stdout:
-                            password = zenity_result.stdout.strip()
-                            logger.info("Got password from zenity")
-
-                            # Test sudo with password
-                            test_sudo = subprocess.Popen(
-                                ["sudo", "-S", "true"],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                text=True
-                            )
-                            test_out, test_err = test_sudo.communicate(input=password + '\n')
-
-                            if test_sudo.returncode == 0:
-                                sync_cmd = ["sudo", "-S", "pacman", "-Sy", "--noconfirm"]
-                                self._sudo_password = password
-                                logger.info("Authentication successful with zenity")
-                            else:
-                                logger.error(f"sudo test failed: {test_err}")
-                                raise Exception("Invalid password")
-                        else:
-                            raise Exception("Password dialog cancelled")
-                    else:
-                        # Check if we're on a hardened kernel that might have pkexec issues
-                        if is_hardened:
-                            # On hardened kernels, pkexec might hang or not work properly
-                            # Skip pkexec entirely and go straight to zenity fallback
-                            logger.info("Hardened kernel detected, using zenity instead of pkexec")
-
-                            # Update status
-                            self.main_window.root.after(0, lambda: status_label.config(
-                                text="Using alternative authentication for hardened kernel..."))
-
-                            # Use zenity for password prompt
-                            if subprocess.run(["which", "zenity"], capture_output=True).returncode == 0:
-                                zenity_cmd = [
-                                    "zenity", "--password",
-                                    "--title=Authentication Required",
-                                    "--text=Enter your password to sync package database:"
-                                ]
-
-                                try:
-                                    zenity_result = subprocess.run(
-                                        zenity_cmd,
-                                        capture_output=True,
-                                        text=True,
-                                        timeout=60
-                                    )
-
-                                    if zenity_result.returncode == 0 and zenity_result.stdout:
-                                        password = zenity_result.stdout.strip()
-
-                                        # Test sudo with password
-                                        test_sudo = subprocess.Popen(
-                                            ["sudo", "-S", "true"],
-                                            stdin=subprocess.PIPE,
-                                            stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE,
-                                            text=True
-                                        )
-                                        test_out, test_err = test_sudo.communicate(input=password + '\n')
-
-                                        if test_sudo.returncode == 0:
-                                            sync_cmd = ["sudo", "-S", "pacman", "-Sy", "--noconfirm"]
-                                            self._sudo_password = password
-                                            logger.info("Authentication successful with zenity")
-                                        else:
-                                            logger.error(f"sudo test failed: {test_err}")
-                                            raise Exception("Invalid password")
-                                    else:
-                                        raise Exception("Password dialog cancelled")
-
-                                except Exception as e:
-                                    logger.error(f"Zenity authentication failed: {e}")
-                                    exit_code = 1
-                                    success = False
-                                    raise Exception(f"Authentication failed: {str(e)}")
-                            else:
-                                exit_code = 1
-                                success = False
-                                raise Exception("No authentication method available")
-                        else:
-                            # On regular kernels, use pkexec directly without pre-testing
-                            # This avoids the double password prompt issue
-                            logger.info("Using pkexec for authentication")
-
-                    # Update status
-                    self.main_window.root.after(0, lambda: status_label.config(text="Syncing database..."))
-
-                    # Run the actual sync command with output capture
-                    # Now we can safely capture output since we're already authenticated
-                    if sync_cmd[0] == "sudo" and sync_cmd[1] == "-S":
-                        # Use the stored password for sudo -S
-                        process = subprocess.Popen(
-                            sync_cmd,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            text=True,
-                            bufsize=1,
-                            universal_newlines=True
-                        )
-                        # Send password
-                        process.stdin.write(self._sudo_password + '\n')
-                        process.stdin.flush()
-                        # Clear password from memory
-                        self._sudo_password = None
-                    else:
-                        process = subprocess.Popen(
-                            sync_cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            text=True,
-                            bufsize=1,
-                            universal_newlines=True
-                        )
-
-                    logger.info(f"Process started with PID: {process.pid}")
-
-                    # Read output line by line
-                    while True:
-                        line = process.stdout.readline()
-                        if not line and process.poll() is not None:
-                            break
-                        if line:
-                            line = line.strip()
-                            if line:
-                                logger.info(f"Output: {line}")
-                                self.main_window.root.after(0, lambda line_text=line: update_progress(line_text))
-
-                    # Get exit code
-                    exit_code = process.poll()
-                    success = (exit_code == 0)
-                    logger.info(f"Sync process completed with exit code: {exit_code}")
-
-                    # Update sync time if successful
-                    if success:
-                        # Create marker file to indicate successful sync
-                        marker_file = "/tmp/asuc_sync_success_marker"
-                        try:
-                            with open(marker_file, 'w') as f:
-                                f.write(str(datetime.now().timestamp()))
-                        except BaseException:
-                            pass
-
-                except subprocess.TimeoutExpired:
-                    logger.error("Sync command timed out")
-                    success = False
-                    exit_code = -1
-                    try:
-                        process.kill()
-                    except BaseException:
-                        pass
-                except Exception as e:
-                    logger.error(f"Error during sync execution: {e}")
-                    success = False
-                    if exit_code == -1:  # Only set if not already set
-                        exit_code = 1
-
-                # Update UI based on result (in main thread)
-                if success:
-                    def on_success():
-                        status_label.config(text="✅ Database sync completed successfully!", foreground='green')
-                        self.main_window.update_status("✅ Database synced successfully", "success")
-                        self._post_sync_update()
-
-                        # Force refresh the sync time after a short delay to ensure files are updated
-                        self.main_window.root.after(500, self.update_database_sync_time)
-                    self.main_window.root.after(0, on_success)
-                    # Don't auto-close - let users read the output and close manually
-                else:
-                    if exit_code == 126 or exit_code == 127:
-                        def on_cancelled():
-                            error_msg = ("❌ Authentication failed\n\n"
-                                         "No polkit authentication agent found.\n"
-                                         "Please ensure a polkit agent is running.\n\n"
-                                         "For Cinnamon, try running:\n"
-                                         "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
-                            update_progress(error_msg)
-                            status_label.config(text="❌ Authentication failed - see details above", foreground='red')
-                            self.main_window.update_status("Sync failed - no auth agent", "error")
-                        self.main_window.root.after(0, on_cancelled)
-                    else:
-                        def on_failed():
-                            status_label.config(text="❌ Database sync failed", foreground='red')
-                            self.main_window.update_status(f"❌ Sync failed with exit code {exit_code}", "error")
-                        self.main_window.root.after(0, on_failed)
-
-            except Exception as e:
-                logger.error(f"Failed to sync database: {e}")
-                error_msg = str(e)
-
-                def on_error():
-                    update_progress(f"Error: {error_msg}")
-                    status_label.config(text=f"❌ Error: {error_msg}", foreground='red')
-                self.main_window.root.after(0, on_error)
-
-            # Enable close button (in main thread)
-            self.main_window.root.after(0, lambda: close_btn.config(state='normal'))
-
-        # Use secure thread management
-        from ..utils.thread_manager import create_managed_thread
-        import uuid
-
-        thread_id = f"db_sync_{uuid.uuid4().hex[:8]}"
-        thread = create_managed_thread(thread_id, sync_thread, is_background=True)
-        if thread is None:
-            progress_dialog.destroy()
-            messagebox.showerror("Thread Error",
-                                 "Unable to start database sync: thread limit reached")
-        else:
-            # Start the thread!
-            thread.start()
-            logger.info(f"Started sync thread with ID: {thread_id}")
+        def update_progress(text):
+            progress_text.insert('end', text + '\n')
+            progress_text.see('end')
+            progress_text.update_idletasks()
 
     def update_all_packages(self):
         """Update all packages on the system."""
         if messagebox.askyesno("Confirm Update",
                                "Are you sure you want to update all packages?\n\n"
                                "This will run 'sudo pacman -Syu' and may take some time."):
+            # Track that a full update is being performed
+            self._mark_full_update()
+            
             # Get the package manager frame and call its run_pacman_update method
             if 'packages' in self.main_window.frames:
                 package_frame = self.main_window.frames['packages']
@@ -788,6 +459,66 @@ class DashboardFrame(ttk.Frame):
                 from .package_manager import PackageManagerFrame
                 temp_frame = PackageManagerFrame(self, self.main_window)
                 temp_frame.run_pacman_update()
+
+    def _mark_full_update(self):
+        """Mark that a full update has been performed."""
+        try:
+            import time
+            cache_dir = os.path.expanduser("~/.cache/arch-smart-update-checker")
+            os.makedirs(cache_dir, exist_ok=True)
+            last_update_file = os.path.join(cache_dir, "last_full_update")
+            with open(last_update_file, 'w') as f:
+                f.write(str(time.time()))
+            # Update the display immediately
+            self.update_last_full_update_time()
+        except Exception as e:
+            logger.warning(f"Failed to mark full update: {e}")
+
+    def update_last_full_update_time(self):
+        """Update the last full update time label."""
+        try:
+            logger.debug("Updating last full update time display...")
+            # First check pacman log for external updates
+            from ..utils.pacman_runner import PacmanRunner
+            external_update_time = PacmanRunner.get_last_full_update_time()
+            logger.debug(f"External update time from pacman log: {external_update_time}")
+            
+            # Then check our app's tracked update time
+            cache_dir = os.path.expanduser("~/.cache/arch-smart-update-checker")
+            last_update_file = os.path.join(cache_dir, "last_full_update")
+            
+            app_update_time = None
+            if os.path.exists(last_update_file):
+                with open(last_update_file, 'r') as f:
+                    timestamp = float(f.read().strip())
+                    app_update_time = datetime.fromtimestamp(timestamp)
+            
+            # Use the most recent update time from either source
+            if external_update_time and app_update_time:
+                # Both exist, use the more recent one
+                update_time = max(external_update_time, app_update_time)
+                logger.debug(f"External update: {external_update_time}, App update: {app_update_time}, Using: {update_time}")
+            elif external_update_time:
+                # Only external update exists
+                update_time = external_update_time
+                logger.debug(f"Using external update time: {update_time}")
+            elif app_update_time:
+                # Only app update exists
+                update_time = app_update_time
+                logger.debug(f"Using app update time: {update_time}")
+            else:
+                # No update found
+                self.last_full_update_label.configure(text="Never")
+                return
+            
+            # Format as ISO date and time (YYYY-MM-DD HH:MM:SS)
+            iso_time = update_time.strftime('%Y-%m-%d %H:%M:%S')
+            self.last_full_update_label.configure(text=iso_time)
+            logger.debug(f"Updated last full update display to: {iso_time}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to update last full update time: {e}")
+            self.last_full_update_label.configure(text="Never")
 
     def _post_sync_update(self):
         """Update status and database sync time after sync operation."""
@@ -803,18 +534,9 @@ class DashboardFrame(ttk.Frame):
                 pass
 
     def update_database_sync_time(self):
-        """Update the database sync time label."""
-        sync_time = PacmanRunner.get_database_last_sync_time()
-
-        if sync_time:
-            # Format as ISO date and time (YYYY-MM-DD HH:MM:SS)
-            iso_time = sync_time.strftime('%Y-%m-%d %H:%M:%S')
-            self.db_sync_time_label.configure(text=iso_time)
-
-            # Log for debugging
-            logger.debug(f"Updated database sync time display to: {iso_time}")
-        else:
-            self.db_sync_time_label.configure(text="Unknown")
+        """Update the database sync time label (kept for compatibility)."""
+        # This is now a no-op since we track last full update instead
+        pass
 
     def refresh(self):
         """Refresh all dashboard data."""
@@ -884,8 +606,8 @@ class DashboardFrame(ttk.Frame):
 
     def on_frame_shown(self):
         """Called when this frame is shown."""
-        # Update database sync time whenever dashboard is shown
-        self.update_database_sync_time()
+        # Update last full update time whenever dashboard is shown
+        self.update_last_full_update_time()
         # Also refresh other data
         self.refresh()
 

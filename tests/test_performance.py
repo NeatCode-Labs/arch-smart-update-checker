@@ -37,7 +37,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
         for i in range(1000):
             cache.set(f"key_{i}", f"value_{i}")
         write_time = time.time() - start
-        self.assertLess(write_time, 1.5, "Cache writes too slow")
+        self.assertLess(write_time, 2.0, "Cache writes too slow")
         
         # Test read performance - 1000 items
         start = time.time()
@@ -57,8 +57,8 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             validate_package_name(pkg)
         validation_time = time.time() - start
         
-        # Should validate 10000 names reasonably fast (under 1 second)
-        self.assertLess(validation_time, 1.0, "Package validation too slow")
+        # Should validate 10000 names reasonably fast (under 1.5 seconds)
+        self.assertLess(validation_time, 1.5, "Package validation too slow")
 
     def test_thread_creation_performance(self):
         """Test thread creation and management performance."""

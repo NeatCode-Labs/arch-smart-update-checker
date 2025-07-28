@@ -5,6 +5,42 @@ All notable changes to Arch Smart Update Checker will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2025-07-28
+
+### Changed
+- **Integrated Database Sync** - Database syncing is now an integral part of "Check for Updates":
+  - Removed the dedicated "Sync Database" button from GUI
+  - Database automatically syncs when "Check for Updates" is clicked
+  - Users are prompted for authentication before syncing begins
+  - If sync is cancelled, update check is skipped to avoid showing stale results
+- **Last Full Update Display** - Replaced "Database last synced:" with more meaningful information:
+  - Now shows "Last full update:" timestamp
+  - Tracks when a full system update was performed (via "Update All" or selecting all updates)
+  - Detects full updates performed outside the app by parsing pacman.log
+  - Updates timestamp when all available packages are updated
+- **Improved Status Bar Formatting** - Fixed truncated update status messages:
+  - Changed from single-line format: "✓ x package(s) updated, y remaining"
+  - To two-line format with aligned numbers:
+    ```
+    ✓ x package(s) updated
+        y remaining
+    ```
+  - Used plain checkmark (✓) instead of emoji for consistent rendering
+  - Increased wraplength to prevent line breaking
+
+### Removed
+- Sync Database button from GUI dashboard
+- References to Zenity fallback (pkexec is now the only graphical authentication method)
+
+### Fixed
+- Status bar message truncation in all layout sizes
+- Threading errors in GUI tests
+- Performance test thresholds for system variations
+
+### Internal
+- Added comprehensive tests for external update detection
+- Updated documentation to remove outdated Zenity references
+
 ## [2.2.1] - 2025-07-28
 
 ### Changed

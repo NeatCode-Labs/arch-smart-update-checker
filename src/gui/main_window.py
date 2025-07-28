@@ -41,6 +41,7 @@ from ..utils.subprocess_wrapper import SecureSubprocess
 from ..constants import APP_VERSION
 from ..news_fetcher import NewsFetcher
 from .dimensions import get_dimensions
+from ..utils.pacman_runner import PacmanRunner
 
 logger = get_logger(__name__)
 
@@ -856,7 +857,8 @@ class MainWindow(WindowPositionMixin):
             font=self.dims.font('Segoe UI', 'small'),
             fg=self.colors['text_secondary'],
             bg=self.colors['surface'],
-            wraplength=self.dims.scale(180)  # Initial value, will be updated dynamically
+            wraplength=self.dims.scale(300),  # Increased to prevent line breaking
+            justify='left'  # Ensure multi-line text is left-aligned
         )
         self.status_label.pack(anchor='w')
 
@@ -1040,6 +1042,45 @@ class MainWindow(WindowPositionMixin):
 
         def check_thread():
             try:
+                # Sync database first (integrate sync functionality into check)
+                def update_sync_status():
+                    self.update_status("Syncing package database...", "info")
+                self.root.after(0, update_sync_status)
+                
+                sync_success = False
+                try:
+                    from ..utils.pacman_runner import PacmanRunner
+                    logger.info("Syncing package database before checking for updates")
+                    sync_result = PacmanRunner.sync_database(self.config)
+                    if sync_result.get('success'):
+                        sync_success = True
+                        logger.info("Database sync completed successfully")
+                        # Update dashboard sync time after successful sync
+                        if 'dashboard' in self.frames and hasattr(self.frames['dashboard'], 'update_database_sync_time'):
+                            self.root.after(0, self.frames['dashboard'].update_database_sync_time)
+                    else:
+                        error_msg = sync_result.get('error', 'Unknown error')
+                        logger.warning(f"Database sync failed: {error_msg}")
+                        
+                        # Check if user cancelled authentication
+                        if 'cancelled' in error_msg.lower() or 'dismissed' in error_msg.lower() or 'authentication' in error_msg.lower():
+                            logger.info("User cancelled authentication, returning to dashboard")
+                            self.root.after(0, lambda: self.update_status("Database sync cancelled by user", "info"))
+                        else:
+                            self.root.after(0, lambda: self.update_status(f"Database sync failed: {error_msg}", "error"))
+                except Exception as e:
+                    logger.error(f"Failed to sync database: {e}")
+                    self.root.after(0, lambda: self.update_status(f"Database sync error: {str(e)}", "error"))
+                
+                # Only continue with update check if sync was successful
+                if not sync_success:
+                    logger.info("Skipping update check due to sync failure")
+                    return
+                
+                def update_check_status():
+                    self.update_status("Checking for updates...", "info")
+                self.root.after(0, update_check_status)
+                
                 # Clear package manager cache BEFORE checking to free memory
                 try:
                     self.checker.package_manager.clear_cache()
@@ -3134,10 +3175,19 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
 
             except Exception as e:
                 logger.error(f"Failed to execute update with pkexec: {e}")
-                messagebox.showerror("Update Error",
-                                     f"Failed to execute update: {str(e)}\n\n"
-                                     "Make sure pkexec is installed (polkit package)")
-                self.main_window.update_status("Update failed: pkexec error", "error")
+                try:
+                    self.main_window.root.after(0, lambda: messagebox.showerror("Update Error",
+                                         f"Failed to execute update: {str(e)}\n\n"
+                                         "Make sure pkexec is installed (polkit package)"))
+                except Exception:
+                    # In test environment, skip UI updates
+                    pass
+                def update_error_status():
+                    self.main_window.update_status("Update failed: pkexec error", "error")
+                try:
+                    self.main_window.root.after(0, update_error_status)
+                except Exception:
+                    pass
 
         # Run in separate thread to avoid blocking UI using secure thread management
         import uuid
@@ -3174,6 +3224,11 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
         # If all packages have been installed, go back to dashboard
         if not self.packages:
             logger.info("All packages updated, returning to dashboard")
+            
+            # Mark that a full update was performed
+            if 'dashboard' in self.main_window.frames:
+                self.main_window.frames['dashboard']._mark_full_update()
+            
             # Clear the update counts in checker
             if hasattr(self.main_window.checker, 'last_updates'):
                 self.main_window.checker.last_updates = []
@@ -3228,10 +3283,10 @@ class UpdatesNewsFrame(ttk.Frame, WindowPositionMixin):
             # Show success message for partial update
             installed_count = len(installed_packages)
             remaining_count = len(self.packages)
-            self.main_window.update_status(
-                f"✅ {installed_count} package(s) updated, {remaining_count} remaining",
-                "success"
-            )
+            # Create two-line status message
+            # Using ✓ instead of emoji for consistent rendering
+            status_msg = f"✓ {installed_count} package(s) updated\n    {remaining_count} remaining"
+            self.main_window.update_status(status_msg, "success")
 
     def refresh_theme(self) -> None:
         """Refresh the frame with new theme colors."""

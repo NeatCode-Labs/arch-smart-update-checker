@@ -38,6 +38,12 @@ class SecureSubprocess:
             'required': True,
             'search_paths': ['/usr/bin', '/bin', '/usr/local/bin'],
             'alternatives': ['doas', 'pkexec'],
+        },
+        'pkexec': {
+            'description': 'PolicyKit privilege escalation',
+            'required': False,
+            'search_paths': ['/usr/bin', '/bin', '/usr/local/bin'],
+            'alternatives': ['sudo'],
         }
     }
 

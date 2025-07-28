@@ -14,9 +14,8 @@ flowchart TD
     B --> C1["Distribution & Kernel Detection"]
     B --> C2["News Fetching & Filtering"]
     B --> C3["Package Manager Operations"]
-    C3 --> D1["Sync Database"]
-    C3 --> D2["Check for Updates"]
-    C3 --> D3["Update All"]
+    C3 --> D1["Check for Updates (includes sync)"]
+    C3 --> D2["Update All"]
     B --> E["Security & Validation"]
     B --> F["UI Feedback & History"]
 ```
@@ -39,23 +38,22 @@ flowchart TD
 
 ## What Happens When...
 
-### 1. **User Clicks "Sync Database"**
+### 1. **User Clicks "Check for Updates"**
 
-**Goal:** Refresh the local package database from the latest mirror data.
+**Goal:** Sync package database and check for available updates with relevant news.
 
 **Step-by-step:**
-1. **Confirmation Dialog:** User is asked to confirm the sync action.
-2. **Progress Dialog:** A new window shows sync progress and status.
-3. **Authentication:**
-   - Tries `pkexec` (polkit) for privilege escalation.
-   - If on a hardened kernel or `pkexec` fails, falls back to `sudo` (with or without password, using Zenity for password prompt if needed).
+1. **Progress Indication:** Status bar shows "Syncing package database..."
+2. **Authentication:**
+   - Uses `pkexec` (polkit) for privilege escalation, which provides a secure GUI authentication dialog.
+   - Falls back to `sudo` in terminal mode (CLI) where password input is available.
    - If passwordless sudo is available, uses it directly.
-4. **Command Execution:** Runs `pacman -Sy --noconfirm` securely (no shell, no injection risk).
-5. **Real-time Output:** Progress is streamed live to the dialog.
-6. **Result Handling:**
-   - On success: UI updates, sync time is refreshed.
-   - On failure: Error is shown, with hints if authentication failed (e.g., missing polkit agent).
-7. **Threading:** All heavy work is done in a background thread to keep the UI responsive.
+3. **Database Sync:** Runs `pacman -Sy` securely to refresh package database.
+4. **Cancel Handling:** If user cancels authentication, returns to dashboard without checking updates.
+5. **Update Check:** After successful sync, fetches available package updates.
+6. **News Fetching:** Downloads and filters news relevant to installed packages.
+7. **Result Display:** Shows available updates with relevant news in a dialog.
+8. **Threading:** All operations run in background threads to keep UI responsive.
 
 **Diagram:**
 ```mermaid
@@ -63,60 +61,23 @@ sequenceDiagram
     participant U as User
     participant G as GUI
     participant S as Secure Subprocess
-    U->>G: Clicks "Sync Database"
-    G->>G: Show confirmation dialog
-    G->>G: Show progress dialog
+    participant N as News Fetcher
+    U->>G: Clicks "Check for Updates"
+    G->>G: Show "Syncing database..."
     G->>S: Start sync (pkexec/sudo)
-    S->>G: Stream output
-    S-->>G: Return success/failure
-    G->>U: Show result, update sync time
+    alt User provides password
+        S->>G: Database synced
+        G->>S: Check for updates
+        G->>N: Fetch relevant news
+        N->>G: Return filtered news
+        G->>U: Show update dialog
+    else User cancels
+        S->>G: Sync cancelled
+        G->>U: Return to dashboard
+    end
 ```
 
----
-
-### 2. **Distribution and Kernel Detection**
-
-**How it works:**
-- **Distribution:** Checks for specific files (e.g., `/etc/arch-release`, `/etc/manjaro-release`) to identify the distro. If not found, reads `/etc/os-release` and parses `ID` or `NAME` fields.
-- **Kernel:** Uses `uname -r` to get the kernel version and checks for keywords like "hardened" to adjust authentication methods.
-- **Feeds:** Based on detected distro, selects the right news feeds (e.g., Manjaro, EndeavourOS, etc.).
-- **Architecture:** Uses `platform.machine()` to detect system architecture.
-
-**Why it matters:** Ensures the app fetches the right news and uses the correct package manager commands for your system.
-
----
-
-### 3. **User Clicks "Search for Updates"**
-
-**Goal:** Check for available package updates and show relevant news.
-
-**Step-by-step:**
-1. **UI Animation:** Dashboard shows a "checking" animation.
-2. **Background Thread:** Starts a secure thread to avoid freezing the UI.
-3. **Cache Clearing:** Clears package manager cache to ensure fresh results.
-4. **Update Check:** Calls `pacman -Qu` (via a secure wrapper) to get a list of upgradable packages.
-5. **News Fetching:** Downloads all configured news feeds (RSS/Atom).
-6. **News Filtering:**
-   - Extracts package names from news items.
-   - Matches news to packages that have updates.
-   - Only shows news relevant to your system and pending updates.
-7. **UI Update:** Shows the list of updates and relevant news in a new frame.
-8. **Dashboard Refresh:** Updates stats cards and last check time.
-
-**Diagram:**
-```mermaid
-flowchart TD
-    A["User clicks Search for Updates"] --> B["Start background thread"]
-    B --> C["Clear cache"]
-    C --> D["Check for updates (pacman -Qu)"]
-    D --> E["Fetch news feeds"]
-    E --> F["Filter news for updated packages"]
-    F --> G["Update UI with results"]
-```
-
----
-
-### 4. **User Clicks "Update All"**
+### 2. **User Clicks "Update All"**
 
 **Goal:** Perform a full system upgrade (`pacman -Syu`).
 
@@ -180,11 +141,11 @@ Update history in ASUC is recorded automatically after updates, so you always ha
 ## Example Table: Authentication Fallbacks
 
 | Scenario                | Method Used         | User Prompted? | Notes                                 |
-|-------------------------|--------------------|---------------|---------------------------------------|
-| Standard kernel, polkit | pkexec             | Yes           | Default, most secure                  |
-| Hardened kernel         | sudo/zenity        | Yes           | Zenity password dialog if needed      |
-| Passwordless sudo       | sudo (no password) | No            | Used if available                     |
-| No polkit agent         | Error shown        | N/A           | User is told how to fix               |
+|-------------------------|---------------------|----------------|---------------------------------------|
+| GUI with polkit         | pkexec              | Yes            | Default, most secure, works on all kernels |
+| CLI/Terminal mode       | sudo                | Yes            | Terminal password prompt              |
+| Passwordless sudo       | sudo (no password)  | No             | Used if available                     |
+| No polkit agent         | Error shown         | N/A            | User is told how to fix               |
 
 ---
 

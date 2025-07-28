@@ -6,6 +6,6 @@ Arch Smart Update Checker - Main package
 
 from __future__ import annotations
 
-__version__ = "2.2.1"
+__version__ = "2.3.0"
 __author__ = "NeatCode Labs"
 __email__ = "neatcodelabs@gmail.com"
