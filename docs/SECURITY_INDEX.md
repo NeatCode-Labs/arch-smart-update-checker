@@ -4,22 +4,27 @@ This document provides an overview of all security-related documentation and fea
 
 ## Documentation Overview
 
-### 1. [SECURITY.md](SECURITY.md)
+### 1. [DISCLAIMER.md](DISCLAIMER.md)
+- **Purpose**: Important notice about AI-generated nature and usage risks
+- **Contents**: AI disclosure, warranty disclaimer, user responsibilities
+- **Audience**: ALL USERS - MUST READ BEFORE USE
+
+### 2. [SECURITY.md](SECURITY.md)
 - **Purpose**: Main security policy and overview
 - **Contents**: Security principles, vulnerability reporting, recent enhancements
 - **Audience**: All users and contributors
 
-### 2. [SECURITY_IMPLEMENTATION_REPORT.md](SECURITY_IMPLEMENTATION_REPORT.md)
+### 3. [SECURITY_IMPLEMENTATION_REPORT.md](SECURITY_IMPLEMENTATION_REPORT.md)
 - **Purpose**: Detailed technical report on security implementations
 - **Contents**: Complete list of security features, implementation details, metrics
 - **Audience**: Security auditors, maintainers, advanced users
 
-### 3. [SECURITY_GUIDELINES.md](SECURITY_GUIDELINES.md)
+### 4. [SECURITY_GUIDELINES.md](SECURITY_GUIDELINES.md)
 - **Purpose**: Security coding guidelines for contributors
 - **Contents**: Best practices, code examples, review checklist
 - **Audience**: Contributors, developers
 
-### 4. [SECURITY_REPORT.md](SECURITY_REPORT.md)
+### 5. [SECURITY_REPORT.md](SECURITY_REPORT.md)
 - **Purpose**: Original security assessment and recommendations
 - **Contents**: Initial security analysis, risk assessment, recommendations
 - **Audience**: Security researchers, auditors

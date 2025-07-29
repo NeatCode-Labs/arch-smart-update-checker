@@ -7,7 +7,9 @@
 [![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/SECURITY.md)
 [![Tests](https://img.shields.io/badge/tests-283%20passing-brightgreen.svg)](docs/TEST_REPORT.md)
 
-A professional replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
+> **⚠️ NOTICE**: This is **100% AI-generated software** (with human supervision). Please read the [DISCLAIMER](docs/DISCLAIMER.md) before use.
+
+ASUC is a replacement tool for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
 
 ## 🌟 Overview
 
