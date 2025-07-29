@@ -1,6 +1,6 @@
 # Arch Smart Update Checker
 
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
+[![Version](https://img.shields.io/badge/version-2.3.1-blue.svg)](https://github.com/neatcodelabs/arch-smart-update-checker)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![AUR](https://img.shields.io/aur/version/arch-smart-update-checker?color=1793d1&label=AUR&logo=arch-linux)](https://aur.archlinux.org/packages/arch-smart-update-checker)
