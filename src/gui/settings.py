@@ -1191,19 +1191,13 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
         tk.Entry(popup, textvariable=url_var, bg=self.colors['surface'],
                  fg=self.colors['text'], font=('Segoe UI', 10)).pack(fill='x', padx=20)
 
-        # Feed type
+        # Type dropdown
+        tk.Label(popup, text="Type:", font=('Segoe UI', 11),
+                 fg=self.colors['text'], bg=self.colors['surface']).pack(anchor='w', padx=20, pady=(15, 5))
         type_var = tk.StringVar(value=feed.get('type', 'news'))
-        ttk.Label(popup, text="Feed Type:", background=self.colors['background'],
-                  foreground=self.colors['text']).pack(anchor='w', padx=20, pady=(10, 5))
-        type_combo = ttk.Combobox(popup, textvariable=type_var, values=["news", "package"],
-                                  state="readonly", font=('Segoe UI', 10))
-        type_combo.pack(fill='x', padx=20)
-
-        # Enabled checkbox
-        enabled_var = tk.BooleanVar(value=feed.get('enabled', True))
-        tk.Checkbutton(popup, text="Enabled", variable=enabled_var,
-                       font=('Segoe UI', 11), fg=self.colors['text'],
-                       bg=self.colors['background']).pack(anchor='w', padx=20, pady=10)
+        type_menu = ttk.Combobox(popup, textvariable=type_var, values=['news', 'package'],
+                                 state='readonly', font=('Segoe UI', 10))
+        type_menu.pack(fill='x', padx=20, pady=(0, 20))
 
         # Buttons
         btn_frame = ttk.Frame(popup)
@@ -1227,7 +1221,7 @@ class SettingsFrame(ttk.Frame, WindowPositionMixin):
                     'name': name,
                     'url': url,
                     'type': type_var.get(),
-                    'enabled': enabled_var.get(),
+                    'enabled': feed.get('enabled', True),  # Keep existing enabled state
                     'priority': feed.get('priority', 2)  # Keep existing priority
                 }
                 self._config.set_feeds(feeds)

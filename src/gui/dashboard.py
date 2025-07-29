@@ -411,6 +411,9 @@ class DashboardFrame(ttk.Frame):
                 callback=lambda: self.status_label.configure(text=""),
                 component_id=self._component_id
             )
+        else:
+            # Clear the animation text immediately if no message provided
+            self.status_label.configure(text="")
 
     def check_updates(self) -> None:
         """Check for updates."""

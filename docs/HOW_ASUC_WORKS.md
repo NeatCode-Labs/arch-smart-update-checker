@@ -134,7 +134,12 @@ Update history in ASUC is recorded automatically after updates, so you always ha
 
 - **Package Extraction:** Uses pattern matching to find package names in news items.
 - **Relevance Filtering:** Only news affecting packages you have (and that have updates) is shown.
-- **Distribution Awareness:** News feeds are tailored to your detected distribution.
+- **Distribution Awareness:** News feeds are tailored to your detected distribution:
+  - On first run, distribution-specific RSS feeds are automatically added:
+    - **Manjaro**: "Manjaro Announcements" and "Manjaro Stable Updates" feeds
+    - **EndeavourOS**: "EndeavourOS News" feed
+  - These feeds are only added during initial setup to respect user preferences
+  - Users can freely add/remove feeds after installation without them being re-added
 
 ---
 

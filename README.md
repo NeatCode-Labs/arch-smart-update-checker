@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![AUR](https://img.shields.io/aur/version/arch-smart-update-checker?color=1793d1&label=AUR&logo=arch-linux)](https://aur.archlinux.org/packages/arch-smart-update-checker)
 [![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](docs/SECURITY.md)
-[![Tests](https://img.shields.io/badge/tests-272%20passing-brightgreen.svg)](docs/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-283%20passing-brightgreen.svg)](docs/TEST_REPORT.md)
 
 A professional replacement for `sudo pacman -Syu` that checks Arch Linux news feeds and informs you about news related to your installed packages before updating.
 
@@ -157,10 +157,17 @@ Key settings:
 
 ASUC automatically detects and configures feeds for:
 - **Arch Linux** - Official news and security advisories
-- **Manjaro** - Stable update announcements
+- **Manjaro** - Stable update announcements  
 - **EndeavourOS** - Distribution news
 - **Garuda, ArcoLinux, Artix** - Distribution-specific feeds
 - **Other derivatives** - Automatic detection
+
+**First Run Behavior:**
+- Distribution-specific RSS feeds are automatically added on first installation
+- For Manjaro: Both "Manjaro Announcements" and "Manjaro Stable Updates" feeds
+- For EndeavourOS: "EndeavourOS News" feed  
+- These feeds are only added once - subsequent runs respect your feed preferences
+- You can freely add/remove feeds without them being re-added
 
 ## 🔒 Security & Testing
 
@@ -192,7 +199,7 @@ ASUC implements enterprise-grade security with multiple layers of protection:
 
 ### Testing
 
-Comprehensive test suite with 266+ tests ensuring reliability:
+Comprehensive test suite with 283 tests ensuring reliability:
 
 ```bash
 # Run all tests

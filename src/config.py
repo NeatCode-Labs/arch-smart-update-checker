@@ -50,8 +50,15 @@ class Config:
             self.config_file = str(get_default_config_path())
 
         self.distribution_detector = DistributionDetector()
+        
+        # Check if this is a first run (config file doesn't exist yet)
+        is_first_run = not os.path.exists(self.config_file)
+        
         self._app_config = self._load_config()
+        # Ensure distribution-specific feeds are present only on first run
+        self._ensure_distribution_feeds(is_first_run)
         # Keep the old dict interface for backward compatibility
+        # Update to latest state after feed addition
         self.config = self._app_config.to_dict()
 
     def _get_default_config_path(self) -> str:
@@ -161,6 +168,45 @@ class Config:
         """
         return self._get_default_app_config().to_dict()
 
+    def _ensure_distribution_feeds(self, is_first_run: bool) -> None:
+        """Ensure distribution-specific feeds are present in the configuration."""
+        # Detect current distribution
+        current_distro = self.distribution_detector.detect_distribution()
+        
+        # Update distribution in config if it's different
+        if self._app_config.distribution != current_distro:
+            logger.info(f"Distribution changed from {self._app_config.distribution} to {current_distro}")
+            self._app_config.distribution = current_distro
+            self.save_config()
+
+        # Only add distribution-specific feeds on first run
+        if not is_first_run:
+            logger.debug("Not first run, skipping distribution feed addition")
+            return
+
+        # Get distribution-specific feeds that should be present
+        distro_feeds = self.distribution_detector.get_distribution_feeds(current_distro)
+
+        if not distro_feeds:
+            return
+
+        # Check if any distribution feeds are missing
+        existing_urls = {feed.url for feed in self._app_config.feeds}
+        feeds_added = False
+
+        for feed_dict in distro_feeds:
+            if feed_dict['url'] not in existing_urls:
+                # Add missing distribution feed
+                feed = FeedConfig.from_dict(feed_dict)
+                self._app_config.feeds.append(feed)
+                feeds_added = True
+                logger.info(f"Added {current_distro} feed: {feed.name}")
+
+        # Save if we added any feeds
+        if feeds_added:
+            self.save_config()
+            logger.info(f"Added {current_distro}-specific RSS feeds to configuration")
+
     def save_config(self) -> None:
         """
         Save current configuration to file.
@@ -182,8 +228,11 @@ class Config:
             except OSError as e:
                 logger.warning(f"Failed to set permissions on config directory: {e}")
 
+            # Use _app_config if config dict hasn't been set yet (during initialization)
+            config_data = self.config if hasattr(self, 'config') else self._app_config.to_dict()
+            
             with open(self.config_file, "w", encoding="utf-8") as f:
-                json.dump(self.config, f, indent=2, ensure_ascii=False)
+                json.dump(config_data, f, indent=2, ensure_ascii=False)
 
             # Set secure permissions on config file
             try:

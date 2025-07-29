@@ -410,11 +410,16 @@ def validate_url_enhanced(url: str,
 
     # Domain whitelist check
     if check_domain_whitelist and parsed.hostname:
-        domain_parts = parsed.hostname.lower().split('.')
-        if len(domain_parts) >= 2:
-            base_domain = '.'.join(domain_parts[-2:])
-            if base_domain not in TRUSTED_FEED_DOMAINS:
-                logger.info(f"URL domain not in trusted list: {base_domain}")
+        hostname = parsed.hostname.lower()
+        domain_parts = hostname.split('.')
+        
+        # Check both full hostname and base domain
+        if hostname not in TRUSTED_FEED_DOMAINS:
+            if len(domain_parts) >= 2:
+                base_domain = '.'.join(domain_parts[-2:])
+                if base_domain not in TRUSTED_FEED_DOMAINS:
+                    logger.info(f"URL domain not in trusted list: {hostname} (base: {base_domain})")
+                    # This is just informational, not a hard failure
 
     return True
 
@@ -593,6 +598,9 @@ def validate_feed_url(url: str, require_https: bool = True) -> bool:
 
     Returns:
         True if URL is valid and safe
+
+    Raises:
+        ValidationError: If URL is invalid or unsafe
     """
     if not url:
         return False
@@ -627,12 +635,16 @@ def validate_feed_url(url: str, require_https: bool = True) -> bool:
         return False
 
     # Check against trusted domains (optional)
-    domain_parts = parsed.hostname.lower().split('.')
-    if len(domain_parts) >= 2:
-        base_domain = '.'.join(domain_parts[-2:])
-        if base_domain not in TRUSTED_FEED_DOMAINS:
-            logger.info(f"URL domain not in trusted list: {base_domain}")
-            # This is just informational, not a hard failure
+    hostname = parsed.hostname.lower()
+    domain_parts = hostname.split('.')
+    
+    # Check both full hostname and base domain
+    if hostname not in TRUSTED_FEED_DOMAINS:
+        if len(domain_parts) >= 2:
+            base_domain = '.'.join(domain_parts[-2:])
+            if base_domain not in TRUSTED_FEED_DOMAINS:
+                logger.info(f"URL domain not in trusted list: {hostname} (base: {base_domain})")
+                # This is just informational, not a hard failure
 
     return True
 

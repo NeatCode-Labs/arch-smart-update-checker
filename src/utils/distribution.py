@@ -33,26 +33,51 @@ class DistributionDetector:
     def detect_distribution(self) -> str:
         """
         Detect the current Linux distribution.
-
+        
         Returns:
             Distribution name (lowercase) or 'unknown'
         """
-        # Check distribution-specific files
-        for distro, files in self.distribution_files.items():
-            for file_path in files:
+        from ..utils.logger import get_logger
+        logger = get_logger(__name__)
+        
+        # First try to read /etc/os-release as it's the most reliable
+        os_release_distro = self._read_os_release()
+        if os_release_distro is not None:
+            logger.debug(f"Detected {os_release_distro} via /etc/os-release")
+            # Additional package checks for edge cases
+            if os_release_distro == "arch":
+                # Check for derivative-specific packages
+                if self._check_package_exists("manjaro-release") or self._check_package_exists("manjaro-system"):
+                    logger.info("Detected Manjaro via package check (was detected as arch)")
+                    return "manjaro"
+                if self._check_package_exists("endeavouros-mirrorlist") or self._check_package_exists("eos-hooks"):
+                    logger.info("Detected EndeavourOS via package check (was detected as arch)")
+                    return "endeavouros"
+            return os_release_distro
+        
+        # Fallback: Check distribution-specific files
+        # Check derivatives first before base Arch
+        derivative_order = ["manjaro", "endeavouros", "garuda", "arcolinux", "artix", "parabola", "hyperbola"]
+        for distro in derivative_order:
+            if distro in self.distribution_files:
+                for file_path in self.distribution_files[distro]:
+                    if os.path.exists(file_path):
+                        logger.debug(f"Detected {distro} via {file_path}")
+                        return distro
+        
+        # Finally check for base Arch
+        if "arch" in self.distribution_files:
+            for file_path in self.distribution_files["arch"]:
                 if os.path.exists(file_path):
-                    return distro
+                    logger.debug(f"Detected arch via {file_path}")
+                    return "arch"
 
-        # Fallback to platform detection
+        # Platform detection fallback
         system = platform.system().lower()
         if system != "linux":
             return "unknown"
 
-        # Try to read /etc/os-release
-        os_release_distro = self._read_os_release()
-        if os_release_distro is not None:
-            return os_release_distro
-
+        logger.warning("Could not detect distribution, defaulting to 'unknown'")
         return "unknown"
 
     def _read_os_release(self) -> Optional[str]:
@@ -66,17 +91,35 @@ class DistributionDetector:
             with open("/etc/os-release", "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # Look for ID field
+            # Parse all fields into a dictionary
+            os_release_data = {}
             for line in content.split("\n"):
-                if line.startswith("ID="):
-                    distro = line.split("=", 1)[1].strip().strip('"')
-                    return distro.lower()
+                if "=" in line and not line.strip().startswith("#"):
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"')
+                    os_release_data[key] = value
 
-            # Look for NAME field as fallback
-            for line in content.split("\n"):
-                if line.startswith("NAME="):
-                    name = line.split("=", 1)[1].strip().strip('"')
-                    return self._normalize_distro_name(name)
+            # Check ID field first
+            if "ID" in os_release_data:
+                distro = os_release_data["ID"].lower()
+                # Check for known derivatives
+                if distro in ["manjaro", "endeavouros", "garuda", "artix", "parabola", "hyperbola"]:
+                    return distro
+                elif distro == "arch":
+                    # If identified as arch, check ID_LIKE and NAME to detect derivatives
+                    if "ID_LIKE" in os_release_data and "arch" in os_release_data["ID_LIKE"]:
+                        # Check NAME field for derivative names
+                        if "NAME" in os_release_data:
+                            name_lower = os_release_data["NAME"].lower()
+                            for derivative in ["manjaro", "endeavouros", "garuda", "artix"]:
+                                if derivative in name_lower:
+                                    return derivative
+                    return "arch"
+
+            # Fallback to NAME field
+            if "NAME" in os_release_data:
+                return self._normalize_distro_name(os_release_data["NAME"])
 
         except (OSError, UnicodeDecodeError):
             pass
@@ -125,15 +168,22 @@ class DistributionDetector:
         feeds = []
 
         if distro == "manjaro":
-            feeds.append(
+            feeds.extend([
                 {
-                    "name": "Manjaro Stable Updates",
+                    "name": "Manjaro Announcements",
+                    "url": "https://forum.manjaro.org/c/announcements.rss",
+                    "priority": 2,
+                    "type": "news",
+                    "enabled": True,
+                },
+                {
+                    "name": "Manjaro Stable Updates", 
                     "url": "https://forum.manjaro.org/c/announcements/stable-updates.rss",
                     "priority": 2,
                     "type": "news",
                     "enabled": True,
                 }
-            )
+            ])
         elif distro == "endeavouros":
             feeds.append(
                 {
@@ -217,3 +267,24 @@ class DistributionDetector:
                 return content
         except (IOError, OSError):
             return None
+
+    def _check_package_exists(self, package_name: str) -> bool:
+        """
+        Check if a package is installed.
+
+        Args:
+            package_name: Name of the package to check.
+
+        Returns:
+            True if the package is installed, False otherwise.
+        """
+        try:
+            subprocess.run(
+                ["pacman", "-Q", package_name],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return True
+        except subprocess.CalledProcessError:
+            return False

@@ -857,8 +857,9 @@ class MainWindow(WindowPositionMixin):
             font=self.dims.font('Segoe UI', 'small'),
             fg=self.colors['text_secondary'],
             bg=self.colors['surface'],
-            wraplength=self.dims.scale(300),  # Increased to prevent line breaking
-            justify='left'  # Ensure multi-line text is left-aligned
+            wraplength=self.dims.scale(230),  # Match sidebar width minus padding
+            justify='left',  # Ensure multi-line text is left-aligned
+            anchor='w'  # Ensure text starts from the left
         )
         self.status_label.pack(anchor='w')
 
@@ -905,15 +906,16 @@ class MainWindow(WindowPositionMixin):
     def _update_sidebar_width(self) -> None:
         """Set adaptive sidebar width based on layout."""
         # Ensure sidebar is wide enough for content
-        base_width = 210  # Slightly wider for button text
-        sidebar_width = max(190, self.dims.scale(base_width))
+        base_width = 250  # Increased width to prevent text truncation
+        sidebar_width = max(230, self.dims.scale(base_width))
 
         # Apply the width
         self.sidebar.configure(width=sidebar_width)
 
-        # Update wraplength for status labels
+        # Update wraplength for status labels with more margin
         if hasattr(self, 'status_label'):
-            self.status_label.configure(wraplength=sidebar_width - 30)
+            # Give more space for wrapping to prevent truncation
+            self.status_label.configure(wraplength=sidebar_width - 20)
 
     def setup_bindings(self) -> None:
         """Setup event bindings."""
@@ -1063,7 +1065,16 @@ class MainWindow(WindowPositionMixin):
                         logger.warning(f"Database sync failed: {error_msg}")
                         
                         # Check if user cancelled authentication
-                        if 'cancelled' in error_msg.lower() or 'dismissed' in error_msg.lower() or 'authentication' in error_msg.lower():
+                        # pkexec returns "Error executing command as another user: Not authorized" when cancelled
+                        # Also check for other common cancellation indicators
+                        error_lower = error_msg.lower()
+                        is_pkexec_cancel = ('error executing command as another user' in error_lower and 
+                                          'not authorized' in error_lower)
+                        is_other_cancel = ('cancelled' in error_lower or 
+                                         'dismissed' in error_lower or 
+                                         'authentication' in error_lower)
+                        
+                        if is_pkexec_cancel or is_other_cancel:
                             logger.info("User cancelled authentication, returning to dashboard")
                             self.root.after(0, lambda: self.update_status("Database sync cancelled by user", "info"))
                         else:
@@ -1072,10 +1083,18 @@ class MainWindow(WindowPositionMixin):
                     logger.error(f"Failed to sync database: {e}")
                     error_msg = str(e)
                     self.root.after(0, lambda: self.update_status(f"Database sync error: {error_msg}", "error"))
+                    # Make sure we don't continue after exception
+                    sync_success = False
                 
                 # Only continue with update check if sync was successful
                 if not sync_success:
                     logger.info("Skipping update check due to sync failure")
+                    # Notify dashboard to stop animation since we're not continuing
+                    def stop_dashboard_animation():
+                        if 'dashboard' in self.frames and hasattr(self.frames['dashboard'], 'stop_checking_animation'):
+                            # Clear the animation without showing a message (status bar already shows the message)
+                            self.frames['dashboard'].stop_checking_animation("", success=True)
+                    self.root.after(0, stop_dashboard_animation)
                     return
                 
                 def update_check_status():

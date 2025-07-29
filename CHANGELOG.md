@@ -5,6 +5,41 @@ All notable changes to Arch Smart Update Checker will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2025-07-29
+
+### Changed
+- **Automatic Distribution-Specific Feeds** - The app now automatically adds distribution-specific RSS feeds:
+  - Manjaro users: Automatically adds "Manjaro Announcements" and "Manjaro Stable Updates" feeds
+  - EndeavourOS users: Automatically adds "EndeavourOS News" feed
+  - These feeds are added during initial setup or when switching distributions
+- **Simplified Edit Feed Dialog** - Removed redundant "Enabled" checkbox from Edit RSS feed dialog:
+  - Feeds can already be enabled/disabled from the main settings page
+  - Edit dialog now only shows Name, URL, and Type fields
+- **Fixed Status Bar Truncation** - Resolved issue where error messages were getting heavily truncated:
+  - Increased sidebar base width to prevent text cutoff
+  - Adjusted wraplength calculations for better text display
+- **Fixed Update Check Button State** - Fixed issue where "Check for Updates" button would get stuck:
+  - Button now properly resets when database sync is cancelled
+  - Dashboard animation is stopped when sync fails
+- **Fixed Dashboard Animation** - Fixed "Checking for updates..." animation text that remained visible after cancelling update check
+
+### Fixed
+- **Improved Distribution Detection** - Enhanced detection logic to properly identify Manjaro and EndeavourOS:
+  - Better parsing of /etc/os-release file
+  - Improved handling of distribution derivatives
+  - Fixed missing return statement in distribution name normalization
+  - Added package-based detection as fallback for cases where os-release reports "arch"
+- **Fixed Config Initialization Error** - Fixed "Config object has no attribute 'config'" error when distribution changes during startup
+- **Fixed Domain Validation** - Fixed trusted domain validation to properly handle subdomains like forum.manjaro.org
+- **First-Run Feed Management** - Distribution-specific feeds are now only added on first installation:
+  - Prevents overwriting user's feed preferences on subsequent runs
+  - Users can freely add/remove feeds without them being re-added
+  - Distribution detection still updates the config's distribution field when needed
+
+### Internal
+- Added comprehensive test suite for distribution detection and first-run feed behavior (11 new tests)
+- Total test count increased to 283 tests, all passing
+
 ## [2.3.0] - 2025-07-28
 
 ### Changed
